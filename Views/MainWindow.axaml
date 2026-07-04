@@ -4,7 +4,7 @@
         xmlns:conv="using:OpenGameHUB.Converters"
         x:Class="OpenGameHUB.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/app.ico"
         Title="OpenGameHUB"
         Width="1280"
         Height="800"
