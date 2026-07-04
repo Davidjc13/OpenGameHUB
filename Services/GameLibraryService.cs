@@ -1,0 +1,517 @@
+using System.Diagnostics;
+using OpenGameHUB.Data;
+using OpenGameHUB.Models;
+using GameLib;
+using GameLib.Core;
+using GameLib.Plugin.Steam.Model;
+
+namespace OpenGameHUB.Services;
+
+public sealed class GameLibraryService : IDisposable
+{
+    private readonly GameDatabase _database = new();
+    private readonly MetadataService _metadataService;
+    private readonly SteamWebApiService _steamWebApiService = new();
+    private readonly SettingsService _settingsService = new();
+    private readonly LauncherManager _launcherManager = new(new LauncherOptions
+    {
+        QueryOnlineData = false,
+        LoadLocalCatalogData = true,
+        SearchExecutables = true
+    });
+
+    public GameLibraryService()
+    {
+        _metadataService = new MetadataService(_database, _settingsService);
+    }
+
+    public bool IsLegendaryAvailable => LegendaryClient.IsAvailable();
+
+    public SettingsService Settings => _settingsService;
+
+    public IReadOnlyList<UnifiedGame> LoadCachedGames()
+    {
+        var games = _database.GetAllGames().ToList();
+        _metadataService.ReconcileCachedCovers(games);
+        return games;
+    }
+
+    public async Task<IReadOnlyList<UnifiedGame>> RefreshLibraryAsync(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var games = await Task.Run(() => ScanAllGames(cancellationToken), cancellationToken);
+
+        if (_settingsService.Current.IsSteamApiConfigured)
+        {
+            progress?.Report(Loc.T("SyncingSteamLibrary"));
+            try
+            {
+                var owned = await _steamWebApiService.GetOwnedGamesAsync(
+                    _settingsService.Current.SteamApiKey,
+                    _settingsService.Current.SteamId,
+                    cancellationToken);
+                games = DeduplicateGames(games
+                    .Concat(_steamWebApiService.GetUninstalledOwnedGames(owned, games))
+                    .ToList())
+                    .ToList();
+            }
+            catch
+            {
+                // Steam API cloud library is optional.
+            }
+        }
+
+        _database.SyncScannedGames(games);
+
+        var stored = _database.GetAllGames();
+
+        if (_settingsService.Current.IsSteamApiConfigured)
+        {
+            progress?.Report(Loc.T("SyncingSteamPlaytime"));
+            await _steamWebApiService.EnrichPlaytimeAsync(
+                stored,
+                _settingsService.Current.SteamApiKey,
+                _settingsService.Current.SteamId,
+                cancellationToken);
+            _database.PersistPlaytimes(stored);
+        }
+
+        progress?.Report(Loc.T("DownloadingCovers"));
+        _metadataService.ReconcileCachedCovers(stored);
+        await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken);
+        return _database.GetAllGames();
+    }
+
+    public void LaunchGame(UnifiedGame game)
+    {
+        var attempts = BuildLaunchAttempts(game);
+        var errors = new List<string>();
+
+        foreach (var attempt in attempts)
+        {
+            try
+            {
+                attempt();
+                return;
+            }
+            catch (Exception ex)
+            {
+                errors.Add(ex.Message);
+            }
+        }
+
+        throw new InvalidOperationException(
+            errors.Count == 0
+                ? Loc.T("NoLaunchMethod")
+                : string.Join(" | ", errors));
+    }
+
+    public void ToggleFavorite(UnifiedGame game)
+    {
+        _database.SetFavorite(game.Id, !game.IsFavorite);
+    }
+
+    private IReadOnlyList<UnifiedGame> ScanInstalledGames(CancellationToken cancellationToken)
+    {
+        _launcherManager.Refresh(cancellationToken);
+
+        var results = new List<UnifiedGame>();
+        foreach (var launcher in _launcherManager.GetLaunchers())
+        {
+            if (!launcher.IsInstalled)
+                continue;
+
+            var platform = MapPlatform(launcher.Name);
+            foreach (var game in launcher.Games)
+            {
+                var unified = MapGame(platform, launcher, game);
+                if (unified is not null && !GameEntryFilter.IsExcluded(unified))
+                    results.Add(unified);
+            }
+        }
+
+        return results
+            .Where(game => !IsEpicWrapperForNativeLauncher(game, results))
+            .ToList();
+    }
+
+    private static bool IsEpicWrapperForNativeLauncher(UnifiedGame game, IReadOnlyList<UnifiedGame> allGames)
+    {
+        if (game.Platform != Platform.Epic)
+            return false;
+
+        var titleKey = MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant();
+        return allGames.Any(other =>
+            other.Platform is Platform.Riot or Platform.Ubisoft or Platform.Ea or Platform.BattleNet
+            && MetadataSearchHelper.NormalizeTitle(other.Title).ToLowerInvariant() == titleKey);
+    }
+
+    private List<UnifiedGame> ScanAllGames(CancellationToken cancellationToken)
+    {
+        var games = ScanInstalledGames(cancellationToken).ToList();
+        games.AddRange(EaDesktopScanner.Scan());
+
+        if (LegendaryClient.IsAvailable())
+        {
+            try
+            {
+                var cloudEpic = LegendaryClient.GetCloudOnlyGamesAsync(games, cancellationToken)
+                    .GetAwaiter().GetResult();
+                games.AddRange(cloudEpic);
+            }
+            catch
+            {
+                // legendary is optional
+            }
+        }
+
+        return DeduplicateGames(games).ToList();
+    }
+
+    private static IReadOnlyList<UnifiedGame> DeduplicateGames(List<UnifiedGame> games)
+    {
+        var pathMerged = new List<UnifiedGame>();
+        var withoutPath = new List<UnifiedGame>();
+
+        foreach (var group in games.GroupBy(g => NormalizeInstallPath(g.InstallPath) ?? string.Empty))
+        {
+            if (string.IsNullOrEmpty(group.Key))
+                withoutPath.AddRange(group);
+            else
+                pathMerged.Add(PickPreferredDuplicate(group));
+        }
+
+        return pathMerged
+            .Concat(withoutPath)
+            .GroupBy(g => NormalizeTitleKey(g.Title), StringComparer.OrdinalIgnoreCase)
+            .Select(PickPreferredDuplicate)
+            .OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static UnifiedGame PickPreferredDuplicate(IEnumerable<UnifiedGame> group) =>
+        group
+            .OrderByDescending(g => g.IsInstalled)
+            .ThenByDescending(g => GetPlatformPriority(g.Platform))
+            .ThenBy(g => g.Id, StringComparer.Ordinal)
+            .First();
+
+    private static int GetPlatformPriority(Platform platform) => platform switch
+    {
+        Platform.Riot => 100,
+        Platform.Steam => 95,
+        Platform.Ubisoft => 90,
+        Platform.Ea => 88,
+        Platform.Gog => 80,
+        Platform.BattleNet => 75,
+        Platform.Rockstar => 70,
+        Platform.Epic => 60,
+        _ => 0
+    };
+
+    private static string NormalizeTitleKey(string title) =>
+        MetadataSearchHelper.NormalizeTitle(title).ToLowerInvariant();
+
+    private static string? NormalizeInstallPath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !Directory.Exists(path))
+            return null;
+
+        try
+        {
+            return Path.GetFullPath(path)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                .ToLowerInvariant();
+        }
+        catch
+        {
+            return path.ToLowerInvariant();
+        }
+    }
+
+    private static string BuildStableId(Platform platform, IGame game)
+    {
+        var normalizedPath = NormalizeInstallPath(game.InstallDir);
+        if (!string.IsNullOrEmpty(normalizedPath))
+        {
+            var slug = Convert.ToHexString(
+                    System.Security.Cryptography.SHA256.HashData(
+                        System.Text.Encoding.UTF8.GetBytes(normalizedPath)))[..16]
+                .ToLowerInvariant();
+            return $"{platform.ToString().ToLowerInvariant()}:path:{slug}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(game.Id))
+            return $"{platform.ToString().ToLowerInvariant()}:{game.Id}";
+
+        var titleSlug = string.Concat(game.Name.Where(char.IsLetterOrDigit)).ToLowerInvariant();
+        return $"{platform.ToString().ToLowerInvariant()}:title:{titleSlug}";
+    }
+
+    private static UnifiedGame? MapGame(Platform platform, ILauncher launcher, IGame game)
+    {
+        if (string.IsNullOrWhiteSpace(game.Name))
+            return null;
+
+        try
+        {
+            var executable = ResolveExecutable(game);
+            var launchSpec = BuildLaunchSpec(platform, launcher, game, executable);
+            var isInstalled = !string.IsNullOrWhiteSpace(game.InstallDir) && Directory.Exists(game.InstallDir);
+
+            return new UnifiedGame
+            {
+                Id = BuildStableId(platform, game),
+                Platform = platform,
+                PlatformGameId = game.Id,
+                Title = game.Name,
+                IsInstalled = isInstalled,
+                InstallPath = isInstalled ? game.InstallDir : null,
+                PlaytimeMinutes = 0,
+                LaunchSpec = launchSpec
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static LaunchSpec BuildLaunchSpec(
+        Platform platform,
+        ILauncher launcher,
+        IGame game,
+        string? executable)
+    {
+        if (platform == Platform.Steam && game is SteamGame steamGame && !string.IsNullOrWhiteSpace(steamGame.Id))
+        {
+            var steamExe = ResolveLauncherExecutable(launcher, "steam.exe");
+            if (steamExe is not null)
+                return LaunchSpec.LauncherArgs(steamExe, $"-applaunch {steamGame.Id}");
+        }
+
+        if (platform == Platform.Ea && !string.IsNullOrWhiteSpace(game.LaunchString))
+        {
+            var launchString = game.LaunchString.Trim();
+            if (launchString.Contains("://", StringComparison.Ordinal))
+                return LaunchSpec.Protocol(launchString);
+
+            var eaLauncher = ResolveLauncherExecutable(launcher, "EADesktop.exe")
+                ?? ResolveLauncherExecutable(launcher, "EALauncher.exe");
+            if (eaLauncher is not null)
+                return LaunchSpec.LauncherArgs(eaLauncher, launchString);
+        }
+
+        if (!string.IsNullOrWhiteSpace(game.LaunchString))
+        {
+            var launchString = game.LaunchString.Trim();
+
+            if (launchString.Contains("://", StringComparison.Ordinal))
+                return LaunchSpec.Protocol(launchString);
+
+            if (launchString.StartsWith('-') || launchString.StartsWith("--", StringComparison.Ordinal))
+            {
+                var launcherExe = ResolveLauncherExecutable(launcher);
+                if (launcherExe is not null)
+                    return LaunchSpec.LauncherArgs(launcherExe, launchString);
+            }
+
+            var launchExe = launchString.Split(' ')[0];
+            if (File.Exists(launchExe))
+                return LaunchSpec.Executable(launchString);
+        }
+
+        if (!string.IsNullOrWhiteSpace(executable))
+            return LaunchSpec.Executable(executable);
+
+        if (!string.IsNullOrWhiteSpace(game.Executable) && File.Exists(game.Executable))
+            return LaunchSpec.Executable(game.Executable);
+
+        throw new InvalidOperationException(Loc.T("CannotDetermineLaunch", game.Name));
+    }
+
+    private static List<Action> BuildLaunchAttempts(UnifiedGame game)
+    {
+        var attempts = new List<Action>();
+
+        if (!string.IsNullOrWhiteSpace(game.LaunchSpec.Kind) &&
+            !string.IsNullOrWhiteSpace(game.LaunchSpec.Value))
+        {
+            switch (game.LaunchSpec.Kind)
+            {
+                case "executable":
+                    attempts.Add(() => StartExecutable(game.LaunchSpec.Value, game.InstallPath));
+                    break;
+                case "launcher-args":
+                    attempts.Add(() => StartLauncherArgs(game.LaunchSpec.Value, game.InstallPath));
+                    break;
+                case "protocol":
+                    attempts.Add(() => StartProtocol(game.LaunchSpec.Value));
+                    break;
+            }
+        }
+
+        if (game.Platform == Platform.Steam &&
+            int.TryParse(game.PlatformGameId, out var appId))
+        {
+            if (!game.IsInstalled)
+                attempts.Insert(0, () => StartProtocol($"steam://install/{appId}"));
+
+            var steamExe = @"C:\Program Files (x86)\Steam\steam.exe";
+            if (File.Exists(steamExe))
+                attempts.Add(() => StartProcess(steamExe, $"-applaunch {appId}", Path.GetDirectoryName(steamExe)));
+        }
+
+        if (game.Platform == Platform.Ea && !string.IsNullOrWhiteSpace(game.PlatformGameId))
+        {
+            attempts.Add(() => StartProtocol($"link2ea://launchgame/contentids/{game.PlatformGameId}"));
+            attempts.Add(() => StartProtocol($"origin2://game/launch?offerIds={game.PlatformGameId}"));
+        }
+
+        if (!string.IsNullOrWhiteSpace(game.InstallPath) && Directory.Exists(game.InstallPath))
+        {
+            var exe = FindBestGameExecutable(game.InstallPath);
+            if (exe is not null)
+                attempts.Add(() => StartExecutable(exe, game.InstallPath));
+        }
+
+        return attempts;
+    }
+
+    private static string? FindBestGameExecutable(string installPath)
+    {
+        if (!Directory.Exists(installPath))
+            return null;
+
+        return Directory
+            .GetFiles(installPath, "*.exe", SearchOption.TopDirectoryOnly)
+            .Where(path => !IsUtilityExecutable(path))
+            .OrderByDescending(path => new FileInfo(path).Length)
+            .FirstOrDefault();
+    }
+
+    private static void StartExecutable(string value, string? workingDirectory)
+    {
+        var parts = value.Split('|', 2);
+        var fileName = Path.GetFullPath(parts[0]);
+        if (!File.Exists(fileName))
+            throw new FileNotFoundException(Loc.T("ExecutableNotFound", fileName));
+
+        var arguments = parts.Length > 1 ? parts[1] : null;
+        StartProcess(fileName, arguments, workingDirectory ?? Path.GetDirectoryName(fileName), useShellExecute: false);
+    }
+
+    private static void StartLauncherArgs(string value, string? workingDirectory)
+    {
+        var separator = value.IndexOf('|');
+        if (separator <= 0)
+            throw new InvalidOperationException(Loc.T("InvalidLaunchFormat"));
+
+        var launcher = Path.GetFullPath(value[..separator]);
+        if (!File.Exists(launcher))
+            throw new FileNotFoundException(Loc.T("LauncherNotFound", launcher));
+
+        var arguments = value[(separator + 1)..];
+        StartProcess(launcher, arguments, workingDirectory ?? Path.GetDirectoryName(launcher), useShellExecute: false);
+    }
+
+    private static void StartProtocol(string url)
+    {
+        try
+        {
+            StartProcess(url, null, null, useShellExecute: true);
+        }
+        catch
+        {
+            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
+        }
+    }
+
+    private static void StartProcess(
+        string fileName,
+        string? arguments,
+        string? workingDirectory,
+        bool useShellExecute = true)
+    {
+        if (!useShellExecute && !File.Exists(fileName))
+            throw new FileNotFoundException(Loc.T("ExecutableNotFound", fileName));
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = arguments ?? string.Empty,
+            WorkingDirectory = workingDirectory ?? string.Empty,
+            UseShellExecute = useShellExecute
+        };
+
+        if (string.IsNullOrWhiteSpace(workingDirectory))
+            psi.WorkingDirectory = string.Empty;
+
+        if (Process.Start(psi) is null)
+            throw new InvalidOperationException(Loc.T("ProcessStartFailed", fileName));
+    }
+
+    private static string? ResolveExecutable(IGame game)
+    {
+        if (!string.IsNullOrWhiteSpace(game.Executable) && File.Exists(game.Executable))
+            return game.Executable;
+
+        foreach (var exe in game.Executables)
+        {
+            if (File.Exists(exe) && !IsUtilityExecutable(exe))
+                return exe;
+        }
+
+        if (string.IsNullOrWhiteSpace(game.InstallDir) || !Directory.Exists(game.InstallDir))
+            return null;
+
+        return FindBestGameExecutable(game.InstallDir);
+    }
+
+    private static string? ResolveLauncherExecutable(ILauncher launcher, string? preferredName = null)
+    {
+        if (!string.IsNullOrWhiteSpace(launcher.Executable) && File.Exists(launcher.Executable))
+            return launcher.Executable;
+
+        if (!string.IsNullOrWhiteSpace(preferredName) &&
+            !string.IsNullOrWhiteSpace(launcher.InstallDir))
+        {
+            var candidate = Path.Combine(launcher.InstallDir, preferredName);
+            if (File.Exists(candidate))
+                return candidate;
+        }
+
+        return null;
+    }
+
+    private static bool IsUtilityExecutable(string path)
+    {
+        var name = Path.GetFileName(path).ToLowerInvariant();
+        return name.Contains("unins", StringComparison.Ordinal)
+               || name.Contains("install", StringComparison.Ordinal)
+               || name.Contains("redist", StringComparison.Ordinal)
+               || name.Contains("crash", StringComparison.Ordinal)
+               || name.Contains("setup", StringComparison.Ordinal)
+               || name.Contains("autorun", StringComparison.Ordinal)
+               || name.Contains("uplayinstaller", StringComparison.Ordinal)
+               || name.Contains("createdump", StringComparison.Ordinal)
+               || name.Contains("dotnet", StringComparison.Ordinal)
+               || name is "unitycrashhandler64.exe" or "unitycrashhandler32.exe";
+    }
+
+    private static Platform MapPlatform(string launcherName) => launcherName.ToLowerInvariant() switch
+    {
+        "steam" => Platform.Steam,
+        "epic games" or "epic" => Platform.Epic,
+        "gog galaxy 2.0" or "gog galaxy" or "gog" => Platform.Gog,
+        "ubisoft connect" or "ubisoft" => Platform.Ubisoft,
+        "origin" or "ea app" or "ea" => Platform.Ea,
+        "battle.net" or "battlenet" => Platform.BattleNet,
+        "rockstar" => Platform.Rockstar,
+        "riot games" or "riot" => Platform.Riot,
+        _ => Platform.Unknown
+    };
+
+    public void Dispose() => _database.Dispose();
+}

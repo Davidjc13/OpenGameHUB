@@ -1,0 +1,336 @@
+using System.Collections.ObjectModel;
+using Avalonia.Controls;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using OpenGameHUB.Localization;
+using OpenGameHUB.Models;
+using OpenGameHUB.Services;
+using OpenGameHUB.Views;
+
+namespace OpenGameHUB.ViewModels;
+
+public partial class MainWindowViewModel : ViewModelBase
+{
+    private readonly GameLibraryService _libraryService = new();
+    private List<GameItemViewModel> _allGames = [];
+    private CancellationTokenSource? _statusClearCts;
+
+    public MainWindowViewModel()
+    {
+        Loc.Service.Initialize(_libraryService.Settings.Current.Language);
+        Loc.Service.LanguageChanged += OnLanguageChanged;
+
+        Games = new ObservableCollection<GameItemViewModel>();
+        PlatformFilters = new ObservableCollection<PlatformFilterItem>();
+        SortOptions = new ObservableCollection<SortOptionItem>();
+        Strings = new LocalizedStrings();
+
+        RebuildSortOptions();
+        RebuildPlatformFilters();
+
+        StatusText = Loc.T("LoadingLibrary");
+        LoadCachedGames();
+        _ = RefreshLibraryCommand.ExecuteAsync(null);
+    }
+
+    public ObservableCollection<GameItemViewModel> Games { get; }
+    public ObservableCollection<PlatformFilterItem> PlatformFilters { get; }
+    public ObservableCollection<SortOptionItem> SortOptions { get; }
+    public LocalizedStrings Strings { get; }
+
+    [ObservableProperty]
+    private string _searchText = string.Empty;
+
+    [ObservableProperty]
+    private string _statusText = string.Empty;
+
+    [ObservableProperty]
+    private string _gamesCountLabel = string.Empty;
+
+    [ObservableProperty]
+    private bool _isRefreshing;
+
+    [ObservableProperty]
+    private GameItemViewModel? _selectedGame;
+
+    [ObservableProperty]
+    private PlatformFilterItem? _selectedPlatformFilter;
+
+    [ObservableProperty]
+    private SortOptionItem? _selectedSortOption;
+
+    [ObservableProperty]
+    private bool _showFavoritesOnly;
+
+    [ObservableProperty]
+    private bool _showInstalledOnly;
+
+    public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+    partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
+    partial void OnSelectedSortOptionChanged(SortOptionItem? value) => ApplyFilter();
+    partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
+    partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
+
+    partial void OnSelectedGameChanged(GameItemViewModel? value)
+    {
+        foreach (var game in _allGames)
+            game.IsSelected = ReferenceEquals(game, value);
+
+        OnPropertyChanged(nameof(SelectedGameTitle));
+        OnPropertyChanged(nameof(SelectedGameActionLabel));
+    }
+
+    public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
+
+    public string SelectedGameActionLabel => SelectedGame?.ActionLabel ?? Loc.T("Play");
+
+    [RelayCommand]
+    private async Task RefreshLibraryAsync()
+    {
+        if (IsRefreshing)
+            return;
+
+        try
+        {
+            CancelScheduledStatusClear();
+            IsRefreshing = true;
+            var progress = new Progress<string>(message => StatusText = message);
+            StatusText = Loc.T("ScanningLaunchers");
+            var games = await _libraryService.RefreshLibraryAsync(progress);
+            _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+            RebuildPlatformFilters();
+            ApplyFilter();
+
+            var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint;
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("ScanError", ex.Message);
+        }
+        finally
+        {
+            IsRefreshing = false;
+            ScheduleStatusClear(TimeSpan.Zero);
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
+        await window.ShowDialog(GetMainWindow());
+        ApplyLocalization();
+    }
+
+    private static Window GetMainWindow()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            return desktop.MainWindow ?? throw new InvalidOperationException(Loc.T("MainWindowUnavailable"));
+
+        throw new InvalidOperationException(Loc.T("MainWindowUnavailable"));
+    }
+
+    [RelayCommand]
+    private void SelectGame(GameItemViewModel? game) => SelectedGame = game;
+
+    [RelayCommand]
+    private void LaunchSelectedGame()
+    {
+        if (SelectedGame is null)
+        {
+            StatusText = Loc.T("SelectGameFirst");
+            return;
+        }
+
+        try
+        {
+            _libraryService.LaunchGame(SelectedGame.Source);
+            StatusText = SelectedGame.Source.IsInstalled
+                ? Loc.T("LaunchingGame", SelectedGame.Title)
+                : Loc.T("StartingInstallLaunch", SelectedGame.Title);
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("LaunchFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void LaunchGame(GameItemViewModel? game)
+    {
+        if (game is null)
+            return;
+
+        SelectedGame = game;
+        LaunchSelectedGame();
+    }
+
+    [RelayCommand]
+    private void ToggleFavorite(GameItemViewModel? game)
+    {
+        if (game is null)
+            return;
+
+        game.IsFavorite = !game.IsFavorite;
+        _libraryService.ToggleFavorite(game.Source);
+        StatusText = game.IsFavorite
+            ? Loc.T("AddedToFavorites", game.Title)
+            : Loc.T("RemovedFromFavorites", game.Title);
+    }
+
+    private void LoadCachedGames()
+    {
+        var cached = _libraryService.LoadCachedGames();
+        if (cached.Count == 0)
+            return;
+
+        _allGames = cached.Select(g => new GameItemViewModel(g)).ToList();
+        RebuildPlatformFilters();
+        ApplyFilter();
+        StatusText = Loc.T("GamesInCache", _allGames.Count);
+    }
+
+    private void RebuildPlatformFilters()
+    {
+        var selected = SelectedPlatformFilter?.Platform;
+        PlatformFilters.Clear();
+        PlatformFilters.Add(new PlatformFilterItem(Loc.T("AllPlatforms"), null, selected is null));
+
+        foreach (var platform in _allGames.Select(g => g.Platform).Distinct().OrderBy(p => PlatformLabels.Get(p)))
+        {
+            var count = _allGames.Count(g => g.Platform == platform);
+            PlatformFilters.Add(new PlatformFilterItem($"{PlatformLabels.Get(platform)} ({count})", platform, selected == platform));
+        }
+
+        SelectedPlatformFilter = PlatformFilters.FirstOrDefault(f => f.IsSelected) ?? PlatformFilters[0];
+    }
+
+    private void RebuildSortOptions()
+    {
+        var selected = SelectedSortOption?.Option;
+        SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(Loc.T("SortTitleAsc"), SortOption.TitleAsc));
+        SortOptions.Add(new SortOptionItem(Loc.T("SortTitleDesc"), SortOption.TitleDesc));
+        SortOptions.Add(new SortOptionItem(Loc.T("SortPlatform"), SortOption.Platform));
+        SortOptions.Add(new SortOptionItem(Loc.T("SortInstalledFirst"), SortOption.InstalledFirst));
+        SortOptions.Add(new SortOptionItem(Loc.T("SortPlaytimeDesc"), SortOption.PlaytimeDesc));
+        SelectedSortOption = SortOptions.FirstOrDefault(s => s.Option == selected) ?? SortOptions[0];
+    }
+
+    private void ApplyFilter()
+    {
+        var query = SearchText.Trim();
+        IEnumerable<GameItemViewModel> filtered = _allGames;
+
+        if (SelectedPlatformFilter?.Platform is Platform platform)
+            filtered = filtered.Where(g => g.Platform == platform);
+
+        if (ShowFavoritesOnly)
+            filtered = filtered.Where(g => g.IsFavorite);
+
+        if (ShowInstalledOnly)
+            filtered = filtered.Where(g => g.Source.IsInstalled);
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            filtered = filtered.Where(g =>
+                g.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                g.PlatformLabel.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        filtered = (SelectedSortOption?.Option ?? SortOption.TitleAsc) switch
+        {
+            SortOption.TitleDesc => filtered.OrderByDescending(g => g.Title, StringComparer.OrdinalIgnoreCase),
+            SortOption.Platform => filtered.OrderBy(g => g.Platform).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
+            SortOption.InstalledFirst => filtered.OrderByDescending(g => g.Source.IsInstalled).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
+            SortOption.PlaytimeDesc => filtered.OrderByDescending(g => g.Source.PlaytimeMinutes).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
+            _ => filtered.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
+        };
+
+        var selected = SelectedGame;
+        Games.Clear();
+        foreach (var game in filtered)
+            Games.Add(game);
+
+        if (selected is not null && !Games.Contains(selected))
+            SelectedGame = null;
+
+        GamesCountLabel = Loc.T("ShowingGamesCount", Games.Count);
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e) =>
+        Dispatcher.UIThread.Post(ApplyLocalization);
+
+    private void ApplyLocalization()
+    {
+        Strings.Refresh();
+        RebuildSortOptions();
+        RebuildPlatformFilters();
+
+        foreach (var game in _allGames)
+            game.ApplyLocalization();
+
+        OnPropertyChanged(nameof(SelectedGameTitle));
+        OnPropertyChanged(nameof(SelectedGameActionLabel));
+        ApplyFilter();
+    }
+
+    private void ScheduleStatusClear(TimeSpan delay)
+    {
+        CancelScheduledStatusClear();
+        _statusClearCts = new CancellationTokenSource();
+        var token = _statusClearCts.Token;
+        _ = ClearStatusAfterDelayAsync(delay, token);
+    }
+
+    private void CancelScheduledStatusClear()
+    {
+        _statusClearCts?.Cancel();
+        _statusClearCts?.Dispose();
+        _statusClearCts = null;
+    }
+
+    private async Task ClearStatusAfterDelayAsync(TimeSpan delay, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(delay, token);
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Empty);
+        }
+        catch (TaskCanceledException)
+        {
+            // A new status message was scheduled before clearing.
+        }
+    }
+}
+
+public sealed class PlatformFilterItem
+{
+    public PlatformFilterItem(string label, Platform? platform, bool isSelected)
+    {
+        Label = label;
+        Platform = platform;
+        IsSelected = isSelected;
+    }
+
+    public string Label { get; }
+    public Platform? Platform { get; }
+    public bool IsSelected { get; }
+}
+
+public sealed class SortOptionItem
+{
+    public SortOptionItem(string label, SortOption option)
+    {
+        Label = label;
+        Option = option;
+    }
+
+    public string Label { get; }
+    public SortOption Option { get; }
+}

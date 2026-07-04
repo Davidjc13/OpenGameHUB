@@ -1,0 +1,14 @@
+namespace OpenGameHUB.Models;
+
+public enum Platform
+{
+    Unknown,
+    Steam,
+    Epic,
+    Gog,
+    Ubisoft,
+    Ea,
+    BattleNet,
+    Rockstar,
+    Riot
+}

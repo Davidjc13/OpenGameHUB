@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppSubtitle" xml:space="preserve"><value>Biblioteca unificada · instalados y juegos en la nube</value></data>
+  <data name="Settings" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="RefreshLibrary" xml:space="preserve"><value>Refrescar biblioteca</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Buscar juegos...</value></data>
+  <data name="Platforms" xml:space="preserve"><value>Plataformas</value></data>
+  <data name="Sort" xml:space="preserve"><value>Ordenar</value></data>
+  <data name="Filters" xml:space="preserve"><value>Filtros</value></data>
+  <data name="FavoritesOnly" xml:space="preserve"><value>Solo favoritos</value></data>
+  <data name="InstalledOnly" xml:space="preserve"><value>Solo instalados</value></data>
+  <data name="Detail" xml:space="preserve"><value>Detalle</value></data>
+  <data name="SelectGame" xml:space="preserve"><value>Selecciona un juego</value></data>
+  <data name="Play" xml:space="preserve"><value>Jugar</value></data>
+  <data name="Install" xml:space="preserve"><value>Instalar</value></data>
+  <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
+  <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
+  <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
+  <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
+  <data name="SortPlatform" xml:space="preserve"><value>Plataforma</value></data>
+  <data name="SortInstalledFirst" xml:space="preserve"><value>Instalados primero</value></data>
+  <data name="SortPlaytimeDesc" xml:space="preserve"><value>Más jugados</value></data>
+  <data name="AllPlatforms" xml:space="preserve"><value>Todas</value></data>
+  <data name="LoadingLibrary" xml:space="preserve"><value>Cargando biblioteca...</value></data>
+  <data name="ScanningLaunchers" xml:space="preserve"><value>Escaneando launchers instalados...</value></data>
+  <data name="SyncingSteamLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Steam...</value></data>
+  <data name="SyncingSteamPlaytime" xml:space="preserve"><value>Sincronizando tiempo de juego de Steam...</value></data>
+  <data name="DownloadingCovers" xml:space="preserve"><value>Descargando portadas...</value></data>
+  <data name="DownloadingCoversProgress" xml:space="preserve"><value>Descargando portadas ({0}/{1})...</value></data>
+  <data name="GamesInLibrary" xml:space="preserve"><value>{0} juegos en biblioteca</value></data>
+  <data name="EpicCloudHint" xml:space="preserve"><value> · Epic en la nube vía legendary</value></data>
+  <data name="ScanError" xml:space="preserve"><value>Error al escanear: {0}</value></data>
+  <data name="MainWindowUnavailable" xml:space="preserve"><value>Ventana principal no disponible.</value></data>
+  <data name="SelectGameFirst" xml:space="preserve"><value>Selecciona un juego primero.</value></data>
+  <data name="LaunchingGame" xml:space="preserve"><value>Lanzando {0}...</value></data>
+  <data name="StartingInstallLaunch" xml:space="preserve"><value>Iniciando instalación/lanzamiento de {0}...</value></data>
+  <data name="LaunchFailed" xml:space="preserve"><value>No se pudo lanzar: {0}</value></data>
+  <data name="AddedToFavorites" xml:space="preserve"><value>Añadido a favoritos: {0}</value></data>
+  <data name="RemovedFromFavorites" xml:space="preserve"><value>Quitado de favoritos: {0}</value></data>
+  <data name="GamesInCache" xml:space="preserve"><value>{0} juegos en caché</value></data>
+  <data name="UnknownPath" xml:space="preserve"><value>Ruta desconocida</value></data>
+  <data name="NotInstalled" xml:space="preserve"><value>No instalado</value></data>
+  <data name="Installed" xml:space="preserve"><value>Instalado</value></data>
+  <data name="InLibrary" xml:space="preserve"><value>En la biblioteca</value></data>
+  <data name="PlaytimePlayed" xml:space="preserve"><value>{0}h {1}m jugadas</value></data>
+  <data name="PlaytimeLastPlayed" xml:space="preserve"><value>{0}h {1}m · última vez {2}</value></data>
+  <data name="NoPlaytimeData" xml:space="preserve"><value>Sin datos de tiempo</value></data>
+  <data name="SettingsTitle" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="SettingsWindowTitle" xml:space="preserve"><value>Ajustes de OpenGameHUB</value></data>
+  <data name="SettingsDescription" xml:space="preserve"><value>Configura integraciones opcionales. Los juegos instalados se detectan sin API.</value></data>
+  <data name="Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="LanguageEnglish" xml:space="preserve"><value>Inglés</value></data>
+  <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
+  <data name="SteamApiHelp" xml:space="preserve"><value>Obtén tu clave en steamcommunity.com/dev/apikey y tu SteamID64 en steamid.io</value></data>
+  <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
+  <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
+  <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
+  <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
+  <data name="IgdbClientIdOptional" xml:space="preserve"><value>IGDB Client ID (opcional)</value></data>
+  <data name="IgdbClientSecretOptional" xml:space="preserve"><value>IGDB Client Secret (opcional)</value></data>
+  <data name="SteamGridDbApiKeyOptional" xml:space="preserve"><value>SteamGridDB API Key (opcional)</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="SettingsSaved" xml:space="preserve"><value>Ajustes guardados.</value></data>
+  <data name="NoLaunchMethod" xml:space="preserve"><value>No hay un método de lanzamiento disponible para este juego.</value></data>
+  <data name="CannotDetermineLaunch" xml:space="preserve"><value>No se pudo determinar cómo lanzar {0}.</value></data>
+  <data name="ExecutableNotFound" xml:space="preserve"><value>No se encontró el ejecutable: {0}</value></data>
+  <data name="InvalidLaunchFormat" xml:space="preserve"><value>Formato de lanzamiento inválido.</value></data>
+  <data name="LauncherNotFound" xml:space="preserve"><value>No se encontró el launcher: {0}</value></data>
+  <data name="ProcessStartFailed" xml:space="preserve"><value>No se pudo iniciar el proceso para {0}</value></data>
+  <data name="CannotRunLegendary" xml:space="preserve"><value>No se pudo ejecutar legendary.</value></data>
+  <data name="LegendaryFailed" xml:space="preserve"><value>legendary falló con código {0}</value></data>
+</root>
