@@ -30,7 +30,7 @@ A lightweight Windows desktop meta-launcher that unifies your game libraries acr
 ## Getting started
 
 ```powershell
-git clone <repository-url>
+git clone https://github.com/Davidjc13/OpenGameHUB.git
 cd OpenGameHUB
 dotnet run
 ```
@@ -42,6 +42,25 @@ dotnet run
 ```
 
 Output: `publish/win-x64/OpenGameHUB.exe` (self-contained, single file).
+
+### Build a Windows installer (`setup.exe`)
+
+Requires [Inno Setup 6](https://jrsoftware.org/isinfo.php) (installed automatically via winget if missing).
+
+```powershell
+.\build-installer.ps1
+```
+
+Output: `dist/OpenGameHUB-Setup-1.0.0.exe`
+
+The installer:
+- Installs to `%LocalAppData%\Programs\OpenGameHUB` (per-user, no admin required)
+- Creates Start Menu shortcut and optional desktop icon
+- Registers an uninstaller in Windows Settings
+- Includes the Spanish language pack (`es/`)
+- Shows the GPL-3.0 license during setup
+
+Upload `dist/OpenGameHUB-Setup-1.0.0.exe` to your releases repo for distribution.
 
 ## Configuration
 
