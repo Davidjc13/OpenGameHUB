@@ -28,7 +28,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private int _modalDepth;
     private bool _replayOnboardingAfterSettings;
     private bool _pendingDevRelaunch;
-    private bool _pendingDevClearDatabase;
 
     public MainWindowViewModel()
     {
@@ -301,12 +300,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ScheduleDevRelaunch() => _pendingDevRelaunch = true;
 
-    private void ClearDevLocalDatabase()
-    {
-        _libraryService.ResetLocalCache();
-        _pendingDevClearDatabase = true;
-    }
-
     [RelayCommand]
     private async Task OpenSettingsAsync()
     {
@@ -316,8 +309,7 @@ public partial class MainWindowViewModel : ViewModelBase
             await ShowDialogAsync(new SettingsWindow(new SettingsViewModel(
                 _libraryService.Settings,
                 ResetDevSession,
-                ScheduleDevRelaunch,
-                ClearDevLocalDatabase)));
+                ScheduleDevRelaunch)));
             ApplyLocalization();
 
             if (_pendingDevRelaunch)
@@ -329,12 +321,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            if (_pendingDevClearDatabase)
-            {
-                _pendingDevClearDatabase = false;
-                await RefreshLibraryCommand.ExecuteAsync(null);
-            }
-            else if (_replayOnboardingAfterSettings)
+            if (_replayOnboardingAfterSettings)
             {
                 _replayOnboardingAfterSettings = false;
                 await RefreshLibraryCommand.ExecuteAsync(null);

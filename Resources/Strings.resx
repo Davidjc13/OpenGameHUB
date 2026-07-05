@@ -224,8 +224,6 @@
   <data name="DevResetConnections" xml:space="preserve"><value>Reset connections</value></data>
   <data name="DevResetAndRelaunch" xml:space="preserve"><value>Reset &amp; relaunch</value></data>
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Connections reset. Refresh the library to replay onboarding prompts.</value></data>
-  <data name="DevClearLocalDatabase" xml:space="preserve"><value>Clear local database</value></data>
-  <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Local database cleared. The library will refresh when you close settings.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

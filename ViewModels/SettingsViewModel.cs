@@ -14,18 +14,15 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly SettingsService _settingsService;
     private readonly Action? _onDevSessionReset;
     private readonly Action? _onDevRelaunchRequested;
-    private readonly Action? _onDevClearLocalDatabase;
 
     public SettingsViewModel(
         SettingsService settingsService,
         Action? onDevSessionReset = null,
-        Action? onDevRelaunchRequested = null,
-        Action? onDevClearLocalDatabase = null)
+        Action? onDevRelaunchRequested = null)
     {
         _settingsService = settingsService;
         _onDevSessionReset = onDevSessionReset;
         _onDevRelaunchRequested = onDevRelaunchRequested;
-        _onDevClearLocalDatabase = onDevClearLocalDatabase;
         var current = settingsService.Current;
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
@@ -226,13 +223,6 @@ public partial class SettingsViewModel : ViewModelBase
         _settingsService.Save(DevModeService.ResetConnectionSettings(_settingsService.Current));
         _onDevRelaunchRequested?.Invoke();
         RequestClose?.Invoke();
-    }
-
-    [RelayCommand]
-    private void DevClearLocalDatabase()
-    {
-        _onDevClearLocalDatabase?.Invoke();
-        StatusMessage = Loc.T("DevClearLocalDatabaseDone");
     }
 
     private void RefreshEpicStatus()

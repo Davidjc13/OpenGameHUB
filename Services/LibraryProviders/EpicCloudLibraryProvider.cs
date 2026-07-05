@@ -1,6 +1,6 @@
+using System.Diagnostics;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
-using OpenGameHUB.Services.Epic;
 
 namespace OpenGameHUB.Services.LibraryProviders;
 
@@ -19,31 +19,23 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
         if (!LegendaryClient.IsAvailable())
             return [];
 
-        var installedIds = new HashSet<string>(
-            EpicManifestScanner.GetInstalledAppNames(),
-            StringComparer.OrdinalIgnoreCase);
-        foreach (var id in currentGames
-                     .Where(g => g.Platform == Platform.Epic)
-                     .Select(g => g.PlatformGameId)
-                     .Where(id => !string.IsNullOrWhiteSpace(id)))
-        {
-            installedIds.Add(id);
-        }
+        var installedIds = currentGames
+            .Where(g => g.Platform == Platform.Epic)
+            .Select(g => g.PlatformGameId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var installedTitles = currentGames
             .Where(g => g.Platform == Platform.Epic && g.IsInstalled)
             .Select(g => MetadataSearchHelper.NormalizeTitle(g.Title).ToLowerInvariant())
             .ToHashSet(StringComparer.Ordinal);
 
+        var legendary = LegendaryClient.FindExecutable()!;
         var results = new List<UnifiedGame>();
 
         foreach (var entry in LegendaryClient.ListCatalogEntries(cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            var installUrl = entry.BuildInstallProtocolUrl();
-            if (string.IsNullOrWhiteSpace(installUrl))
-                continue;
 
             if (installedIds.Contains(entry.AppName))
                 continue;
@@ -59,7 +51,7 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
                 PlatformGameId = entry.AppName,
                 Title = entry.AppTitle,
                 IsInstalled = false,
-                LaunchSpec = LaunchSpec.Protocol(installUrl)
+                LaunchSpec = LaunchSpec.LauncherArgs(legendary, $"install {entry.AppName}")
             };
 
             if (!GameEntryFilter.IsExcluded(game))
@@ -74,10 +66,61 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
         if (game.Platform != Platform.Epic || game.IsInstalled)
             yield break;
 
-        if (game.LaunchSpec.Kind != "protocol" || string.IsNullOrWhiteSpace(game.LaunchSpec.Value))
+        if (string.IsNullOrWhiteSpace(game.PlatformGameId))
             yield break;
 
-        var installUrl = game.LaunchSpec.Value;
-        yield return () => EpicLauncherClient.StartInstall(installUrl);
+        var appName = game.PlatformGameId;
+        yield return () => LegendaryClient.RunInstall(appName);
+        yield return () => StartProtocol($"com.epicgames.launcher://apps/{appName}?action=install");
+
+        var epicLauncher = LegendaryClient.FindEpicLauncherExecutable();
+        if (epicLauncher is not null)
+            yield return () => StartLauncherArgs(epicLauncher, $"com.epicgames.launcher://apps/{appName}?action=install");
+
+        yield return () => LegendaryClient.RunLaunch(appName);
+    }
+
+    private static void StartProtocol(string url)
+    {
+        try
+        {
+            StartProcess(url, null, null, useShellExecute: true);
+        }
+        catch
+        {
+            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
+        }
+    }
+
+    private static void StartLauncherArgs(string launcherExe, string protocolUrl)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = launcherExe,
+            Arguments = protocolUrl,
+            WorkingDirectory = Path.GetDirectoryName(launcherExe) ?? string.Empty,
+            UseShellExecute = false
+        };
+
+        if (Process.Start(psi) is null)
+            throw new InvalidOperationException(Loc.T("ProcessStartFailed", launcherExe));
+    }
+
+    private static void StartProcess(
+        string fileName,
+        string? arguments,
+        string? workingDirectory,
+        bool useShellExecute)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = fileName,
+            Arguments = arguments ?? string.Empty,
+            WorkingDirectory = workingDirectory ?? string.Empty,
+            UseShellExecute = useShellExecute
+        };
+
+        if (Process.Start(psi) is null)
+            throw new InvalidOperationException(Loc.T("ProcessStartFailed", fileName));
     }
 }

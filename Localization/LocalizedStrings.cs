@@ -76,7 +76,6 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string DevModeHelp => Loc.T("DevModeHelp");
     public string DevResetConnections => Loc.T("DevResetConnections");
     public string DevResetAndRelaunch => Loc.T("DevResetAndRelaunch");
-    public string DevClearLocalDatabase => Loc.T("DevClearLocalDatabase");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

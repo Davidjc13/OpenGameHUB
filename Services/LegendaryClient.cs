@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services.Epic;
@@ -124,226 +123,10 @@ public static class LegendaryClient
         ListCatalogEntriesAsync(cancellationToken).GetAwaiter().GetResult();
 
     public static void RunInstall(string appName) =>
-        RunHidden(FindExecutable(), BuildInstallArguments(appName));
-
-    public static Task InstallGameAsync(
-        string appName,
-        IProgress<LegendaryInstallProgress>? progress = null,
-        CancellationToken cancellationToken = default) =>
-        InstallGameAsync(appName, progress, cancellationToken, waitForExit: true);
-
-    public static void StartInstall(string appName) =>
-        _ = InstallGameAsync(appName, progress: null, CancellationToken.None, waitForExit: false);
-
-    private static async Task InstallGameAsync(
-        string appName,
-        IProgress<LegendaryInstallProgress>? progress,
-        CancellationToken cancellationToken,
-        bool waitForExit)
-    {
-        var legendary = FindExecutable()
-            ?? throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
-
-        progress?.Report(new LegendaryInstallProgress { Message = Loc.T("EpicInstallPreparing") });
-
-        using var process = StartInstallProcess(legendary, appName);
-        using var _ = cancellationToken.Register(() => TryKillProcess(process));
-
-        void ReportLine(string? line)
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                return;
-
-            var update = ParseInstallLine(line);
-            if (update is not null)
-                progress?.Report(update);
-        }
-
-        process.OutputDataReceived += (_, e) => ReportLine(e.Data);
-        process.ErrorDataReceived += (_, e) => ReportLine(e.Data);
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-
-        if (!waitForExit)
-            return;
-
-        await process.WaitForExitAsync(cancellationToken);
-        process.CancelOutputRead();
-        process.CancelErrorRead();
-
-        if (process.ExitCode != 0)
-            throw new InvalidOperationException(Loc.T("EpicInstallFailedExitCode", process.ExitCode));
-
-        if (!await IsGameInstalledAsync(appName, cancellationToken))
-            throw new InvalidOperationException(Loc.T("EpicInstallNotVerified", appName));
-
-        progress?.Report(new LegendaryInstallProgress
-        {
-            Percent = 100,
-            Message = Loc.T("EpicInstallSyncingEpic")
-        });
-
-        await SyncInstalledGamesToEpicLauncherAsync(cancellationToken);
-    }
-
-    public static async Task SyncInstalledGamesToEpicLauncherAsync(CancellationToken cancellationToken = default)
-    {
-        if (!IsEpicLauncherInstalled() || !IsAvailable())
-            return;
-
-        var legendary = FindExecutable();
-        if (legendary is null)
-            return;
-
-        try
-        {
-            await RunAsync(
-                legendary,
-                "-y egl-sync --export-only --one-shot",
-                cancellationToken,
-                TimeSpan.FromMinutes(3));
-        }
-        catch
-        {
-            // Epic launcher sync is optional; legendary install still works.
-        }
-    }
-
-    public static async Task<bool> IsGameInstalledAsync(
-        string appName,
-        CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(appName))
-            return false;
-
-        var installed = await ListInstalledEntriesAsync(cancellationToken);
-        return installed.Any(entry =>
-            string.Equals(entry.AppName, appName, StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrWhiteSpace(entry.InstallPath)
-            && Directory.Exists(entry.InstallPath));
-    }
-
-    public static IReadOnlyList<LegendaryInstalledEntry> ListInstalledEntries(
-        CancellationToken cancellationToken = default) =>
-        ListInstalledEntriesAsync(cancellationToken).GetAwaiter().GetResult();
-
-    public static async Task<IReadOnlyList<LegendaryInstalledEntry>> ListInstalledEntriesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        var legendary = FindExecutable();
-        if (legendary is null)
-            return [];
-
-        try
-        {
-            var output = await RunAsync(legendary, "list-installed --json", cancellationToken);
-            if (string.IsNullOrWhiteSpace(output))
-                return [];
-
-            return ParseInstalledJson(output);
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    private static IReadOnlyList<LegendaryInstalledEntry> ParseInstalledJson(string output)
-    {
-        try
-        {
-            var entries = JsonSerializer.Deserialize<List<LegendaryInstalledGame>>(output, JsonOptions) ?? [];
-            return entries
-                .Where(entry => !string.IsNullOrWhiteSpace(entry.AppName))
-                .Select(entry => new LegendaryInstalledEntry(
-                    entry.AppName.Trim(),
-                    string.IsNullOrWhiteSpace(entry.Title) ? entry.AppName.Trim() : entry.Title.Trim(),
-                    entry.InstallPath?.Trim() ?? string.Empty,
-                    entry.Executable?.Trim()))
-                .ToList();
-        }
-        catch
-        {
-            return [];
-        }
-    }
-
-    private static Process StartInstallProcess(string legendary, string appName)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = legendary,
-            Arguments = BuildInstallArguments(appName),
-            WorkingDirectory = Path.GetDirectoryName(legendary) ?? string.Empty,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        return Process.Start(psi)
-            ?? throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
-    }
-
-    private static string BuildInstallArguments(string appName) =>
-        $"-y --skip-dlcs --skip-sdl install {appName}";
-
-    public static string BuildInstallArgumentsForSpec(string appName) =>
-        BuildInstallArguments(appName);
-
-    private static readonly Regex InstallProgressRegex =
-        new(@"Progress:\s*(\d+(?:\.\d+)?)%", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    internal static LegendaryInstallProgress? ParseInstallLine(string line)
-    {
-        if (line.Contains("ERROR", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Error:", StringComparison.OrdinalIgnoreCase))
-        {
-            var trimmed = line.Trim();
-            return new LegendaryInstallProgress { Message = trimmed };
-        }
-
-        var match = InstallProgressRegex.Match(line);
-        if (match.Success
-            && double.TryParse(
-                match.Groups[1].Value,
-                System.Globalization.NumberStyles.Float,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var percent))
-        {
-            var clamped = Math.Clamp(percent, 0, 100);
-            return new LegendaryInstallProgress
-            {
-                Percent = clamped,
-                Message = Loc.T("EpicInstallProgress", $"{clamped:0.#}")
-            };
-        }
-
-        if (line.Contains("Install size:", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Download size:", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Getting game list", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Checking for updates", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Preparing", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Verifying", StringComparison.OrdinalIgnoreCase))
-        {
-            return new LegendaryInstallProgress { Message = Loc.T("EpicInstallPreparing") };
-        }
-
-        if (line.Contains("Finished", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("complete", StringComparison.OrdinalIgnoreCase))
-        {
-            return new LegendaryInstallProgress
-            {
-                Percent = 100,
-                Message = Loc.T("EpicInstallFinishing")
-            };
-        }
-
-        return null;
-    }
+        RunInConsole(FindExecutable(), $"install {appName}");
 
     public static void RunLaunch(string appName) =>
-        RunHidden(FindExecutable(), $"launch {appName}");
+        RunInConsole(FindExecutable(), $"launch {appName}");
 
     public static void RunAuth() =>
         RunHidden(FindExecutable(), "auth");
@@ -419,8 +202,23 @@ public static class LegendaryClient
             throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
     }
 
-    public static bool IsLegendaryExecutable(string path) =>
-        path.EndsWith("legendary.exe", StringComparison.OrdinalIgnoreCase);
+    private static void RunInConsole(string? executable, string arguments)
+    {
+        if (string.IsNullOrWhiteSpace(executable))
+            throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/c start \"legendary\" \"{executable}\" {arguments}",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
+        };
+
+        if (Process.Start(psi) is null)
+            throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
+    }
 
     public static string? FindExecutable()
     {
@@ -578,13 +376,7 @@ public static class LegendaryClient
                 .Where(entry => !entry.IsDlc && !string.IsNullOrWhiteSpace(entry.AppName))
                 .Select(entry => new LegendaryCatalogEntry(
                     entry.AppName.Trim(),
-                    string.IsNullOrWhiteSpace(entry.AppTitle) ? entry.AppName.Trim() : entry.AppTitle.Trim(),
-                    string.IsNullOrWhiteSpace(entry.Metadata?.CatalogNamespace)
-                        ? null
-                        : entry.Metadata.CatalogNamespace.Trim(),
-                    string.IsNullOrWhiteSpace(entry.Metadata?.CatalogItemId)
-                        ? null
-                        : entry.Metadata.CatalogItemId.Trim()))
+                    string.IsNullOrWhiteSpace(entry.AppTitle) ? entry.AppName.Trim() : entry.AppTitle.Trim()))
                 .ToList();
         }
         catch
@@ -596,17 +388,10 @@ public static class LegendaryClient
     private static async Task<string> RunAsync(
         string executable,
         string arguments,
-        CancellationToken cancellationToken) =>
-        await RunAsync(executable, arguments, cancellationToken, TimeSpan.FromSeconds(45));
-
-    private static async Task<string> RunAsync(
-        string executable,
-        string arguments,
-        CancellationToken cancellationToken,
-        TimeSpan timeout)
+        CancellationToken cancellationToken)
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(timeout);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(45));
 
         var psi = new ProcessStartInfo
         {
@@ -712,8 +497,4 @@ public sealed record LegendaryCatalogEntry(
     }
 }
 
-public sealed record LegendaryInstalledEntry(
-    string AppName,
-    string Title,
-    string InstallPath,
-    string? Executable);
+public sealed record LegendaryCatalogEntry(string AppName, string AppTitle);
