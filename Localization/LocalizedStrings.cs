@@ -21,6 +21,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SelectGame => Loc.T("SelectGame");
     public string Play => Loc.T("Play");
     public string ToggleFavorite => Loc.T("ToggleFavorite");
+    public string PreviousPage => Loc.T("PreviousPage");
+    public string NextPage => Loc.T("NextPage");
     public string SettingsTitle => Loc.T("SettingsTitle");
     public string SettingsWindowTitle => Loc.T("SettingsWindowTitle");
     public string SettingsDescription => Loc.T("SettingsDescription");
@@ -30,6 +32,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamWebApi => Loc.T("SteamWebApi");
     public string SteamApiHelp => Loc.T("SteamApiHelp");
     public string CoverArtSection => Loc.T("CoverArtSection");
+    public string DisplaySection => Loc.T("DisplaySection");
+    public string ShowGridCovers => Loc.T("ShowGridCovers");
+    public string ShowGridCoversHelp => Loc.T("ShowGridCoversHelp");
     public string CoverArtHelp => Loc.T("CoverArtHelp");
     public string SteamApiKeyPlaceholder => Loc.T("SteamApiKeyPlaceholder");
     public string SteamIdPlaceholder => Loc.T("SteamIdPlaceholder");

@@ -16,7 +16,6 @@ public partial class GameItemViewModel : ViewModelBase
         PlatformLabel = PlatformLabels.Get(game.Platform);
         IsFavorite = game.IsFavorite;
         ApplyLocalization();
-        _ = LoadCoverAsync();
     }
 
     public UnifiedGame Source { get; }
@@ -48,6 +47,15 @@ public partial class GameItemViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _hasCover;
+
+    [ObservableProperty]
+    private bool _showCoverInGrid;
+
+    public bool DisplayGridCover => ShowCoverInGrid && HasCover;
+
+    partial void OnHasCoverChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
+
+    partial void OnShowCoverInGridChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
 
     public void ApplyLocalization()
     {
@@ -97,10 +105,18 @@ public partial class GameItemViewModel : ViewModelBase
         return path is null ? Task.CompletedTask : SetCoverFromPathAsync(path);
     }
 
+    public void ReleaseCover()
+    {
+        CoverImage?.Dispose();
+        CoverImage = null;
+        HasCover = false;
+    }
+
     private async Task SetCoverFromPathAsync(string path)
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            CoverImage?.Dispose();
             Source.CoverPath = path;
             CoverImage = new Bitmap(path);
             HasCover = true;

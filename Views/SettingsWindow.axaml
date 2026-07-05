@@ -47,6 +47,18 @@
             <TextBox PlaceholderText="{Binding Strings.SteamIdPlaceholder}"
                      Text="{Binding SteamId}"/>
 
+            <TextBlock Text="{Binding Strings.DisplaySection}"
+                       FontWeight="SemiBold"
+                       Foreground="#D7DFF1"
+                       Margin="0,8,0,0"/>
+            <CheckBox Content="{Binding Strings.ShowGridCovers}"
+                      IsChecked="{Binding ShowGridCovers}"
+                      Foreground="#C5CEE0"/>
+            <TextBlock Text="{Binding Strings.ShowGridCoversHelp}"
+                       Foreground="#7E8AA3"
+                       FontSize="12"
+                       TextWrapping="Wrap"/>
+
             <TextBlock Text="{Binding Strings.CoverArtSection}"
                        FontWeight="SemiBold"
                        Foreground="#D7DFF1"

@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} de {1} · página {2}/{3}</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Plataforma</value></data>
@@ -115,6 +118,9 @@
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Obtén tu clave en steamcommunity.com/dev/apikey y tu SteamID64 en steamid.io</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
+  <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
+  <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
+  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Desactívalo para ahorrar memoria. Las portadas siguen viéndose en el panel de detalles al seleccionar un juego.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
