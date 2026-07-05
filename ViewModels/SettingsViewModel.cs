@@ -19,6 +19,7 @@ public partial class SettingsViewModel : ViewModelBase
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
+        ShowGridCovers = current.ShowGridCovers;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
     }
@@ -39,6 +40,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _steamGridDbApiKey = string.Empty;
+
+    [ObservableProperty]
+    private bool _showGridCovers = true;
 
     [ObservableProperty]
     private string _selectedLanguage = "en";
@@ -80,7 +84,8 @@ public partial class SettingsViewModel : ViewModelBase
             SteamId = SteamId.Trim(),
             IgdbClientId = IgdbClientId.Trim(),
             IgdbClientSecret = IgdbClientSecret.Trim(),
-            SteamGridDbApiKey = SteamGridDbApiKey.Trim()
+            SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
+            ShowGridCovers = ShowGridCovers
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);

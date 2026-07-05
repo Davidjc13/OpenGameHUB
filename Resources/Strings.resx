@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Install</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Toggle favorite</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Showing {0} games</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} of {1} · page {2}/{3}</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Next</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Name A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Name Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Platform</value></data>
@@ -87,6 +90,9 @@
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Downloading covers ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} games in library</value></data>
   <data name="EpicCloudHint" xml:space="preserve"><value> · Epic cloud via legendary</value></data>
+  <data name="UbisoftCloudHint" xml:space="preserve"><value> · Ubisoft library via Ubisoft Connect</value></data>
+  <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
+  <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
   <data name="ScanError" xml:space="preserve"><value>Scan failed: {0}</value></data>
   <data name="MainWindowUnavailable" xml:space="preserve"><value>Main window is not available.</value></data>
   <data name="SelectGameFirst" xml:space="preserve"><value>Select a game first.</value></data>
@@ -112,6 +118,9 @@
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Get your key at steamcommunity.com/dev/apikey and your SteamID64 at steamid.io</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
+  <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
+  <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>
+  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Disable to save memory. Covers are still shown in the details panel when you select a game.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>

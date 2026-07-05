@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.LibraryProviders;
+using OpenGameHUB.Services.Ubisoft;
 using GameLib;
 using GameLib.Core;
 using GameLib.Plugin.Steam.Model;
@@ -19,6 +21,10 @@ public sealed class GameLibraryService : IDisposable
         LoadLocalCatalogData = true,
         SearchExecutables = true
     });
+    private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders =
+    [
+        new UbisoftCloudLibraryProvider()
+    ];
 
     public GameLibraryService()
     {
@@ -26,6 +32,9 @@ public sealed class GameLibraryService : IDisposable
     }
 
     public bool IsLegendaryAvailable => LegendaryClient.IsAvailable();
+
+    public bool IsUbisoftCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Ubisoft && p.IsAvailable());
 
     public SettingsService Settings => _settingsService;
 
@@ -40,7 +49,9 @@ public sealed class GameLibraryService : IDisposable
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var games = await Task.Run(() => ScanAllGames(cancellationToken), cancellationToken);
+        var games = await Task.Run(
+            () => ScanAllGames(progress, cancellationToken),
+            cancellationToken);
 
         if (_settingsService.Current.IsSteamApiConfigured)
         {
@@ -65,6 +76,7 @@ public sealed class GameLibraryService : IDisposable
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
+        UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
 
         if (_settingsService.Current.IsSteamApiConfigured)
         {
@@ -147,7 +159,9 @@ public sealed class GameLibraryService : IDisposable
             && MetadataSearchHelper.NormalizeTitle(other.Title).ToLowerInvariant() == titleKey);
     }
 
-    private List<UnifiedGame> ScanAllGames(CancellationToken cancellationToken)
+    private List<UnifiedGame> ScanAllGames(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
@@ -164,6 +178,24 @@ public sealed class GameLibraryService : IDisposable
             catch
             {
                 // legendary is optional
+            }
+        }
+
+        foreach (var provider in _cloudProviders)
+        {
+            if (!provider.IsAvailable())
+                continue;
+
+            try
+            {
+                if (provider.Platform == Platform.Ubisoft)
+                    progress?.Report(Loc.T("SyncingUbisoftLibrary"));
+
+                games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
+            }
+            catch
+            {
+                // cloud library providers are optional
             }
         }
 
@@ -333,9 +365,17 @@ public sealed class GameLibraryService : IDisposable
         throw new InvalidOperationException(Loc.T("CannotDetermineLaunch", game.Name));
     }
 
-    private static List<Action> BuildLaunchAttempts(UnifiedGame game)
+    private List<Action> BuildLaunchAttempts(UnifiedGame game)
     {
         var attempts = new List<Action>();
+
+        if (!game.IsInstalled)
+        {
+            foreach (var provider in _cloudProviders.Where(p => p.Platform == game.Platform))
+            {
+                attempts.AddRange(provider.GetInstallLaunchAttempts(game));
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(game.LaunchSpec.Kind) &&
             !string.IsNullOrWhiteSpace(game.LaunchSpec.Value))
