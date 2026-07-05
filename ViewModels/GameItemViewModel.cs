@@ -16,7 +16,6 @@ public partial class GameItemViewModel : ViewModelBase
         PlatformLabel = PlatformLabels.Get(game.Platform);
         IsFavorite = game.IsFavorite;
         ApplyLocalization();
-        _ = LoadCoverAsync();
     }
 
     public UnifiedGame Source { get; }
@@ -49,6 +48,21 @@ public partial class GameItemViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasCover;
 
+    [ObservableProperty]
+    private bool _showCoverInGrid;
+
+    public bool DisplayGridCover => ShowCoverInGrid && HasCover;
+
+    public bool IsInstalled => Source.IsInstalled;
+
+    public double GridCoverOpacity => IsInstalled ? 1.0 : 0.75;
+
+    public double GridPlaceholderOpacity => IsInstalled ? 0.28 : 0.14;
+
+    partial void OnHasCoverChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
+
+    partial void OnShowCoverInGridChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
+
     public void ApplyLocalization()
     {
         InstallPath = Source.IsInstalled
@@ -57,6 +71,9 @@ public partial class GameItemViewModel : ViewModelBase
         InstallStatus = Source.IsInstalled ? Loc.T("Installed") : Loc.T("InLibrary");
         ActionLabel = Source.IsInstalled ? Loc.T("Play") : Loc.T("Install");
         PlaytimeLabel = BuildPlaytimeLabel();
+        OnPropertyChanged(nameof(IsInstalled));
+        OnPropertyChanged(nameof(GridCoverOpacity));
+        OnPropertyChanged(nameof(GridPlaceholderOpacity));
     }
 
     private string BuildPlaytimeLabel()
@@ -97,10 +114,18 @@ public partial class GameItemViewModel : ViewModelBase
         return path is null ? Task.CompletedTask : SetCoverFromPathAsync(path);
     }
 
+    public void ReleaseCover()
+    {
+        CoverImage?.Dispose();
+        CoverImage = null;
+        HasCover = false;
+    }
+
     private async Task SetCoverFromPathAsync(string path)
     {
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            CoverImage?.Dispose();
             Source.CoverPath = path;
             CoverImage = new Bitmap(path);
             HasCover = true;

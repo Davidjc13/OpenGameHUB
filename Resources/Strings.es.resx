@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} de {1} · página {2}/{3}</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Plataforma</value></data>
@@ -82,11 +85,18 @@
   <data name="LoadingLibrary" xml:space="preserve"><value>Cargando biblioteca...</value></data>
   <data name="ScanningLaunchers" xml:space="preserve"><value>Escaneando launchers instalados...</value></data>
   <data name="SyncingSteamLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Steam...</value></data>
+  <data name="SyncingSteamLocalLibrary" xml:space="preserve"><value>Leyendo biblioteca local de Steam...</value></data>
+  <data name="SteamLocalLibraryHint" xml:space="preserve"><value> · Biblioteca de Steam (local, automática)</value></data>
+  <data name="SteamLocalLibraryStatus" xml:space="preserve"><value>Automática · biblioteca local de Steam. Conecta API key para la biblioteca completa.</value></data>
   <data name="SyncingSteamPlaytime" xml:space="preserve"><value>Sincronizando tiempo de juego de Steam...</value></data>
   <data name="DownloadingCovers" xml:space="preserve"><value>Descargando portadas...</value></data>
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Descargando portadas ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} juegos en biblioteca</value></data>
   <data name="EpicCloudHint" xml:space="preserve"><value> · Epic en la nube vía legendary</value></data>
+  <data name="SteamCloudHint" xml:space="preserve"><value> · Biblioteca Steam vía Web API</value></data>
+  <data name="UbisoftCloudHint" xml:space="preserve"><value> · Biblioteca Ubisoft vía Ubisoft Connect</value></data>
+  <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
+  <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
   <data name="ScanError" xml:space="preserve"><value>Error al escanear: {0}</value></data>
   <data name="MainWindowUnavailable" xml:space="preserve"><value>Ventana principal no disponible.</value></data>
   <data name="SelectGameFirst" xml:space="preserve"><value>Selecciona un juego primero.</value></data>
@@ -111,7 +121,47 @@
   <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Obtén tu clave en steamcommunity.com/dev/apikey y tu SteamID64 en steamid.io</value></data>
+  <data name="SteamSetupButton" xml:space="preserve"><value>Configurar biblioteca de Steam...</value></data>
+  <data name="SteamSetupTitle" xml:space="preserve"><value>Configurar biblioteca de Steam</value></data>
+  <data name="SteamSetupDescription" xml:space="preserve"><value>Opcional: conecta tu biblioteca completa de Steam vía Web API. Ya leemos tu biblioteca local automáticamente — esto añade juegos que tienes pero Steam nunca sincronizó en este PC.</value></data>
+  <data name="SteamSetupStepAccount" xml:space="preserve"><value>1. Tu cuenta de Steam</value></data>
+  <data name="SteamSetupStepAccountHelp" xml:space="preserve"><value>Detectada desde tu instalación local de Steam. Inicia sesión en el cliente de Steam si falla la detección.</value></data>
+  <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detectar cuenta</value></data>
+  <data name="SteamSetupDetectedAccount" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="SteamSetupAccountDetected" xml:space="preserve"><value>Cuenta detectada.</value></data>
+  <data name="SteamSetupApiKeyReady" xml:space="preserve"><value>Cuenta detectada. Lee las instrucciones del paso 2 y abre la página de API key cuando estés listo.</value></data>
+  <data name="SteamSetupAccountNotFound" xml:space="preserve"><value>No se pudo leer tu cuenta de Steam. Abre Steam, inicia sesión e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupSteamNotInstalled" xml:space="preserve"><value>Steam no está instalado en este PC.</value></data>
+  <data name="SteamSetupStepApiKey" xml:space="preserve"><value>2. Steam Web API key</value></data>
+  <data name="SteamSetupStepApiKeyHelp" xml:space="preserve"><value>Pulsa el botón, inicia sesión en Steam y crea una clave. Puedes usar cualquier dominio (p. ej. localhost). Luego pega la clave aquí.</value></data>
+  <data name="SteamSetupOpenApiKeyPage" xml:space="preserve"><value>Abrir página de API key de Steam</value></data>
+  <data name="SteamSetupApiKeyInstructions" xml:space="preserve"><value>Pega la API key que copiaste de Steam y pulsa Probar y guardar.</value></data>
+  <data name="SteamSetupTestAndSave" xml:space="preserve"><value>Probar y guardar</value></data>
+  <data name="SteamSetupTesting" xml:space="preserve"><value>Probando conexión...</value></data>
+  <data name="SteamSetupSuccess" xml:space="preserve"><value>Conectado. Se encontraron {0} juegos en tu biblioteca de Steam.</value></data>
+  <data name="SteamSetupMissingFields" xml:space="preserve"><value>Introduce tu API key de Steam y asegúrate de que se detectó tu cuenta.</value></data>
+  <data name="SteamSetupInvalidSteamId" xml:space="preserve"><value>El Steam ID no parece válido.</value></data>
+  <data name="SteamSetupInvalidApiKey" xml:space="preserve"><value>API key inválida. Comprueba la clave e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupConnectionFailed" xml:space="preserve"><value>No se pudo conectar con Steam. Comprueba tu conexión e inténtalo de nuevo.</value></data>
+  <data name="SteamConfiguredStatus" xml:space="preserve"><value>Conectado · SteamID {0}</value></data>
+  <data name="SteamNotConfigured" xml:space="preserve"><value>Sin conectar. Configura Steam para ver tu biblioteca completa.</value></data>
+  <data name="SteamNotConfiguredInstalled" xml:space="preserve"><value>Steam detectado pero la biblioteca aún no está vinculada.</value></data>
+  <data name="SteamSetupPrompt" xml:space="preserve"><value> · Configura Steam en Ajustes</value></data>
+  <data name="SteamApiKeyPromptTitle" xml:space="preserve"><value>API key de Steam no configurada</value></data>
+  <data name="SteamApiKeyPromptIntro" xml:space="preserve"><value>Steam está instalado, pero aún no has vinculado una Web API key. Puedes configurarla ahora o continuar con la biblioteca local automática.</value></data>
+  <data name="SteamApiKeyPromptWhyTitle" xml:space="preserve"><value>¿Para qué sirve la API key?</value></data>
+  <data name="SteamApiKeyPromptWhy" xml:space="preserve"><value>Permite a OpenGameHUB listar tu biblioteca completa de Steam, incluidos juegos no instalados que nunca abriste en este PC, y sincronizar el tiempo de juego de tu cuenta.</value></data>
+  <data name="SteamApiKeyPromptWithoutTitle" xml:space="preserve"><value>Si continúas sin ella</value></data>
+  <data name="SteamApiKeyPromptWithout" xml:space="preserve"><value>Seguiremos leyendo tu biblioteca local de Steam automáticamente: juegos que Steam ha sincronizado en este PC, con tiempo de juego cuando esté disponible. Puede que falten juegos que posees pero nunca descargaste o jugaste aquí.</value></data>
+  <data name="SteamApiKeyPromptConfigure" xml:space="preserve"><value>Configurar API key</value></data>
+  <data name="SteamApiKeyPromptContinue" xml:space="preserve"><value>Continuar sin API key</value></data>
+  <data name="SteamApiKeyPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
+  <data name="SteamDisconnectApi" xml:space="preserve"><value>Quitar API key</value></data>
+  <data name="SteamApiDisconnected" xml:space="preserve"><value>API key de Steam eliminada. Se usará la biblioteca local en el próximo escaneo.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
+  <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
+  <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
+  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Desactívalo para ahorrar memoria. Las portadas siguen viéndose en el panel de detalles al seleccionar un juego.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>

@@ -49,6 +49,78 @@ public sealed class SteamWebApiService
             .ToList();
     }
 
+    public void EnrichPlaytimeFromOwned(
+        IReadOnlyList<UnifiedGame> games,
+        IReadOnlyList<SteamOwnedGameEntry> ownedGames)
+    {
+        if (ownedGames.Count == 0)
+            return;
+
+        var stats = ownedGames.ToDictionary(g => g.AppId.ToString(), g => g);
+
+        foreach (var game in games.Where(g => g.Platform == Platform.Steam))
+        {
+            if (!stats.TryGetValue(game.PlatformGameId, out var steamStats))
+                continue;
+
+            game.PlaytimeMinutes = steamStats.PlaytimeMinutes;
+            game.LastPlayed = steamStats.LastPlayed;
+        }
+    }
+
+    public static void EnrichCatalogCoverUrls(IReadOnlyList<UnifiedGame> games)
+    {
+        foreach (var game in games)
+        {
+            if (game.Platform != Platform.Steam || !string.IsNullOrWhiteSpace(game.CoverPath))
+                continue;
+
+            if (int.TryParse(game.PlatformGameId, out var appId))
+                game.CatalogCoverUrl ??= GetCoverUrl(appId);
+        }
+    }
+
+    public static string GetCoverUrl(int appId) =>
+        $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg";
+
+    public async Task<SteamConnectionTestResult> TestConnectionAsync(
+        string apiKey,
+        string steamId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(steamId))
+            return new SteamConnectionTestResult(false, Loc.T("SteamSetupMissingFields"), 0);
+
+        if (steamId.Length != 17 || !steamId.All(char.IsDigit))
+            return new SteamConnectionTestResult(false, Loc.T("SteamSetupInvalidSteamId"), 0);
+
+        try
+        {
+            var url =
+                $"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/" +
+                $"?key={Uri.EscapeDataString(apiKey.Trim())}" +
+                $"&steamid={Uri.EscapeDataString(steamId.Trim())}" +
+                "&include_appinfo=1&include_played_free_games=1";
+
+            using var response = await _httpClient.GetAsync(url, cancellationToken);
+            var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                return new SteamConnectionTestResult(false, Loc.T("SteamSetupInvalidApiKey"), 0);
+
+            if (!response.IsSuccessStatusCode)
+                return new SteamConnectionTestResult(false, Loc.T("SteamSetupConnectionFailed"), 0);
+
+            var parsed = System.Text.Json.JsonSerializer.Deserialize<SteamOwnedGamesResponse>(body);
+            var count = parsed?.Response?.Games?.Count ?? 0;
+            return new SteamConnectionTestResult(true, null, count);
+        }
+        catch (Exception ex)
+        {
+            return new SteamConnectionTestResult(false, ex.Message, 0);
+        }
+    }
+
     public async Task<IReadOnlyList<SteamOwnedGameEntry>> GetOwnedGamesAsync(
         string apiKey,
         string steamId,
@@ -85,6 +157,7 @@ public sealed class SteamWebApiService
         IsInstalled = false,
         PlaytimeMinutes = entry.PlaytimeMinutes,
         LastPlayed = entry.LastPlayed,
+        CatalogCoverUrl = GetCoverUrl(entry.AppId),
         LaunchSpec = LaunchSpec.Protocol($"steam://install/{entry.AppId}")
     };
 
@@ -93,6 +166,11 @@ public sealed class SteamWebApiService
         string Name,
         int PlaytimeMinutes,
         DateTime? LastPlayed);
+
+    public sealed record SteamConnectionTestResult(
+        bool Success,
+        string? ErrorMessage,
+        int GameCount);
 
     private sealed class SteamOwnedGamesResponse
     {
