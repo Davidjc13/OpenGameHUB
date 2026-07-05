@@ -1,0 +1,62 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenGameHUB.ViewModels"
+        x:Class="OpenGameHUB.Views.LegendaryPromptWindow"
+        x:DataType="vm:LegendaryPromptViewModel"
+        Title="{Binding Strings.LegendaryPromptTitle}"
+        Width="520"
+        Height="480"
+        MinWidth="480"
+        MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="#10131A">
+
+    <Grid Margin="24"
+          RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0"
+                      Classes="dialogScroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                <TextBlock Text="{Binding Strings.LegendaryPromptTitle}"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="#F4F7FF"/>
+                <TextBlock Text="{Binding Strings.LegendaryPromptIntro}"
+                           Foreground="#9AA6BF"
+                           TextWrapping="Wrap"/>
+
+                <Border Background="#161B27"
+                        CornerRadius="10"
+                        Padding="14"
+                        BorderBrush="#2B3448"
+                        BorderThickness="1">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding Strings.LegendaryPromptAuthTitle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="#D7DFF1"/>
+                        <TextBlock Text="{Binding Strings.LegendaryPromptAuth}"
+                                   Foreground="#7E8AA3"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1"
+                    Spacing="10"
+                    Margin="0,20,0,0">
+            <Button Classes="primary"
+                    Content="{Binding Strings.LegendaryPromptConnectEpic}"
+                    Command="{Binding ConnectEpicCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Content="{Binding Strings.LegendaryPromptContinue}"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Content="{Binding Strings.LegendaryPromptDontRemind}"
+                    Command="{Binding DontRemindAgainCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+    </Grid>
+</Window>

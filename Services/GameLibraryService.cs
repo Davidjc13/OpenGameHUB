@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services.Ea;
+using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Services.LibraryProviders;
 using OpenGameHUB.Services.Ubisoft;
 using GameLib;
@@ -25,21 +26,34 @@ public sealed class GameLibraryService : IDisposable
         SearchExecutables = true
     });
     private readonly SteamCloudLibraryProvider _steamCloudProvider;
+    private readonly EpicCloudLibraryProvider _epicCloudProvider;
     private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
 
     public GameLibraryService()
     {
         _steamCloudProvider = new SteamCloudLibraryProvider(_settingsService, _steamWebApiService);
+        _epicCloudProvider = new EpicCloudLibraryProvider();
         _cloudProviders =
         [
             _steamCloudProvider,
+            _epicCloudProvider,
             new UbisoftCloudLibraryProvider(),
             new EaCloudLibraryProvider()
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
 
-    public bool IsLegendaryAvailable => LegendaryClient.IsAvailable();
+    public bool IsEpicCloudAvailable => _epicCloudProvider.IsAvailable();
+
+    public bool IsEpicConnected =>
+        LegendaryClient.HasStoredCredentials()
+        || _settingsService.Current.HasEpicAuth;
+
+    public bool ShouldOfferLegendaryPrompt =>
+        LegendaryClient.IsEpicLauncherInstalled()
+        && LegendaryClient.IsAvailable()
+        && !IsEpicConnected
+        && !_settingsService.Current.DismissLegendaryPrompt;
 
     public bool IsUbisoftCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ubisoft && p.IsAvailable());
@@ -104,6 +118,24 @@ public sealed class GameLibraryService : IDisposable
             _steamCloudProvider.ClearOwnedGames();
         }
 
+        if (LegendaryClient.IsEpicLauncherInstalled())
+        {
+            progress?.Report(Loc.T("PreparingEpicLibrary"));
+            using var downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            downloadCts.CancelAfter(TimeSpan.FromSeconds(90));
+            try
+            {
+                await LegendaryBootstrap.EnsureInstalledAsync(progress, downloadCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Epic helper download timed out; continue without cloud Epic.
+            }
+
+            LegendaryClient.InvalidateExecutableCache();
+            EpicAuthHelper.PersistFromLegendary(_settingsService);
+        }
+
         var games = await Task.Run(
             () => ScanAllGames(progress, cancellationToken),
             cancellationToken);
@@ -121,10 +153,17 @@ public sealed class GameLibraryService : IDisposable
             _database.PersistPlaytimes(stored);
         }
 
-        progress?.Report(Loc.T("DownloadingCovers"));
         _metadataService.ReconcileCachedCovers(stored);
-        await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken);
         return _database.GetAllGames();
+    }
+
+    public async Task EnrichCoversAsync(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default,
+        int maxCovers = 32)
+    {
+        var stored = _database.GetAllGames();
+        await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken, maxCovers);
     }
 
     private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
@@ -221,20 +260,7 @@ public sealed class GameLibraryService : IDisposable
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
         games.AddRange(XboxGamePassScanner.Scan());
-
-        if (LegendaryClient.IsAvailable())
-        {
-            try
-            {
-                var cloudEpic = LegendaryClient.GetCloudOnlyGamesAsync(games, cancellationToken)
-                    .GetAwaiter().GetResult();
-                games.AddRange(cloudEpic);
-            }
-            catch
-            {
-                // legendary is optional
-            }
-        }
+        games.AddRange(EpicManifestScanner.ScanInstalled());
 
         foreach (var provider in _cloudProviders)
         {
@@ -250,6 +276,8 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingUbisoftLibrary"));
                 else if (provider.Platform == Platform.Ea)
                     progress?.Report(Loc.T("SyncingEaLibrary"));
+                else if (provider.Platform == Platform.Epic)
+                    progress?.Report(Loc.T("SyncingEpicLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
@@ -291,7 +319,9 @@ public sealed class GameLibraryService : IDisposable
 
         if (game.Id.StartsWith("ea:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }

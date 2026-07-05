@@ -34,7 +34,8 @@ public sealed class MetadataService
     public async Task EnrichCoversAsync(
         IReadOnlyList<UnifiedGame> games,
         IProgress<string>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maxCovers = int.MaxValue)
     {
         var settings = _settingsService.Current;
         ReconcileCachedCovers(games);
@@ -44,11 +45,21 @@ public sealed class MetadataService
             .Where(game => TryRegisterExistingCover(game) == false)
             .ToList();
 
+        if (maxCovers > 0 && candidates.Count > maxCovers)
+            candidates = candidates.Take(maxCovers).ToList();
+
+        if (candidates.Count == 0)
+            return;
+
+        progress?.Report(Loc.T("DownloadingCovers"));
+
         for (var i = 0; i < candidates.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var game = candidates[i];
-            progress?.Report(Loc.T("DownloadingCoversProgress", i + 1, candidates.Count));
+
+            if (i == 0 || i == candidates.Count - 1 || (i + 1) % 8 == 0)
+                progress?.Report(Loc.T("DownloadingCoversProgress", i + 1, candidates.Count));
 
             try
             {

@@ -36,7 +36,13 @@ public sealed class LocalizationService
     public string Get(string key, params object[] args)
     {
         var format = Get(key);
-        return args.Length == 0 ? format : string.Format(format, args);
+        if (args.Length == 0)
+            return format;
+
+        var safeArgs = args.Select(static arg =>
+            arg?.ToString()?.Replace("{", "{{", StringComparison.Ordinal)
+                .Replace("}", "}}", StringComparison.Ordinal) ?? string.Empty).ToArray();
+        return string.Format(format, safeArgs);
     }
 
     public static string ResolveLanguage(string? language)

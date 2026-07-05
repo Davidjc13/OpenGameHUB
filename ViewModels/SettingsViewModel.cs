@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
+using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -11,10 +12,17 @@ namespace OpenGameHUB.ViewModels;
 public partial class SettingsViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
+    private readonly Action? _onDevSessionReset;
+    private readonly Action? _onDevRelaunchRequested;
 
-    public SettingsViewModel(SettingsService settingsService)
+    public SettingsViewModel(
+        SettingsService settingsService,
+        Action? onDevSessionReset = null,
+        Action? onDevRelaunchRequested = null)
     {
         _settingsService = settingsService;
+        _onDevSessionReset = onDevSessionReset;
+        _onDevRelaunchRequested = onDevRelaunchRequested;
         var current = settingsService.Current;
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
@@ -23,14 +31,29 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         RefreshSteamStatus();
+        RefreshEpicStatus();
     }
 
     public bool IsSteamApiConnected => _settingsService.Current.IsSteamApiConfigured;
+
+    public bool IsEpicSectionVisible =>
+        LegendaryClient.IsEpicLauncherInstalled() || LegendaryClient.IsAvailable();
+
+    public bool IsEpicConnected =>
+        LegendaryClient.HasStoredCredentials()
+        || _settingsService.Current.HasEpicAuth;
+
+    public bool CanConnectEpic => LegendaryClient.IsAvailable() && !IsEpicConnected;
+
+    public bool IsDevModeEnabled => DevModeService.IsEnabled;
 
     public LocalizedStrings Strings { get; }
 
     [ObservableProperty]
     private string _steamStatusText = string.Empty;
+
+    [ObservableProperty]
+    private string _epicStatusText = string.Empty;
 
     [ObservableProperty]
     private string _igdbClientId = string.Empty;
@@ -108,12 +131,138 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             ShowGridCovers = current.ShowGridCovers,
-            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt
+            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
+            DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
+            DismissLegendaryPrompt = current.DismissLegendaryPrompt,
+            EpicAccountId = current.EpicAccountId,
+            EpicDisplayName = current.EpicDisplayName
         });
 
         RefreshSteamStatus();
         OnPropertyChanged(nameof(IsSteamApiConnected));
         StatusMessage = Loc.T("SteamApiDisconnected");
+    }
+
+    [RelayCommand]
+    private async Task ConnectEpicAsync()
+    {
+        if (!LegendaryClient.IsEpicLauncherInstalled() && !LegendaryClient.IsAvailable())
+        {
+            StatusMessage = Loc.T("EpicLauncherNotInstalled");
+            return;
+        }
+
+        try
+        {
+            StatusMessage = Loc.T("PreparingEpicLibrary");
+            using var downloadCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+            await LegendaryBootstrap.EnsureInstalledAsync(null, downloadCts.Token);
+            LegendaryClient.InvalidateExecutableCache();
+
+            if (!LegendaryClient.IsAvailable())
+            {
+                StatusMessage = Loc.T("EpicHelperUnavailable");
+                return;
+            }
+
+            LegendaryClient.RunAuth();
+            StatusMessage = Loc.T("EpicAuthStarted");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Loc.T("EpicConnectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectEpicAsync()
+    {
+        try
+        {
+            StatusMessage = Loc.T("EpicDisconnecting");
+            LegendaryClient.ClearStoredCredentials();
+            EpicAuthHelper.Clear(_settingsService);
+            RefreshEpicStatus();
+            OnPropertyChanged(nameof(IsEpicConnected));
+            OnPropertyChanged(nameof(CanConnectEpic));
+
+            if (LegendaryClient.IsAvailable())
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+                await LegendaryClient.RunDisconnectAsync(cts.Token);
+            }
+
+            StatusMessage = Loc.T("EpicDisconnected");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Loc.T("EpicDisconnectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void DevResetConnections()
+    {
+        DevModeService.ResetPlatformConnections();
+        _settingsService.Save(DevModeService.ResetConnectionSettings(_settingsService.Current));
+
+        RefreshSteamStatus();
+        RefreshEpicStatus();
+        OnPropertyChanged(nameof(IsSteamApiConnected));
+        OnPropertyChanged(nameof(IsEpicConnected));
+        OnPropertyChanged(nameof(CanConnectEpic));
+
+        _onDevSessionReset?.Invoke();
+        StatusMessage = Loc.T("DevResetConnectionsDone");
+    }
+
+    [RelayCommand]
+    private void DevResetAndRelaunch()
+    {
+        DevModeService.ResetPlatformConnections();
+        _settingsService.Save(DevModeService.ResetConnectionSettings(_settingsService.Current));
+        _onDevRelaunchRequested?.Invoke();
+        RequestClose?.Invoke();
+    }
+
+    private void RefreshEpicStatus()
+    {
+        try
+        {
+            if (!IsEpicSectionVisible)
+            {
+                EpicStatusText = Loc.T("EpicLauncherNotInstalled");
+                return;
+            }
+
+            if (!LegendaryClient.IsAvailable())
+            {
+                EpicStatusText = Loc.T("EpicNotConnectedStatus");
+                return;
+            }
+
+            if (LegendaryClient.HasStoredCredentials() || _settingsService.Current.HasEpicAuth)
+            {
+                var displayName = LegendaryClient.GetDisplayName()
+                    ?? _settingsService.Current.EpicDisplayName;
+                EpicStatusText = string.IsNullOrWhiteSpace(displayName)
+                    ? Loc.T("EpicConnectedStatus")
+                    : Loc.T("EpicConnectedStatusNamed", displayName);
+                return;
+            }
+
+            EpicStatusText = Loc.T("EpicNotConnectedStatus");
+        }
+        catch (Exception ex)
+        {
+            EpicStatusText = Loc.T("EpicNotConnectedStatus");
+            StatusMessage = Loc.T("ScanError", ex.Message);
+        }
+        finally
+        {
+            OnPropertyChanged(nameof(IsEpicConnected));
+            OnPropertyChanged(nameof(CanConnectEpic));
+        }
     }
 
     private void RefreshSteamStatus()
@@ -143,7 +292,11 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
             ShowGridCovers = ShowGridCovers,
-            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt
+            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
+            DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
+            DismissLegendaryPrompt = current.DismissLegendaryPrompt,
+            EpicAccountId = current.EpicAccountId,
+            EpicDisplayName = current.EpicDisplayName
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);

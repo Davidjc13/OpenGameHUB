@@ -18,6 +18,13 @@
     <None Include="tools\**" />
   </ItemGroup>
 
+  <ItemGroup Condition="Exists('third-party\legendary\legendary.exe')">
+    <Content Include="third-party\legendary\legendary.exe">
+      <Link>tools\legendary.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.5" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.5" />

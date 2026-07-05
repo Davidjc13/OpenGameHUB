@@ -5,9 +5,9 @@
         x:DataType="vm:SettingsViewModel"
         Title="{Binding Strings.SettingsWindowTitle}"
         Width="520"
-        Height="580"
+        Height="700"
         MinWidth="480"
-        MinHeight="520"
+        MinHeight="620"
         WindowStartupLocation="CenterOwner"
         Background="#10131A">
 
@@ -55,6 +55,26 @@
                                 IsVisible="{Binding IsSteamApiConnected}"/>
                     </StackPanel>
 
+                    <TextBlock Text="{Binding Strings.EpicLibrarySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <TextBlock Text="{Binding EpicStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10"
+                                IsVisible="{Binding IsEpicSectionVisible}">
+                        <Button Content="{Binding Strings.EpicConnectAccount}"
+                                Command="{Binding ConnectEpicCommand}"
+                                IsEnabled="{Binding CanConnectEpic}"/>
+                        <Button Content="{Binding Strings.EpicDisconnectAccount}"
+                                Command="{Binding DisconnectEpicCommand}"
+                                IsVisible="{Binding IsEpicConnected}"/>
+                    </StackPanel>
+
                     <TextBlock Text="{Binding Strings.DisplaySection}"
                                FontWeight="SemiBold"
                                Foreground="#D7DFF1"
@@ -81,6 +101,29 @@
                              Text="{Binding IgdbClientSecret}"/>
                     <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
                              Text="{Binding SteamGridDbApiKey}"/>
+
+                    <Border Background="#1A1218"
+                            CornerRadius="10"
+                            Padding="14"
+                            BorderBrush="#5C3040"
+                            BorderThickness="1"
+                            IsVisible="{Binding IsDevModeEnabled}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{Binding Strings.DevModeSection}"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F2B8C6"/>
+                            <TextBlock Text="{Binding Strings.DevModeHelp}"
+                                       Foreground="#9AA6BF"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="{Binding Strings.DevResetConnections}"
+                                        Command="{Binding DevResetConnectionsCommand}"/>
+                                <Button Content="{Binding Strings.DevResetAndRelaunch}"
+                                        Command="{Binding DevResetAndRelaunchCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
                     <TextBlock Text="{Binding StatusMessage}"
                                Foreground="#9AA6BF"

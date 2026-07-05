@@ -5,8 +5,8 @@ A lightweight Windows desktop meta-launcher that unifies your game libraries acr
 ## Features
 
 - **Multi-platform library** — Detects games from Steam, Epic, GOG, Ubisoft Connect, EA App, Battle.net, Rockstar, Riot Games, and **Xbox PC / Game Pass** (installed) via [GameLib.NET](https://github.com/Phalkion/GameLib.NET) and [GameFinder](https://github.com/erri120/GameFinder).
-- **Cloud libraries** — Steam owned games (via Web API) and Epic games (via [legendary](https://github.com/derrod/legendary)) appear even when not installed.
-- **Install from the app** — Uninstalled Steam games open the Steam install flow; Epic cloud games launch through legendary.
+- **Cloud libraries** — Steam owned games (via Web API) and Epic games (managed automatically via [legendary](https://github.com/derrod/legendary)) appear even when not installed.
+- **Install from the app** — Uninstalled Steam games open the Steam install flow; Epic cloud games install through the bundled Epic helper.
 - **Cover art** — Steam CDN, Wikipedia, IGDB, SteamGridDB, and built-in mappings for Riot titles. Covers are cached locally.
 - **Playtime** — Steam playtime sync when API credentials are configured.
 - **Favorites & filters** — Search, filter by platform, sort by name/playtime, show favorites or installed only.
@@ -22,7 +22,7 @@ A lightweight Windows desktop meta-launcher that unifies your game libraries acr
 
 | Integration | Purpose |
 |-------------|---------|
-| [legendary](https://github.com/derrod/legendary) | Epic cloud library and installs |
+| Epic library helper | Epic cloud library and installs (auto-downloaded; no Python) |
 | Steam Web API key + SteamID64 | Cloud Steam library and playtime |
 | IGDB Client ID + Secret | Better cover art for non-Steam games |
 | SteamGridDB API key | Alternative cover art sources |
