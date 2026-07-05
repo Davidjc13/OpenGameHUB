@@ -194,11 +194,17 @@
   <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Epic account connected ({0}). Cloud library sync is enabled.</value></data>
   <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Epic account not connected. Connect to list owned games that are not installed.</value></data>
   <data name="EpicAuthStarted" xml:space="preserve"><value>Epic sign-in opened. After completing it, refresh your library.</value></data>
+  <data name="EpicDisconnecting" xml:space="preserve"><value>Disconnecting Epic account...</value></data>
   <data name="EpicDisconnected" xml:space="preserve"><value>Epic account disconnected. Refresh your library to remove cloud-only Epic games.</value></data>
   <data name="EpicConnectFailed" xml:space="preserve"><value>Could not start Epic sign-in: {0}</value></data>
   <data name="EpicDisconnectFailed" xml:space="preserve"><value>Could not disconnect Epic account: {0}</value></data>
   <data name="EpicLauncherNotInstalled" xml:space="preserve"><value>Epic Games Launcher is not installed on this PC.</value></data>
   <data name="EpicHelperUnavailable" xml:space="preserve"><value>Epic library helper could not be prepared. Check your internet connection and try again.</value></data>
+  <data name="DevModeSection" xml:space="preserve"><value>Developer</value></data>
+  <data name="DevModeHelp" xml:space="preserve"><value>Reset platform connections and onboarding prompts for testing. Relaunch also clears the local library cache.</value></data>
+  <data name="DevResetConnections" xml:space="preserve"><value>Reset connections</value></data>
+  <data name="DevResetAndRelaunch" xml:space="preserve"><value>Reset &amp; relaunch</value></data>
+  <data name="DevResetConnectionsDone" xml:space="preserve"><value>Connections reset. Refresh the library to replay onboarding prompts.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>
@@ -220,4 +226,5 @@
   <data name="ProcessStartFailed" xml:space="preserve"><value>Could not start process for {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>Could not run legendary.</value></data>
   <data name="LegendaryFailed" xml:space="preserve"><value>legendary failed with exit code {0}</value></data>
+  <data name="LegendaryTimedOut" xml:space="preserve"><value>legendary took too long to respond</value></data>
 </root>

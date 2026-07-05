@@ -60,7 +60,9 @@ public partial class SteamApiKeyPromptViewModel : ViewModelBase
             ShowGridCovers = current.ShowGridCovers,
             DismissSteamApiKeyPrompt = true,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
-            DismissLegendaryPrompt = current.DismissLegendaryPrompt
+            DismissLegendaryPrompt = current.DismissLegendaryPrompt,
+            EpicAccountId = current.EpicAccountId,
+            EpicDisplayName = current.EpicDisplayName
         });
         RequestClose?.Invoke();
     }

@@ -194,11 +194,17 @@
   <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Cuenta Epic conectada ({0}). La sincronización en la nube está activa.</value></data>
   <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Cuenta Epic no conectada. Conéctala para listar juegos que aún no están instalados.</value></data>
   <data name="EpicAuthStarted" xml:space="preserve"><value>Inicio de sesión de Epic abierto. Cuando lo completes, actualiza la biblioteca.</value></data>
+  <data name="EpicDisconnecting" xml:space="preserve"><value>Desconectando cuenta Epic...</value></data>
   <data name="EpicDisconnected" xml:space="preserve"><value>Cuenta Epic desconectada. Actualiza la biblioteca para quitar juegos Epic solo en la nube.</value></data>
   <data name="EpicConnectFailed" xml:space="preserve"><value>No se pudo iniciar el inicio de sesión de Epic: {0}</value></data>
   <data name="EpicDisconnectFailed" xml:space="preserve"><value>No se pudo desconectar la cuenta Epic: {0}</value></data>
   <data name="EpicLauncherNotInstalled" xml:space="preserve"><value>Epic Games Launcher no está instalado en este PC.</value></data>
   <data name="EpicHelperUnavailable" xml:space="preserve"><value>No se pudo preparar el ayudante de biblioteca Epic. Comprueba tu conexión e inténtalo de nuevo.</value></data>
+  <data name="DevModeSection" xml:space="preserve"><value>Desarrollador</value></data>
+  <data name="DevModeHelp" xml:space="preserve"><value>Restablece conexiones de plataformas y avisos de onboarding para pruebas. Relanzar también borra la caché local de biblioteca.</value></data>
+  <data name="DevResetConnections" xml:space="preserve"><value>Restablecer conexiones</value></data>
+  <data name="DevResetAndRelaunch" xml:space="preserve"><value>Restablecer y relanzar</value></data>
+  <data name="DevResetConnectionsDone" xml:space="preserve"><value>Conexiones restablecidas. Actualiza la biblioteca para volver a ver los avisos.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
@@ -220,4 +226,5 @@
   <data name="ProcessStartFailed" xml:space="preserve"><value>No se pudo iniciar el proceso para {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>No se pudo ejecutar legendary.</value></data>
   <data name="LegendaryFailed" xml:space="preserve"><value>legendary falló con código {0}</value></data>
+  <data name="LegendaryTimedOut" xml:space="preserve"><value>legendary tardó demasiado en responder</value></data>
 </root>

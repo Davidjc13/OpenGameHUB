@@ -27,44 +27,69 @@ public static class LegendaryClient
         && IsAvailable()
         && !HasStoredCredentials();
 
-    public static bool HasStoredCredentials()
-    {
-        return TryReadUserData(out _);
-    }
+    public static bool HasStoredCredentials() => TryReadAuthSnapshot(out _, out _);
 
     public static string? GetDisplayName()
     {
-        return TryReadUserData(out var userData)
-            && userData.TryGetProperty("displayName", out var name)
-            && name.ValueKind == JsonValueKind.String
-            ? name.GetString()
-            : null;
+        TryReadAuthSnapshot(out _, out var displayName);
+        return string.IsNullOrWhiteSpace(displayName) ? null : displayName;
     }
 
-    private static bool TryReadUserData(out JsonElement userData)
-    {
-        userData = default;
+    public static string? GetAccountId() =>
+        TryReadAuthSnapshot(out var accountId, out _) ? accountId : null;
 
-        var configPath = Path.Combine(
+    private static string GetConfigDirectory()
+    {
+        var custom = Environment.GetEnvironmentVariable("LEGENDARY_CONFIG_PATH");
+        if (!string.IsNullOrWhiteSpace(custom))
+            return custom.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".config",
-            "legendary",
-            "config.json");
+            "legendary");
+    }
 
-        if (!File.Exists(configPath))
+    private static string UserDataPath => Path.Combine(GetConfigDirectory(), "user.json");
+
+    private static bool TryReadAuthSnapshot(out string? accountId, out string? displayName)
+    {
+        accountId = null;
+        displayName = null;
+
+        if (!File.Exists(UserDataPath))
             return false;
 
         try
         {
-            using var document = JsonDocument.Parse(File.ReadAllText(configPath));
-            if (!document.RootElement.TryGetProperty("userData", out userData)
-                || userData.ValueKind != JsonValueKind.Object
-                || !userData.EnumerateObject().Any())
-            {
+            using var document = JsonDocument.Parse(File.ReadAllText(UserDataPath));
+            var userData = document.RootElement;
+            if (userData.ValueKind != JsonValueKind.Object)
                 return false;
+
+            if (userData.TryGetProperty("account_id", out var accountIdElement)
+                && accountIdElement.ValueKind == JsonValueKind.String)
+            {
+                accountId = accountIdElement.GetString();
             }
 
-            return true;
+            if (userData.TryGetProperty("displayName", out var displayNameElement)
+                && displayNameElement.ValueKind == JsonValueKind.String)
+            {
+                displayName = displayNameElement.GetString();
+            }
+
+            if (!string.IsNullOrWhiteSpace(accountId))
+                return true;
+
+            if (userData.TryGetProperty("access_token", out var accessToken)
+                && accessToken.ValueKind == JsonValueKind.String
+                && !string.IsNullOrWhiteSpace(accessToken.GetString()))
+            {
+                return true;
+            }
+
+            return false;
         }
         catch
         {
@@ -81,7 +106,7 @@ public static class LegendaryClient
 
         try
         {
-            var output = await RunAsync(legendary, "list-games --json", cancellationToken);
+            var output = await RunAsync(legendary, "list --json", cancellationToken);
             if (string.IsNullOrWhiteSpace(output))
                 return [];
 
@@ -106,15 +131,19 @@ public static class LegendaryClient
     public static void RunAuth() =>
         RunHidden(FindExecutable(), "auth");
 
-    public static void RunDisconnect()
+    public static void RunDisconnect() =>
+        RunDisconnectAsync(CancellationToken.None).GetAwaiter().GetResult();
+
+    public static async Task RunDisconnectAsync(CancellationToken cancellationToken = default)
     {
         var legendary = FindExecutable();
         if (legendary is not null)
         {
             try
             {
-                RunAsync(legendary, "auth --delete", CancellationToken.None)
-                    .GetAwaiter().GetResult();
+                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                timeoutCts.CancelAfter(TimeSpan.FromSeconds(8));
+                await RunAsync(legendary, "auth --delete", timeoutCts.Token);
             }
             catch
             {
@@ -125,22 +154,23 @@ public static class LegendaryClient
         TryDeleteCredentialsFile();
     }
 
+    public static void ClearStoredCredentials() => TryDeleteCredentialsFile();
+
     private static void TryDeleteCredentialsFile()
     {
-        var configPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".config",
-            "legendary",
-            "config.json");
-
-        try
+        var configDir = GetConfigDirectory();
+        foreach (var fileName in new[] { "user.json", "entitlements.json", "metadata.json" })
         {
-            if (File.Exists(configPath))
-                File.Delete(configPath);
-        }
-        catch
-        {
-            // optional
+            try
+            {
+                var path = Path.Combine(configDir, fileName);
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+                // optional
+            }
         }
     }
 
@@ -359,6 +389,9 @@ public static class LegendaryClient
         string arguments,
         CancellationToken cancellationToken)
     {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(45));
+
         var psi = new ProcessStartInfo
         {
             FileName = executable,
@@ -372,16 +405,40 @@ public static class LegendaryClient
         using var process = Process.Start(psi)
             ?? throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
 
-        var output = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-        var error = await process.StandardError.ReadToEndAsync(cancellationToken);
-        await process.WaitForExitAsync(cancellationToken);
+        try
+        {
+            var outputTask = process.StandardOutput.ReadToEndAsync(timeoutCts.Token);
+            var errorTask = process.StandardError.ReadToEndAsync(timeoutCts.Token);
+            await process.WaitForExitAsync(timeoutCts.Token);
 
-        if (process.ExitCode != 0)
-            throw new InvalidOperationException(string.IsNullOrWhiteSpace(error)
-                ? Loc.T("LegendaryFailed", process.ExitCode)
-                : error.Trim());
+            var output = await outputTask;
+            var error = await errorTask;
 
-        return output;
+            if (process.ExitCode != 0)
+                throw new InvalidOperationException(string.IsNullOrWhiteSpace(error)
+                    ? Loc.T("LegendaryFailed", process.ExitCode)
+                    : error.Trim());
+
+            return output;
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            TryKillProcess(process);
+            throw new TimeoutException(Loc.T("LegendaryTimedOut"));
+        }
+    }
+
+    private static void TryKillProcess(Process process)
+    {
+        try
+        {
+            if (!process.HasExited)
+                process.Kill(entireProcessTree: true);
+        }
+        catch
+        {
+            // optional
+        }
     }
 
     private sealed class LegendaryGame

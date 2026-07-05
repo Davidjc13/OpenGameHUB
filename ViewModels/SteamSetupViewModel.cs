@@ -122,7 +122,9 @@ public partial class SteamSetupViewModel : ViewModelBase
                 ShowGridCovers = current.ShowGridCovers,
                 DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
                 DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
-                DismissLegendaryPrompt = current.DismissLegendaryPrompt
+                DismissLegendaryPrompt = current.DismissLegendaryPrompt,
+                EpicAccountId = current.EpicAccountId,
+                EpicDisplayName = current.EpicDisplayName
             });
 
             StatusMessage = Loc.T("SteamSetupSuccess", result.GameCount);

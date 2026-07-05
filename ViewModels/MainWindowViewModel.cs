@@ -19,9 +19,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
+    private CancellationTokenSource? _refreshCts;
+    private CancellationTokenSource? _coverCts;
     private bool _steamApiPromptOffered;
     private bool _eaLibraryPromptOffered;
     private bool _legendaryPromptOffered;
+    private int _modalDepth;
+    private bool _replayOnboardingAfterSettings;
+    private bool _pendingDevRelaunch;
 
     public MainWindowViewModel()
     {
@@ -138,25 +143,24 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshLibraryAsync()
     {
-        if (IsRefreshing)
-            return;
+        _refreshCts?.Cancel();
+        _refreshCts?.Dispose();
+        _refreshCts = new CancellationTokenSource();
+        var token = _refreshCts.Token;
+
+        CancelScheduledStatusClear();
+        await RunOnUiThreadAsync(() => IsRefreshing = true);
 
         try
         {
-            CancelScheduledStatusClear();
-            IsRefreshing = true;
             var progress = new Progress<string>(message =>
-            {
-                if (Dispatcher.UIThread.CheckAccess())
-                    StatusText = message;
-                else
-                    Dispatcher.UIThread.Post(() => StatusText = message);
-            });
+                Dispatcher.UIThread.Post(() => StatusText = message));
 
-            StatusText = Loc.T("ScanningLaunchers");
-            var games = await _libraryService.RefreshLibraryAsync(progress);
+            await RunOnUiThreadAsync(() => StatusText = Loc.T("ScanningLaunchers"));
+            var games = await _libraryService.RefreshLibraryAsync(progress, token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
 
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            await RunOnUiThreadAsync(() =>
             {
                 _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
                 RebuildPlatformFilters();
@@ -175,40 +179,162 @@ public partial class MainWindowViewModel : ViewModelBase
                         : string.Empty;
                 StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
             });
+
+            StartBackgroundCoverEnrichment();
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            await RunOnUiThreadAsync(() => StatusText = string.Empty);
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            await RunOnUiThreadAsync(() =>
                 StatusText = Loc.T("ScanError", ex.Message));
         }
         finally
         {
-            IsRefreshing = false;
-            ScheduleStatusClear(TimeSpan.Zero);
+            await RunOnUiThreadAsync(() =>
+            {
+                IsRefreshing = false;
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+            });
         }
 
+        if (_modalDepth == 0)
+            await OfferOnboardingPromptsAsync();
+    }
+
+    private void StartBackgroundCoverEnrichment()
+    {
+        _coverCts?.Cancel();
+        _coverCts?.Dispose();
+        _coverCts = new CancellationTokenSource();
+        var token = _coverCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var progress = new Progress<string>(message =>
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!IsRefreshing)
+                            StatusText = message;
+                    }));
+
+                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: 32);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                // A newer refresh started.
+            }
+            catch
+            {
+                // Cover downloads are optional.
+            }
+            finally
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (!IsRefreshing)
+                        ScheduleStatusClear(TimeSpan.FromSeconds(2));
+                });
+            }
+        }, token);
+    }
+
+    private async Task OfferOnboardingPromptsAsync()
+    {
+        await RunOnUiThreadAsync(async () =>
+        {
+            try
+            {
+                await OfferSteamApiKeyPromptIfNeededAsync();
+                await OfferEaLibraryPromptIfNeededAsync();
+                await OfferLegendaryPromptIfNeededAsync();
+            }
+            catch
+            {
+                // optional setup prompts must not close the app
+            }
+        });
+    }
+
+    private static async Task RunOnUiThreadAsync(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            action();
+        else
+            await Dispatcher.UIThread.InvokeAsync(action);
+    }
+
+    private static async Task RunOnUiThreadAsync(Func<Task> action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            await action();
+        else
+            await Dispatcher.UIThread.InvokeAsync(action);
+    }
+
+    private async Task ShowDialogAsync(Window window)
+    {
+        _modalDepth++;
         try
         {
-            await OfferSteamApiKeyPromptIfNeededAsync();
-            await OfferEaLibraryPromptIfNeededAsync();
-            await OfferLegendaryPromptIfNeededAsync();
+            await window.ShowDialog(GetMainWindow());
         }
-        catch
+        finally
         {
-            // optional setup prompts must not close the app
+            _modalDepth--;
         }
     }
+
+    private void ResetDevSession()
+    {
+        _steamApiPromptOffered = false;
+        _eaLibraryPromptOffered = false;
+        _legendaryPromptOffered = false;
+        _replayOnboardingAfterSettings = true;
+    }
+
+    private void ScheduleDevRelaunch() => _pendingDevRelaunch = true;
 
     [RelayCommand]
     private async Task OpenSettingsAsync()
     {
-        var wasEpicConnected = LegendaryClient.HasStoredCredentials();
-        var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
-        await window.ShowDialog(GetMainWindow());
-        ApplyLocalization();
+        try
+        {
+            var wasEpicConnected = _libraryService.IsEpicConnected;
+            await ShowDialogAsync(new SettingsWindow(new SettingsViewModel(
+                _libraryService.Settings,
+                ResetDevSession,
+                ScheduleDevRelaunch)));
+            ApplyLocalization();
 
-        if (wasEpicConnected != LegendaryClient.HasStoredCredentials())
-            await RefreshLibraryCommand.ExecuteAsync(null);
+            if (_pendingDevRelaunch)
+            {
+                _pendingDevRelaunch = false;
+                _libraryService.Dispose();
+                DevModeService.ClearLocalLibraryCache();
+                DevModeService.RelaunchApp();
+                return;
+            }
+
+            if (_replayOnboardingAfterSettings)
+            {
+                _replayOnboardingAfterSettings = false;
+                await RefreshLibraryCommand.ExecuteAsync(null);
+            }
+            else if (wasEpicConnected != _libraryService.IsEpicConnected)
+            {
+                await RefreshLibraryCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("ScanError", ex.Message);
+            ScheduleStatusClear(TimeSpan.FromSeconds(8));
+        }
     }
 
     private async Task OfferEaLibraryPromptIfNeededAsync()
@@ -227,7 +353,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _libraryService.Settings,
             _libraryService.EaLibraryCacheStatus);
         var window = new EaLibraryPromptWindow(viewModel);
-        await window.ShowDialog(GetMainWindow());
+        await ShowDialogAsync(window);
 
         if (viewModel.Choice == EaLibraryPromptChoice.OpenEaApp)
             await LaunchEaAndRefreshLibraryAsync();
@@ -263,18 +389,12 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        if (!Dispatcher.UIThread.CheckAccess())
-        {
-            await Dispatcher.UIThread.InvokeAsync(OfferLegendaryPromptIfNeededAsync);
-            return;
-        }
-
         _legendaryPromptOffered = true;
         await Task.Delay(350);
 
         var viewModel = new LegendaryPromptViewModel(_libraryService.Settings);
         var window = new LegendaryPromptWindow(viewModel);
-        await window.ShowDialog(GetMainWindow());
+        await ShowDialogAsync(window);
 
         if (viewModel.Choice == LegendaryPromptChoice.ConnectEpic)
         {
@@ -319,7 +439,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         var viewModel = new SteamApiKeyPromptViewModel(_libraryService.Settings);
         var window = new SteamApiKeyPromptWindow(viewModel);
-        await window.ShowDialog(GetMainWindow());
+        await ShowDialogAsync(window);
 
         if (viewModel.Choice == SteamApiKeyPromptChoice.Configure)
             await OpenSteamSetupAsync();
@@ -328,7 +448,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task OpenSteamSetupAsync()
     {
         var window = new SteamSetupWindow(new SteamSetupViewModel(_libraryService.Settings));
-        await window.ShowDialog(GetMainWindow());
+        await ShowDialogAsync(window);
 
         if (_libraryService.Settings.Current.IsSteamApiConfigured)
             await RefreshLibraryCommand.ExecuteAsync(null);

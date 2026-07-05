@@ -72,6 +72,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string EpicLibrarySection => Loc.T("EpicLibrarySection");
     public string EpicConnectAccount => Loc.T("EpicConnectAccount");
     public string EpicDisconnectAccount => Loc.T("EpicDisconnectAccount");
+    public string DevModeSection => Loc.T("DevModeSection");
+    public string DevModeHelp => Loc.T("DevModeHelp");
+    public string DevResetConnections => Loc.T("DevResetConnections");
+    public string DevResetAndRelaunch => Loc.T("DevResetAndRelaunch");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

@@ -8,7 +8,7 @@ internal static class LegendaryBootstrap
 
     private static readonly HttpClient HttpClient = new()
     {
-        Timeout = TimeSpan.FromMinutes(3)
+        Timeout = TimeSpan.FromSeconds(90)
     };
 
     public static string ToolsDirectory => Path.Combine(
