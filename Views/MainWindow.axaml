@@ -147,14 +147,19 @@
                                                     ClipToBounds="True"
                                                     Background="#141A28">
                                                 <Panel>
-                                                    <Image Source="{Binding CoverImage}"
-                                                           Stretch="UniformToFill"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"
-                                                           IsVisible="{Binding DisplayGridCover}"/>
+                                                    <Panel IsVisible="{Binding DisplayGridCover}">
+                                                        <Image Source="{Binding CoverImage}"
+                                                               Stretch="UniformToFill"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Opacity="{Binding GridCoverOpacity}"/>
+                                                        <Border Background="#66484848"
+                                                                IsVisible="{Binding !IsInstalled}"
+                                                                IsHitTestVisible="False"/>
+                                                    </Panel>
                                                     <Border IsVisible="{Binding !DisplayGridCover}"
                                                             Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                                                            Opacity="0.28"/>
+                                                            Opacity="{Binding GridPlaceholderOpacity}"/>
                                                     <TextBlock Text="{Binding Title}"
                                                                IsVisible="{Binding !DisplayGridCover}"
                                                                Margin="14"

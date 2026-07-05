@@ -53,6 +53,12 @@ public partial class GameItemViewModel : ViewModelBase
 
     public bool DisplayGridCover => ShowCoverInGrid && HasCover;
 
+    public bool IsInstalled => Source.IsInstalled;
+
+    public double GridCoverOpacity => IsInstalled ? 1.0 : 0.75;
+
+    public double GridPlaceholderOpacity => IsInstalled ? 0.28 : 0.14;
+
     partial void OnHasCoverChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
 
     partial void OnShowCoverInGridChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
@@ -65,6 +71,9 @@ public partial class GameItemViewModel : ViewModelBase
         InstallStatus = Source.IsInstalled ? Loc.T("Installed") : Loc.T("InLibrary");
         ActionLabel = Source.IsInstalled ? Loc.T("Play") : Loc.T("Install");
         PlaytimeLabel = BuildPlaytimeLabel();
+        OnPropertyChanged(nameof(IsInstalled));
+        OnPropertyChanged(nameof(GridCoverOpacity));
+        OnPropertyChanged(nameof(GridPlaceholderOpacity));
     }
 
     private string BuildPlaytimeLabel()
