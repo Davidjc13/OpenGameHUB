@@ -10,6 +10,7 @@ public sealed class AppSettings
     public string SteamGridDbApiKey { get; set; } = string.Empty;
     public bool ShowGridCovers { get; set; } = true;
     public bool DismissSteamApiKeyPrompt { get; set; }
+    public bool DismissEaLibraryPrompt { get; set; }
 
     public bool IsSteamApiConfigured =>
         !string.IsNullOrWhiteSpace(SteamApiKey) && !string.IsNullOrWhiteSpace(SteamId);

@@ -29,6 +29,8 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.1" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="GameFinder.StoreHandlers.EADesktop" Version="4.5.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="GameLib.NET" Version="1.4.1" />
     <PackageReference Include="protobuf-net" Version="3.1.17" />
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
