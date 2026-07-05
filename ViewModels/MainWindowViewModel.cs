@@ -68,6 +68,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
 
+    public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
+
     partial void OnSearchTextChanged(string value) => ApplyFilter();
     partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
     partial void OnSelectedSortOptionChanged(SortOptionItem? value) => ApplyFilter();
@@ -105,7 +107,8 @@ public partial class MainWindowViewModel : ViewModelBase
             ApplyFilter();
 
             var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint;
+            var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint + ubisoftHint;
         }
         catch (Exception ex)
         {

@@ -87,6 +87,9 @@
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Downloading covers ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} games in library</value></data>
   <data name="EpicCloudHint" xml:space="preserve"><value> · Epic cloud via legendary</value></data>
+  <data name="UbisoftCloudHint" xml:space="preserve"><value> · Ubisoft library via Ubisoft Connect</value></data>
+  <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
+  <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
   <data name="ScanError" xml:space="preserve"><value>Scan failed: {0}</value></data>
   <data name="MainWindowUnavailable" xml:space="preserve"><value>Main window is not available.</value></data>
   <data name="SelectGameFirst" xml:space="preserve"><value>Select a game first.</value></data>

@@ -150,6 +150,9 @@ public sealed class MetadataService
     {
         var urls = new List<string>();
 
+        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl))
+            urls.Add(game.CatalogCoverUrl);
+
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out _))
         {
             urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/library_600x900.jpg");
