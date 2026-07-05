@@ -6,7 +6,14 @@ internal static class MetadataSearchHelper
     {
         var normalized = title.Trim();
 
-        foreach (var suffix in new[] { "™", "®", "©", " - Steam", " (Steam)" })
+        foreach (var suffix in new[]
+                 {
+                     "™", "®", "©",
+                     " - Steam", " (Steam)",
+                     " - PC", " (PC)",
+                     " - Windows", " (Windows)",
+                     " Game Preview", " - Game Preview"
+                 })
             normalized = normalized.Replace(suffix, string.Empty, StringComparison.OrdinalIgnoreCase);
 
         return normalized.Trim();

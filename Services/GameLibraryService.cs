@@ -151,6 +151,7 @@ public sealed class GameLibraryService : IDisposable
     {
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
+        games.AddRange(XboxGamePassScanner.Scan());
 
         if (LegendaryClient.IsAvailable())
         {
@@ -206,6 +207,7 @@ public sealed class GameLibraryService : IDisposable
         Platform.Gog => 80,
         Platform.BattleNet => 75,
         Platform.Rockstar => 70,
+        Platform.GamePass => 68,
         Platform.Epic => 60,
         _ => 0
     };

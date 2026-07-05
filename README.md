@@ -4,7 +4,7 @@ A lightweight Windows desktop meta-launcher that unifies your game libraries acr
 
 ## Features
 
-- **Multi-platform library** — Detects games from Steam, Epic, GOG, Ubisoft Connect, EA App, Battle.net, Rockstar, and Riot Games via [GameLib.NET](https://github.com/Phalkion/GameLib.NET).
+- **Multi-platform library** — Detects games from Steam, Epic, GOG, Ubisoft Connect, EA App, Battle.net, Rockstar, Riot Games, and **Xbox PC / Game Pass** (installed) via [GameLib.NET](https://github.com/Phalkion/GameLib.NET) and [GameFinder](https://github.com/erri120/GameFinder).
 - **Cloud libraries** — Steam owned games (via Web API) and Epic games (via [legendary](https://github.com/derrod/legendary)) appear even when not installed.
 - **Install from the app** — Uninstalled Steam games open the Steam install flow; Epic cloud games launch through legendary.
 - **Cover art** — Steam CDN, Wikipedia, IGDB, SteamGridDB, and built-in mappings for Riot titles. Covers are cached locally.
