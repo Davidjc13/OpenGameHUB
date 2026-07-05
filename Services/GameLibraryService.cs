@@ -14,8 +14,8 @@ namespace OpenGameHUB.Services;
 
 public sealed class GameLibraryService : IDisposable
 {
-    private readonly GameDatabase _database = new();
-    private readonly MetadataService _metadataService;
+    private GameDatabase _database = new();
+    private MetadataService _metadataService;
     private readonly SteamWebApiService _steamWebApiService = new();
     private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SettingsService _settingsService = new();
@@ -685,6 +685,14 @@ public sealed class GameLibraryService : IDisposable
         "riot games" or "riot" => Platform.Riot,
         _ => Platform.Unknown
     };
+
+    public void ResetLocalCache()
+    {
+        _database.Dispose();
+        DevModeService.ClearLocalLibraryCache();
+        _database = new GameDatabase();
+        _metadataService = new MetadataService(_database, _settingsService);
+    }
 
     public void Dispose() => _database.Dispose();
 }

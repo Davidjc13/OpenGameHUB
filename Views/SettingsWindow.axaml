@@ -121,6 +121,8 @@
                                         Command="{Binding DevResetConnectionsCommand}"/>
                                 <Button Content="{Binding Strings.DevResetAndRelaunch}"
                                         Command="{Binding DevResetAndRelaunchCommand}"/>
+                                <Button Content="{Binding Strings.DevClearLocalDatabase}"
+                                        Command="{Binding DevClearLocalDatabaseCommand}"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
