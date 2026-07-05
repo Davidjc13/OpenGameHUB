@@ -10,6 +10,13 @@ Set-Location $root
 
 & (Join-Path $root "generate-icon.ps1")
 
+# Optional: bundle legendary.exe for offline installs (run scripts/fetch-legendary.ps1 first)
+try {
+    & (Join-Path $root "scripts\fetch-legendary.ps1")
+} catch {
+    Write-Host "Could not download legendary.exe (offline build will download it on first run)." -ForegroundColor Yellow
+}
+
 Write-Host "Publishing OpenGameHUB (Release, win-x64, self-contained)..." -ForegroundColor Cyan
 dotnet publish OpenGameHUB.csproj `
     -c Release `

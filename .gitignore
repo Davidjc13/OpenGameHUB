@@ -30,3 +30,9 @@ project.lock.json
 
 # Local secrets (never commit API keys)
 settings.local.json
+
+# Local docs / legal drafts (not for the repo)
+docs/*.local.md
+
+# Downloaded third-party binaries (fetched by scripts/fetch-legendary.ps1)
+third-party/legendary/legendary.exe

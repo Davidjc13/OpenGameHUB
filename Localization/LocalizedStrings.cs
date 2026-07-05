@@ -61,7 +61,17 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string EaLibraryPromptOpenEaApp => Loc.T("EaLibraryPromptOpenEaApp");
     public string EaLibraryPromptContinue => Loc.T("EaLibraryPromptContinue");
     public string EaLibraryPromptDontRemind => Loc.T("EaLibraryPromptDontRemind");
+    public string LegendaryPromptTitle => Loc.T("LegendaryPromptTitle");
+    public string LegendaryPromptIntro => Loc.T("LegendaryPromptIntro");
+    public string LegendaryPromptAuthTitle => Loc.T("LegendaryPromptAuthTitle");
+    public string LegendaryPromptAuth => Loc.T("LegendaryPromptAuth");
+    public string LegendaryPromptConnectEpic => Loc.T("LegendaryPromptConnectEpic");
+    public string LegendaryPromptContinue => Loc.T("LegendaryPromptContinue");
+    public string LegendaryPromptDontRemind => Loc.T("LegendaryPromptDontRemind");
     public string SteamDisconnectApi => Loc.T("SteamDisconnectApi");
+    public string EpicLibrarySection => Loc.T("EpicLibrarySection");
+    public string EpicConnectAccount => Loc.T("EpicConnectAccount");
+    public string EpicDisconnectAccount => Loc.T("EpicDisconnectAccount");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

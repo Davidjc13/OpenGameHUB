@@ -120,7 +120,9 @@ public partial class SteamSetupViewModel : ViewModelBase
                 IgdbClientSecret = current.IgdbClientSecret,
                 SteamGridDbApiKey = current.SteamGridDbApiKey,
                 ShowGridCovers = current.ShowGridCovers,
-                DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt
+                DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
+                DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
+                DismissLegendaryPrompt = current.DismissLegendaryPrompt
             });
 
             StatusMessage = Loc.T("SteamSetupSuccess", result.GameCount);

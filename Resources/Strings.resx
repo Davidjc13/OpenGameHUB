@@ -92,12 +92,22 @@
   <data name="DownloadingCovers" xml:space="preserve"><value>Downloading covers...</value></data>
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Downloading covers ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} games in library</value></data>
-  <data name="EpicCloudHint" xml:space="preserve"><value> · Epic cloud via legendary</value></data>
+  <data name="EpicCloudHint" xml:space="preserve"><value> · Epic cloud library</value></data>
   <data name="SteamCloudHint" xml:space="preserve"><value> · Steam library via Web API</value></data>
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Ubisoft library via Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Syncing EA library...</value></data>
+  <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparing Epic library tools...</value></data>
+  <data name="DownloadingLegendary" xml:space="preserve"><value>Downloading Epic library helper...</value></data>
+  <data name="SyncingEpicLibrary" xml:space="preserve"><value>Syncing Epic library...</value></data>
+  <data name="LegendaryPromptTitle" xml:space="preserve"><value>Connect your Epic library</value></data>
+  <data name="LegendaryPromptIntro" xml:space="preserve"><value>OpenGameHUB manages the Epic library helper automatically (no Python required). Sign in once to list your owned Epic games and install them from here.</value></data>
+  <data name="LegendaryPromptAuthTitle" xml:space="preserve"><value>One-time sign-in</value></data>
+  <data name="LegendaryPromptAuth" xml:space="preserve"><value>Click the button below to open Epic sign-in. After completing it, refresh your library here.</value></data>
+  <data name="LegendaryPromptConnectEpic" xml:space="preserve"><value>Connect Epic account</value></data>
+  <data name="LegendaryPromptContinue" xml:space="preserve"><value>Later</value></data>
+  <data name="LegendaryPromptDontRemind" xml:space="preserve"><value>Don't ask again</value></data>
   <data name="EaCloudHint" xml:space="preserve"><value> · EA library via EA app</value></data>
   <data name="EaCloudLogHint" xml:space="preserve"><value> · EA library via EA app logs</value></data>
   <data name="EaCacheMissing" xml:space="preserve"><value>EA app library cache not found. Open the EA app and sign in at least once.</value></data>
@@ -177,6 +187,18 @@
   <data name="SteamApiKeyPromptDontRemind" xml:space="preserve"><value>Don't ask again</value></data>
   <data name="SteamDisconnectApi" xml:space="preserve"><value>Remove API key</value></data>
   <data name="SteamApiDisconnected" xml:space="preserve"><value>Steam API key removed. The local library will be used on the next refresh.</value></data>
+  <data name="EpicLibrarySection" xml:space="preserve"><value>Epic library</value></data>
+  <data name="EpicConnectAccount" xml:space="preserve"><value>Connect Epic account</value></data>
+  <data name="EpicDisconnectAccount" xml:space="preserve"><value>Disconnect Epic account</value></data>
+  <data name="EpicConnectedStatus" xml:space="preserve"><value>Epic account connected. Cloud library sync is enabled.</value></data>
+  <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Epic account connected ({0}). Cloud library sync is enabled.</value></data>
+  <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Epic account not connected. Connect to list owned games that are not installed.</value></data>
+  <data name="EpicAuthStarted" xml:space="preserve"><value>Epic sign-in opened. After completing it, refresh your library.</value></data>
+  <data name="EpicDisconnected" xml:space="preserve"><value>Epic account disconnected. Refresh your library to remove cloud-only Epic games.</value></data>
+  <data name="EpicConnectFailed" xml:space="preserve"><value>Could not start Epic sign-in: {0}</value></data>
+  <data name="EpicDisconnectFailed" xml:space="preserve"><value>Could not disconnect Epic account: {0}</value></data>
+  <data name="EpicLauncherNotInstalled" xml:space="preserve"><value>Epic Games Launcher is not installed on this PC.</value></data>
+  <data name="EpicHelperUnavailable" xml:space="preserve"><value>Epic library helper could not be prepared. Check your internet connection and try again.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

@@ -58,7 +58,9 @@ public partial class SteamApiKeyPromptViewModel : ViewModelBase
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             ShowGridCovers = current.ShowGridCovers,
-            DismissSteamApiKeyPrompt = true
+            DismissSteamApiKeyPrompt = true,
+            DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
+            DismissLegendaryPrompt = current.DismissLegendaryPrompt
         });
         RequestClose?.Invoke();
     }

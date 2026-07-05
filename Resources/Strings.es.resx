@@ -92,12 +92,22 @@
   <data name="DownloadingCovers" xml:space="preserve"><value>Descargando portadas...</value></data>
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Descargando portadas ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} juegos en biblioteca</value></data>
-  <data name="EpicCloudHint" xml:space="preserve"><value> · Epic en la nube vía legendary</value></data>
+  <data name="EpicCloudHint" xml:space="preserve"><value> · Biblioteca Epic en la nube</value></data>
   <data name="SteamCloudHint" xml:space="preserve"><value> · Biblioteca Steam vía Web API</value></data>
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Biblioteca Ubisoft vía Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Sincronizando biblioteca de EA...</value></data>
+  <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
+  <data name="DownloadingLegendary" xml:space="preserve"><value>Descargando ayudante de biblioteca Epic...</value></data>
+  <data name="SyncingEpicLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Epic...</value></data>
+  <data name="LegendaryPromptTitle" xml:space="preserve"><value>Conecta tu biblioteca Epic</value></data>
+  <data name="LegendaryPromptIntro" xml:space="preserve"><value>OpenGameHUB gestiona automáticamente el ayudante de biblioteca Epic (sin Python). Inicia sesión una vez para listar tus juegos de Epic e instalarlos desde aquí.</value></data>
+  <data name="LegendaryPromptAuthTitle" xml:space="preserve"><value>Inicio de sesión único</value></data>
+  <data name="LegendaryPromptAuth" xml:space="preserve"><value>Pulsa el botón para abrir el inicio de sesión de Epic. Cuando lo completes, actualiza la biblioteca aquí.</value></data>
+  <data name="LegendaryPromptConnectEpic" xml:space="preserve"><value>Conectar cuenta Epic</value></data>
+  <data name="LegendaryPromptContinue" xml:space="preserve"><value>Más tarde</value></data>
+  <data name="LegendaryPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
   <data name="EaCloudHint" xml:space="preserve"><value> · Biblioteca EA vía EA app</value></data>
   <data name="EaCloudLogHint" xml:space="preserve"><value> · Biblioteca EA vía logs de EA app</value></data>
   <data name="EaCacheMissing" xml:space="preserve"><value>No se encontró la caché de la EA app. Abre la EA app e inicia sesión al menos una vez.</value></data>
@@ -177,6 +187,18 @@
   <data name="SteamApiKeyPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
   <data name="SteamDisconnectApi" xml:space="preserve"><value>Quitar API key</value></data>
   <data name="SteamApiDisconnected" xml:space="preserve"><value>API key de Steam eliminada. Se usará la biblioteca local en el próximo escaneo.</value></data>
+  <data name="EpicLibrarySection" xml:space="preserve"><value>Biblioteca Epic</value></data>
+  <data name="EpicConnectAccount" xml:space="preserve"><value>Conectar cuenta Epic</value></data>
+  <data name="EpicDisconnectAccount" xml:space="preserve"><value>Desconectar cuenta Epic</value></data>
+  <data name="EpicConnectedStatus" xml:space="preserve"><value>Cuenta Epic conectada. La sincronización en la nube está activa.</value></data>
+  <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Cuenta Epic conectada ({0}). La sincronización en la nube está activa.</value></data>
+  <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Cuenta Epic no conectada. Conéctala para listar juegos que aún no están instalados.</value></data>
+  <data name="EpicAuthStarted" xml:space="preserve"><value>Inicio de sesión de Epic abierto. Cuando lo completes, actualiza la biblioteca.</value></data>
+  <data name="EpicDisconnected" xml:space="preserve"><value>Cuenta Epic desconectada. Actualiza la biblioteca para quitar juegos Epic solo en la nube.</value></data>
+  <data name="EpicConnectFailed" xml:space="preserve"><value>No se pudo iniciar el inicio de sesión de Epic: {0}</value></data>
+  <data name="EpicDisconnectFailed" xml:space="preserve"><value>No se pudo desconectar la cuenta Epic: {0}</value></data>
+  <data name="EpicLauncherNotInstalled" xml:space="preserve"><value>Epic Games Launcher no está instalado en este PC.</value></data>
+  <data name="EpicHelperUnavailable" xml:space="preserve"><value>No se pudo preparar el ayudante de biblioteca Epic. Comprueba tu conexión e inténtalo de nuevo.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>

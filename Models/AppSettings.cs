@@ -11,6 +11,7 @@ public sealed class AppSettings
     public bool ShowGridCovers { get; set; } = true;
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
+    public bool DismissLegendaryPrompt { get; set; }
 
     public bool IsSteamApiConfigured =>
         !string.IsNullOrWhiteSpace(SteamApiKey) && !string.IsNullOrWhiteSpace(SteamId);

@@ -5,9 +5,9 @@
         x:DataType="vm:SettingsViewModel"
         Title="{Binding Strings.SettingsWindowTitle}"
         Width="520"
-        Height="580"
+        Height="640"
         MinWidth="480"
-        MinHeight="520"
+        MinHeight="580"
         WindowStartupLocation="CenterOwner"
         Background="#10131A">
 
@@ -53,6 +53,26 @@
                         <Button Content="{Binding Strings.SteamDisconnectApi}"
                                 Command="{Binding ClearSteamApiCommand}"
                                 IsVisible="{Binding IsSteamApiConnected}"/>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding Strings.EpicLibrarySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <TextBlock Text="{Binding EpicStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10"
+                                IsVisible="{Binding IsEpicSectionVisible}">
+                        <Button Content="{Binding Strings.EpicConnectAccount}"
+                                Command="{Binding ConnectEpicCommand}"
+                                IsEnabled="{Binding CanConnectEpic}"/>
+                        <Button Content="{Binding Strings.EpicDisconnectAccount}"
+                                Command="{Binding DisconnectEpicCommand}"
+                                IsVisible="{Binding IsEpicConnected}"/>
                     </StackPanel>
 
                     <TextBlock Text="{Binding Strings.DisplaySection}"

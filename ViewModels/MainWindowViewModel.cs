@@ -21,6 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _statusClearCts;
     private bool _steamApiPromptOffered;
     private bool _eaLibraryPromptOffered;
+    private bool _legendaryPromptOffered;
 
     public MainWindowViewModel()
     {
@@ -77,7 +78,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showGridCovers = true;
 
-    public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
+    public bool IsEpicCloudAvailable => _libraryService.IsEpicCloudAvailable;
 
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
 
@@ -144,29 +145,41 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             CancelScheduledStatusClear();
             IsRefreshing = true;
-            var progress = new Progress<string>(message => StatusText = message);
+            var progress = new Progress<string>(message =>
+            {
+                if (Dispatcher.UIThread.CheckAccess())
+                    StatusText = message;
+                else
+                    Dispatcher.UIThread.Post(() => StatusText = message);
+            });
+
             StatusText = Loc.T("ScanningLaunchers");
             var games = await _libraryService.RefreshLibraryAsync(progress);
-            _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
-            RebuildPlatformFilters();
-            ApplyFilter();
 
-            var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
-            var steamHint = IsSteamCloudAvailable
-                ? IsSteamApiConfigured
-                    ? Loc.T("SteamCloudHint")
-                    : Loc.T("SteamLocalLibraryHint")
-                : string.Empty;
-            var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
-            var eaHint = IsEaCloudAvailable
-                && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
-                    ? Loc.T("EaCloudHint")
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                RebuildPlatformFilters();
+                ApplyFilter();
+
+                var epicHint = IsEpicCloudAvailable ? Loc.T("EpicCloudHint") : string.Empty;
+                var steamHint = IsSteamCloudAvailable
+                    ? IsSteamApiConfigured
+                        ? Loc.T("SteamCloudHint")
+                        : Loc.T("SteamLocalLibraryHint")
                     : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + legendaryHint;
+                var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
+                var eaHint = IsEaCloudAvailable
+                    && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
+                        ? Loc.T("EaCloudHint")
+                        : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
+            });
         }
         catch (Exception ex)
         {
-            StatusText = Loc.T("ScanError", ex.Message);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+                StatusText = Loc.T("ScanError", ex.Message));
         }
         finally
         {
@@ -174,16 +187,28 @@ public partial class MainWindowViewModel : ViewModelBase
             ScheduleStatusClear(TimeSpan.Zero);
         }
 
-        await OfferSteamApiKeyPromptIfNeededAsync();
-        await OfferEaLibraryPromptIfNeededAsync();
+        try
+        {
+            await OfferSteamApiKeyPromptIfNeededAsync();
+            await OfferEaLibraryPromptIfNeededAsync();
+            await OfferLegendaryPromptIfNeededAsync();
+        }
+        catch
+        {
+            // optional setup prompts must not close the app
+        }
     }
 
     [RelayCommand]
     private async Task OpenSettingsAsync()
     {
+        var wasEpicConnected = LegendaryClient.HasStoredCredentials();
         var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
         await window.ShowDialog(GetMainWindow());
         ApplyLocalization();
+
+        if (wasEpicConnected != LegendaryClient.HasStoredCredentials())
+            await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
     private async Task OfferEaLibraryPromptIfNeededAsync()
@@ -228,6 +253,55 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         await RefreshLibraryCommand.ExecuteAsync(null);
+    }
+
+    private async Task OfferLegendaryPromptIfNeededAsync()
+    {
+        if (_legendaryPromptOffered
+            || !_libraryService.ShouldOfferLegendaryPrompt)
+        {
+            return;
+        }
+
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            await Dispatcher.UIThread.InvokeAsync(OfferLegendaryPromptIfNeededAsync);
+            return;
+        }
+
+        _legendaryPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new LegendaryPromptViewModel(_libraryService.Settings);
+        var window = new LegendaryPromptWindow(viewModel);
+        await window.ShowDialog(GetMainWindow());
+
+        if (viewModel.Choice == LegendaryPromptChoice.ConnectEpic)
+        {
+            try
+            {
+                LegendaryClient.RunAuth();
+            }
+            catch
+            {
+                // optional
+            }
+        }
+        else if (viewModel.Choice == LegendaryPromptChoice.OpenGuide)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/derrod/legendary",
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // optional
+            }
+        }
     }
 
     private async Task OfferSteamApiKeyPromptIfNeededAsync()
