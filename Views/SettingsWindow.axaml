@@ -5,86 +5,99 @@
         x:DataType="vm:SettingsViewModel"
         Title="{Binding Strings.SettingsWindowTitle}"
         Width="520"
-        Height="560"
+        Height="580"
+        MinWidth="480"
         MinHeight="520"
         WindowStartupLocation="CenterOwner"
         Background="#10131A">
 
-    <ScrollViewer Margin="24">
-        <StackPanel Spacing="16">
-            <TextBlock Text="{Binding Strings.SettingsTitle}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Foreground="#F4F7FF"/>
-            <TextBlock Text="{Binding Strings.SettingsDescription}"
-                       Foreground="#9AA6BF"
-                       TextWrapping="Wrap"/>
+    <Grid Margin="24"
+          RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0"
+                      Classes="dialogScroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding Strings.SettingsTitle}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="#F4F7FF"/>
+                    <TextBlock Text="{Binding Strings.SettingsDescription}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
 
-            <TextBlock Text="{Binding Strings.Language}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <ComboBox ItemsSource="{Binding LanguageOptions}"
-                      SelectedItem="{Binding SelectedLanguageOption}"
-                      HorizontalAlignment="Stretch">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:LanguageOption">
-                        <TextBlock Text="{Binding Label}"/>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+                    <TextBlock Text="{Binding Strings.Language}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding LanguageOptions}"
+                              SelectedItem="{Binding SelectedLanguageOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LanguageOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-            <TextBlock Text="{Binding Strings.SteamWebApi}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <TextBlock Text="{Binding SteamStatusText}"
-                       Foreground="#9AA6BF"
-                       TextWrapping="Wrap"/>
-            <Button Content="{Binding Strings.SteamSetupButton}"
-                    Command="{Binding OpenSteamSetupCommand}"
-                    HorizontalAlignment="Left"/>
+                    <TextBlock Text="{Binding Strings.SteamWebApi}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding SteamStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="{Binding Strings.SteamSetupButton}"
+                                Command="{Binding OpenSteamSetupCommand}"/>
+                        <Button Content="{Binding Strings.SteamDisconnectApi}"
+                                Command="{Binding ClearSteamApiCommand}"
+                                IsVisible="{Binding IsSteamApiConnected}"/>
+                    </StackPanel>
 
-            <TextBlock Text="{Binding Strings.DisplaySection}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <CheckBox Content="{Binding Strings.ShowGridCovers}"
-                      IsChecked="{Binding ShowGridCovers}"
-                      Foreground="#C5CEE0"/>
-            <TextBlock Text="{Binding Strings.ShowGridCoversHelp}"
-                       Foreground="#7E8AA3"
-                       FontSize="12"
-                       TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Strings.DisplaySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <CheckBox Content="{Binding Strings.ShowGridCovers}"
+                              IsChecked="{Binding ShowGridCovers}"
+                              Foreground="#C5CEE0"/>
+                    <TextBlock Text="{Binding Strings.ShowGridCoversHelp}"
+                               Foreground="#7E8AA3"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
 
-            <TextBlock Text="{Binding Strings.CoverArtSection}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <TextBlock Text="{Binding Strings.CoverArtHelp}"
-                       Foreground="#7E8AA3"
-                       FontSize="12"
-                       TextWrapping="Wrap"/>
-            <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
-                     Text="{Binding IgdbClientId}"/>
-            <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
-                     Text="{Binding IgdbClientSecret}"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
-                     Text="{Binding SteamGridDbApiKey}"/>
+                    <TextBlock Text="{Binding Strings.CoverArtSection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding Strings.CoverArtHelp}"
+                               Foreground="#7E8AA3"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
+                    <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
+                             Text="{Binding IgdbClientId}"/>
+                    <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
+                             Text="{Binding IgdbClientSecret}"/>
+                    <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
+                             Text="{Binding SteamGridDbApiKey}"/>
 
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="#9AA6BF"/>
-
-            <StackPanel Orientation="Horizontal"
-                        Spacing="10"
-                        HorizontalAlignment="Right"
-                        Margin="0,12,0,0">
-                <Button Content="{Binding Strings.Cancel}"
-                        Command="{Binding CancelCommand}"/>
-                <Button Classes="primary"
-                        Content="{Binding Strings.Save}"
-                        Command="{Binding SaveCommand}"/>
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
             </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button Content="{Binding Strings.Cancel}"
+                    Command="{Binding CancelCommand}"/>
+            <Button Classes="primary"
+                    Content="{Binding Strings.Save}"
+                    Command="{Binding SaveCommand}"/>
         </StackPanel>
-    </ScrollViewer>
+    </Grid>
 </Window>

@@ -15,6 +15,7 @@ public sealed class GameLibraryService : IDisposable
     private readonly GameDatabase _database = new();
     private readonly MetadataService _metadataService;
     private readonly SteamWebApiService _steamWebApiService = new();
+    private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SettingsService _settingsService = new();
     private readonly LauncherManager _launcherManager = new(new LauncherOptions
     {
@@ -43,6 +44,8 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsSteamCloudAvailable => _steamCloudProvider.IsAvailable();
 
+    public bool IsSteamApiConfigured => _settingsService.Current.IsSteamApiConfigured;
+
     public SettingsService Settings => _settingsService;
 
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
@@ -67,6 +70,19 @@ public sealed class GameLibraryService : IDisposable
                     _settingsService.Current.SteamApiKey,
                     _settingsService.Current.SteamId,
                     cancellationToken);
+                _steamCloudProvider.SetOwnedGames(steamOwned);
+            }
+            catch
+            {
+                _steamCloudProvider.ClearOwnedGames();
+            }
+        }
+        else if (SteamLocalAccountReader.IsSteamInstalled)
+        {
+            progress?.Report(Loc.T("SyncingSteamLocalLibrary"));
+            try
+            {
+                steamOwned = await LoadLocalSteamLibraryAsync(cancellationToken);
                 _steamCloudProvider.SetOwnedGames(steamOwned);
             }
             catch
@@ -100,6 +116,29 @@ public sealed class GameLibraryService : IDisposable
         _metadataService.ReconcileCachedCovers(stored);
         await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken);
         return _database.GetAllGames();
+    }
+
+    private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
+        CancellationToken cancellationToken)
+    {
+        var localApps = await Task.Run(SteamLocalLibraryReader.ReadOwnedApps, cancellationToken);
+        if (localApps.Count == 0)
+            return [];
+
+        var names = await _steamStoreClient.GetAppNamesAsync(
+            localApps.Select(app => app.AppId),
+            cancellationToken);
+
+        return localApps
+            .Select(app => new SteamWebApiService.SteamOwnedGameEntry(
+                app.AppId,
+                names.TryGetValue(app.AppId, out var name)
+                    ? name
+                    : $"Steam App {app.AppId}",
+                app.PlaytimeMinutes,
+                app.LastPlayed))
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.Name))
+            .ToList();
     }
 
     public void LaunchGame(UnifiedGame game)

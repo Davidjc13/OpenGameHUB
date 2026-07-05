@@ -25,6 +25,8 @@ public partial class SettingsViewModel : ViewModelBase
         RefreshSteamStatus();
     }
 
+    public bool IsSteamApiConnected => _settingsService.Current.IsSteamApiConfigured;
+
     public LocalizedStrings Strings { get; }
 
     [ObservableProperty]
@@ -88,6 +90,28 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
         RefreshSteamStatus();
+        OnPropertyChanged(nameof(IsSteamApiConnected));
+    }
+
+    [RelayCommand]
+    private void ClearSteamApi()
+    {
+        var current = _settingsService.Current;
+        _settingsService.Save(new AppSettings
+        {
+            Language = current.Language,
+            SteamApiKey = string.Empty,
+            SteamId = string.Empty,
+            IgdbClientId = current.IgdbClientId,
+            IgdbClientSecret = current.IgdbClientSecret,
+            SteamGridDbApiKey = current.SteamGridDbApiKey,
+            ShowGridCovers = current.ShowGridCovers,
+            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt
+        });
+
+        RefreshSteamStatus();
+        OnPropertyChanged(nameof(IsSteamApiConnected));
+        StatusMessage = Loc.T("SteamApiDisconnected");
     }
 
     private void RefreshSteamStatus()
@@ -100,7 +124,7 @@ public partial class SettingsViewModel : ViewModelBase
         }
 
         SteamStatusText = SteamLocalAccountReader.IsSteamInstalled
-            ? Loc.T("SteamNotConfiguredInstalled")
+            ? Loc.T("SteamLocalLibraryStatus")
             : Loc.T("SteamNotConfigured");
     }
 
@@ -116,7 +140,8 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientId = IgdbClientId.Trim(),
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
-            ShowGridCovers = ShowGridCovers
+            ShowGridCovers = ShowGridCovers,
+            DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);

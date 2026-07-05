@@ -85,6 +85,9 @@
   <data name="LoadingLibrary" xml:space="preserve"><value>Loading library...</value></data>
   <data name="ScanningLaunchers" xml:space="preserve"><value>Scanning installed launchers...</value></data>
   <data name="SyncingSteamLibrary" xml:space="preserve"><value>Syncing Steam library...</value></data>
+  <data name="SyncingSteamLocalLibrary" xml:space="preserve"><value>Reading local Steam library...</value></data>
+  <data name="SteamLocalLibraryHint" xml:space="preserve"><value> · Steam library (local, automatic)</value></data>
+  <data name="SteamLocalLibraryStatus" xml:space="preserve"><value>Automatic · local Steam library. Connect API key for your full library.</value></data>
   <data name="SyncingSteamPlaytime" xml:space="preserve"><value>Syncing Steam playtime...</value></data>
   <data name="DownloadingCovers" xml:space="preserve"><value>Downloading covers...</value></data>
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Downloading covers ({0}/{1})...</value></data>
@@ -120,7 +123,7 @@
   <data name="SteamApiHelp" xml:space="preserve"><value>Get your key at steamcommunity.com/dev/apikey and your SteamID64 at steamid.io</value></data>
   <data name="SteamSetupButton" xml:space="preserve"><value>Set up Steam library...</value></data>
   <data name="SteamSetupTitle" xml:space="preserve"><value>Set up Steam library</value></data>
-  <data name="SteamSetupDescription" xml:space="preserve"><value>Link your Steam account to list uninstalled games and sync playtime. We detect your account automatically — you only need to paste an API key.</value></data>
+  <data name="SteamSetupDescription" xml:space="preserve"><value>Optional: connect your full Steam library via Web API. We already read your local library automatically — this adds games you own but Steam has never synced to this PC.</value></data>
   <data name="SteamSetupStepAccount" xml:space="preserve"><value>1. Your Steam account</value></data>
   <data name="SteamSetupStepAccountHelp" xml:space="preserve"><value>Detected from your local Steam installation. Sign in to the Steam client first if detection fails.</value></data>
   <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detect account</value></data>
@@ -143,6 +146,17 @@
   <data name="SteamNotConfigured" xml:space="preserve"><value>Not connected. Set up Steam to see your full library.</value></data>
   <data name="SteamNotConfiguredInstalled" xml:space="preserve"><value>Steam detected but library not linked yet.</value></data>
   <data name="SteamSetupPrompt" xml:space="preserve"><value> · Set up Steam library in Settings</value></data>
+  <data name="SteamApiKeyPromptTitle" xml:space="preserve"><value>Steam API key not configured</value></data>
+  <data name="SteamApiKeyPromptIntro" xml:space="preserve"><value>Steam is installed, but you have not linked a Web API key yet. You can set one up now or continue with the automatic local library.</value></data>
+  <data name="SteamApiKeyPromptWhyTitle" xml:space="preserve"><value>Why connect an API key?</value></data>
+  <data name="SteamApiKeyPromptWhy" xml:space="preserve"><value>It lets OpenGameHUB list your entire Steam library, including uninstalled games you have never opened on this PC, and sync playtime from your account.</value></data>
+  <data name="SteamApiKeyPromptWithoutTitle" xml:space="preserve"><value>If you continue without it</value></data>
+  <data name="SteamApiKeyPromptWithout" xml:space="preserve"><value>We will still read your local Steam library automatically: games Steam has synced on this PC, with playtime when available. You may miss owned games that were never downloaded or played here.</value></data>
+  <data name="SteamApiKeyPromptConfigure" xml:space="preserve"><value>Set up API key</value></data>
+  <data name="SteamApiKeyPromptContinue" xml:space="preserve"><value>Continue without API key</value></data>
+  <data name="SteamApiKeyPromptDontRemind" xml:space="preserve"><value>Don't ask again</value></data>
+  <data name="SteamDisconnectApi" xml:space="preserve"><value>Remove API key</value></data>
+  <data name="SteamApiDisconnected" xml:space="preserve"><value>Steam API key removed. The local library will be used on the next refresh.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

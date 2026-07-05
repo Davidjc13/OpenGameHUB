@@ -17,7 +17,9 @@ public sealed class SteamCloudLibraryProvider : ICloudLibraryProvider
 
     public Platform Platform => Platform.Steam;
 
-    public bool IsAvailable() => _settingsService.Current.IsSteamApiConfigured;
+    public bool IsAvailable() =>
+        _settingsService.Current.IsSteamApiConfigured
+        || SteamLocalAccountReader.IsSteamInstalled;
 
     public void SetOwnedGames(IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry> ownedGames) =>
         _ownedGames = ownedGames;

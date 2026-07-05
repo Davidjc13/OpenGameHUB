@@ -41,6 +41,16 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamSetupStepApiKeyHelp => Loc.T("SteamSetupStepApiKeyHelp");
     public string SteamSetupOpenApiKeyPage => Loc.T("SteamSetupOpenApiKeyPage");
     public string SteamSetupTestAndSave => Loc.T("SteamSetupTestAndSave");
+    public string SteamApiKeyPromptTitle => Loc.T("SteamApiKeyPromptTitle");
+    public string SteamApiKeyPromptIntro => Loc.T("SteamApiKeyPromptIntro");
+    public string SteamApiKeyPromptWhyTitle => Loc.T("SteamApiKeyPromptWhyTitle");
+    public string SteamApiKeyPromptWhy => Loc.T("SteamApiKeyPromptWhy");
+    public string SteamApiKeyPromptWithoutTitle => Loc.T("SteamApiKeyPromptWithoutTitle");
+    public string SteamApiKeyPromptWithout => Loc.T("SteamApiKeyPromptWithout");
+    public string SteamApiKeyPromptConfigure => Loc.T("SteamApiKeyPromptConfigure");
+    public string SteamApiKeyPromptContinue => Loc.T("SteamApiKeyPromptContinue");
+    public string SteamApiKeyPromptDontRemind => Loc.T("SteamApiKeyPromptDontRemind");
+    public string SteamDisconnectApi => Loc.T("SteamDisconnectApi");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

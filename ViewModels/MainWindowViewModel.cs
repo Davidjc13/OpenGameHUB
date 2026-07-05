@@ -18,7 +18,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
-    private bool _offeredSteamSetup;
+    private bool _steamApiPromptOffered;
 
     public MainWindowViewModel()
     {
@@ -80,6 +80,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
 
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
+
+    public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
 
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredGames.Count / (double)PageSize));
 
@@ -146,20 +148,15 @@ public partial class MainWindowViewModel : ViewModelBase
             ApplyFilter();
 
             var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
-            var steamHint = IsSteamCloudAvailable ? Loc.T("SteamCloudHint") : string.Empty;
-            var steamSetupHint = !IsSteamCloudAvailable && SteamLocalAccountReader.IsSteamInstalled
-                ? Loc.T("SteamSetupPrompt")
+            var steamHint = IsSteamCloudAvailable
+                ? IsSteamApiConfigured
+                    ? Loc.T("SteamCloudHint")
+                    : Loc.T("SteamLocalLibraryHint")
                 : string.Empty;
             var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamSetupHint + steamHint + ubisoftHint + legendaryHint;
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + legendaryHint;
 
-            if (!_offeredSteamSetup
-                && !_libraryService.Settings.Current.IsSteamApiConfigured
-                && SteamLocalAccountReader.IsSteamInstalled)
-            {
-                _offeredSteamSetup = true;
-                _ = OfferSteamSetupAsync();
-            }
+            await OfferSteamApiKeyPromptIfNeededAsync();
         }
         catch (Exception ex)
         {
@@ -180,9 +177,29 @@ public partial class MainWindowViewModel : ViewModelBase
         ApplyLocalization();
     }
 
-    private async Task OfferSteamSetupAsync()
+    private async Task OfferSteamApiKeyPromptIfNeededAsync()
     {
-        await Task.Delay(400);
+        if (_steamApiPromptOffered
+            || IsSteamApiConfigured
+            || !SteamLocalAccountReader.IsSteamInstalled
+            || _libraryService.Settings.Current.DismissSteamApiKeyPrompt)
+        {
+            return;
+        }
+
+        _steamApiPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new SteamApiKeyPromptViewModel(_libraryService.Settings);
+        var window = new SteamApiKeyPromptWindow(viewModel);
+        await window.ShowDialog(GetMainWindow());
+
+        if (viewModel.Choice == SteamApiKeyPromptChoice.Configure)
+            await OpenSteamSetupAsync();
+    }
+
+    private async Task OpenSteamSetupAsync()
+    {
         var window = new SteamSetupWindow(new SteamSetupViewModel(_libraryService.Settings));
         await window.ShowDialog(GetMainWindow());
 

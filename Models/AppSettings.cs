@@ -9,6 +9,7 @@ public sealed class AppSettings
     public string IgdbClientSecret { get; set; } = string.Empty;
     public string SteamGridDbApiKey { get; set; } = string.Empty;
     public bool ShowGridCovers { get; set; } = true;
+    public bool DismissSteamApiKeyPrompt { get; set; }
 
     public bool IsSteamApiConfigured =>
         !string.IsNullOrWhiteSpace(SteamApiKey) && !string.IsNullOrWhiteSpace(SteamId);
