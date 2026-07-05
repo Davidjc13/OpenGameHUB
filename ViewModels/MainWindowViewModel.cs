@@ -144,6 +144,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedGame is null)
         {
             StatusText = Loc.T("SelectGameFirst");
+            ScheduleStatusClear(TimeSpan.Zero);
             return;
         }
 
@@ -157,6 +158,10 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusText = Loc.T("LaunchFailed", ex.Message);
+        }
+        finally
+        {
+            ScheduleStatusClear(TimeSpan.Zero);
         }
     }
 
@@ -181,6 +186,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = game.IsFavorite
             ? Loc.T("AddedToFavorites", game.Title)
             : Loc.T("RemovedFromFavorites", game.Title);
+        ScheduleStatusClear(TimeSpan.Zero);
     }
 
     private void LoadCachedGames()

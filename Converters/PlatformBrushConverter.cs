@@ -17,6 +17,7 @@ public static class PlatformBrushes
         Platform.BattleNet => Brush.Parse("#148EFF"),
         Platform.Rockstar => Brush.Parse("#FCAF17"),
         Platform.Riot => Brush.Parse("#D13639"),
+        Platform.GamePass => Brush.Parse("#107C10"),
         _ => Brush.Parse("#5C5C5C")
     };
 }

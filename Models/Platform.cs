@@ -10,5 +10,6 @@ public enum Platform
     Ea,
     BattleNet,
     Rockstar,
-    Riot
+    Riot,
+    GamePass
 }
