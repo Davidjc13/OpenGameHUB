@@ -1,0 +1,68 @@
+name: Build Installer
+
+on:
+  push:
+    tags:
+      - 'alpha-*'
+      - 'beta-*'
+      - '[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Installer version (used for manual test builds)'
+        required: true
+        default: 'dev'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.ref_type }}" -eq "tag") {
+            $version = "${{ github.ref_name }}"
+            $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
+            if (-not $valid) {
+              Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
+            }
+          } else {
+            $version = "${{ inputs.version }}"
+          }
+          Write-Host "Building version: $version"
+          "version=$version" >> $env:GITHUB_OUTPUT
+          $prerelease = $version -match '^(alpha-|beta-)'
+          "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
+
+      - name: Build installer
+        shell: pwsh
+        run: .\build-installer.ps1 -AppVersion "${{ steps.version.outputs.version }}" -SkipWingetInstall
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenGameHUB-Setup-${{ steps.version.outputs.version }}
+          path: dist/OpenGameHUB-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Attach installer to release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/OpenGameHUB-Setup-*.exe
+          fail_on_unmatched_files: true
+          prerelease: ${{ steps.version.outputs.prerelease == 'True' }}
