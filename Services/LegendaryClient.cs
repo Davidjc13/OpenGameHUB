@@ -212,7 +212,8 @@ public static class LegendaryClient
             FileName = "cmd.exe",
             Arguments = $"/c start \"legendary\" \"{executable}\" {arguments}",
             UseShellExecute = false,
-            CreateNoWindow = true
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
         };
 
         if (Process.Start(psi) is null)
@@ -451,6 +452,48 @@ public static class LegendaryClient
 
         [JsonPropertyName("is_dlc")]
         public bool IsDlc { get; set; }
+
+        [JsonPropertyName("metadata")]
+        public LegendaryMetadata? Metadata { get; set; }
+    }
+
+    private sealed class LegendaryInstalledGame
+    {
+        [JsonPropertyName("app_name")]
+        public string AppName { get; set; } = string.Empty;
+
+        [JsonPropertyName("title")]
+        public string Title { get; set; } = string.Empty;
+
+        [JsonPropertyName("install_path")]
+        public string? InstallPath { get; set; }
+
+        [JsonPropertyName("executable")]
+        public string? Executable { get; set; }
+    }
+
+    private sealed class LegendaryMetadata
+    {
+        [JsonPropertyName("namespace")]
+        public string CatalogNamespace { get; set; } = string.Empty;
+
+        [JsonPropertyName("id")]
+        public string CatalogItemId { get; set; } = string.Empty;
+    }
+}
+
+public sealed record LegendaryCatalogEntry(
+    string AppName,
+    string AppTitle,
+    string? CatalogNamespace = null,
+    string? CatalogItemId = null)
+{
+    public string? BuildInstallProtocolUrl()
+    {
+        if (string.IsNullOrWhiteSpace(CatalogNamespace) || string.IsNullOrWhiteSpace(CatalogItemId))
+            return null;
+
+        return $"com.epicgames.launcher://apps/{CatalogNamespace}%3A{CatalogItemId}%3A{AppName}?action=install";
     }
 }
 

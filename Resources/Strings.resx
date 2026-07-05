@@ -131,6 +131,25 @@
   <data name="SelectGameFirst" xml:space="preserve"><value>Select a game first.</value></data>
   <data name="LaunchingGame" xml:space="preserve"><value>Launching {0}...</value></data>
   <data name="StartingInstallLaunch" xml:space="preserve"><value>Starting install/launch for {0}...</value></data>
+  <data name="EpicLauncherInstallStarted" xml:space="preserve"><value>Epic Games Launcher opened to install {0}. Refresh your library when it finishes.</value></data>
+  <data name="EpicLauncherInstallIntro" xml:space="preserve"><value>Opening Epic Games Launcher. Complete the installation there so you can manage and uninstall the game normally.</value></data>
+  <data name="EpicLauncherInstallWaiting" xml:space="preserve"><value>Waiting for Epic Games Launcher to finish installing...</value></data>
+  <data name="EpicLauncherInstallDetected" xml:space="preserve"><value>Game installed via Epic Games Launcher.</value></data>
+  <data name="EpicLauncherInstallBackground" xml:space="preserve"><value>Installation continues in Epic Games Launcher. Refresh your library when it finishes.</value></data>
+  <data name="EpicInstallUrlMissing" xml:space="preserve"><value>This Epic game cannot be installed because its store identifiers are missing.</value></data>
+  <data name="EpicInstallLaunchFailed" xml:space="preserve"><value>Could not open Epic Games Launcher.</value></data>
+  <data name="EpicInstallProgressTitle" xml:space="preserve"><value>Installing Epic game</value></data>
+  <data name="EpicInstallPreparing" xml:space="preserve"><value>Preparing download...</value></data>
+  <data name="EpicInstallProgress" xml:space="preserve"><value>Downloading... {0}%</value></data>
+  <data name="EpicInstallFinishing" xml:space="preserve"><value>Finishing installation...</value></data>
+  <data name="EpicInstallComplete" xml:space="preserve"><value>Installation complete. Synced with Epic Games Launcher.</value></data>
+  <data name="EpicInstallSyncingEpic" xml:space="preserve"><value>Syncing with Epic Games Launcher...</value></data>
+  <data name="EpicInstallNotVerified" xml:space="preserve"><value>Legendary finished but "{0}" was not found in the installed games list.</value></data>
+  <data name="EpicInstallFailed" xml:space="preserve"><value>Installation failed: {0}</value></data>
+  <data name="EpicInstallFailedExitCode" xml:space="preserve"><value>Legendary exited with code {0}.</value></data>
+  <data name="EpicInstallCancelled" xml:space="preserve"><value>Installation cancelled.</value></data>
+  <data name="EpicInstallCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="EpicInstallClose" xml:space="preserve"><value>Close</value></data>
   <data name="LaunchFailed" xml:space="preserve"><value>Could not launch: {0}</value></data>
   <data name="AddedToFavorites" xml:space="preserve"><value>Added to favorites: {0}</value></data>
   <data name="RemovedFromFavorites" xml:space="preserve"><value>Removed from favorites: {0}</value></data>

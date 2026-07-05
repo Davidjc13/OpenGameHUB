@@ -7,6 +7,7 @@ using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Ea;
+using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -478,6 +479,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
+            if (!SelectedGame.Source.IsInstalled
+                && SelectedGame.Platform == Platform.Epic
+                && SelectedGame.Source.LaunchSpec.Kind == "protocol"
+                && !string.IsNullOrWhiteSpace(SelectedGame.Source.LaunchSpec.Value)
+                && LegendaryClient.IsEpicLauncherInstalled())
+            {
+                EpicLauncherClient.StartInstall(SelectedGame.Source.LaunchSpec.Value);
+                StatusText = Loc.T("EpicLauncherInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
             _libraryService.LaunchGame(SelectedGame.Source);
             StatusText = SelectedGame.Source.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
@@ -489,9 +502,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         finally
         {
-            ScheduleStatusClear(TimeSpan.Zero);
+            if (SelectedGame is null || SelectedGame.Source.IsInstalled)
+                ScheduleStatusClear(TimeSpan.Zero);
         }
     }
+
 
     [RelayCommand]
     private void LaunchGame(GameItemViewModel? game)
@@ -500,7 +515,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         SelectedGame = game;
-        LaunchSelectedGame();
+        LaunchSelectedGameCommand.Execute(null);
     }
 
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]

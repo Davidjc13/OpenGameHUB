@@ -14,8 +14,8 @@ namespace OpenGameHUB.Services;
 
 public sealed class GameLibraryService : IDisposable
 {
-    private readonly GameDatabase _database = new();
-    private readonly MetadataService _metadataService;
+    private GameDatabase _database = new();
+    private MetadataService _metadataService;
     private readonly SteamWebApiService _steamWebApiService = new();
     private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SettingsService _settingsService = new();
@@ -558,26 +558,26 @@ public sealed class GameLibraryService : IDisposable
             throw new FileNotFoundException(Loc.T("LauncherNotFound", launcher));
 
         var arguments = value[(separator + 1)..];
-        StartProcess(launcher, arguments, workingDirectory ?? Path.GetDirectoryName(launcher), useShellExecute: false);
+        var hideWindow = LegendaryClient.IsLegendaryExecutable(launcher);
+        StartProcess(
+            launcher,
+            arguments,
+            workingDirectory ?? Path.GetDirectoryName(launcher),
+            useShellExecute: false,
+            hideWindow: hideWindow);
     }
 
     private static void StartProtocol(string url)
     {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
+        StartProcess(url, null, null, useShellExecute: true);
     }
 
     private static void StartProcess(
         string fileName,
         string? arguments,
         string? workingDirectory,
-        bool useShellExecute = true)
+        bool useShellExecute = true,
+        bool hideWindow = false)
     {
         if (!useShellExecute && !File.Exists(fileName))
             throw new FileNotFoundException(Loc.T("ExecutableNotFound", fileName));
@@ -589,6 +589,12 @@ public sealed class GameLibraryService : IDisposable
             WorkingDirectory = workingDirectory ?? string.Empty,
             UseShellExecute = useShellExecute
         };
+
+        if (!useShellExecute && hideWindow)
+        {
+            psi.CreateNoWindow = true;
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+        }
 
         if (string.IsNullOrWhiteSpace(workingDirectory))
             psi.WorkingDirectory = string.Empty;
@@ -679,6 +685,14 @@ public sealed class GameLibraryService : IDisposable
         "riot games" or "riot" => Platform.Riot,
         _ => Platform.Unknown
     };
+
+    public void ResetLocalCache()
+    {
+        _database.Dispose();
+        DevModeService.ClearLocalLibraryCache();
+        _database = new GameDatabase();
+        _metadataService = new MetadataService(_database, _settingsService);
+    }
 
     public void Dispose() => _database.Dispose();
 }
