@@ -97,6 +97,25 @@
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Ubisoft library via Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
+  <data name="SyncingEaLibrary" xml:space="preserve"><value>Syncing EA library...</value></data>
+  <data name="EaCloudHint" xml:space="preserve"><value> · EA library via EA app</value></data>
+  <data name="EaCloudLogHint" xml:space="preserve"><value> · EA library via EA app logs</value></data>
+  <data name="EaCacheMissing" xml:space="preserve"><value>EA app library cache not found. Open the EA app and sign in at least once.</value></data>
+  <data name="EaCacheDecryptFailed" xml:space="preserve"><value>Could not read the EA app library cache. Open the EA app, sign in, and try again. If the problem persists, repair the EA app from Windows Settings.</value></data>
+  <data name="EaAppNotInstalled" xml:space="preserve"><value>The EA app is not installed on this PC.</value></data>
+  <data name="WaitingEaAppLaunch" xml:space="preserve"><value>Waiting for EA app to open...</value></data>
+  <data name="WaitingEaLibrarySync" xml:space="preserve"><value>Waiting for EA app library sync...</value></data>
+  <data name="EaLibraryPromptTitle" xml:space="preserve"><value>EA library cache could not be read</value></data>
+  <data name="EaLibraryPromptIntro" xml:space="preserve"><value>The EA app stores your owned games in an encrypted local cache tied to this PC's hardware. OpenGameHUB could not decrypt it, so your uninstalled EA games may be missing or incomplete.</value></data>
+  <data name="EaLibraryPromptWhyTitle" xml:space="preserve"><value>How to fix it</value></data>
+  <data name="EaLibraryPromptWhy" xml:space="preserve"><value>Open the EA app, sign in, and wait until your library finishes syncing. That usually rewrites the cache with the correct key for this PC. If it still fails, repair the EA app from Windows Settings → Apps.</value></data>
+  <data name="EaLibraryPromptFallbackTitle" xml:space="preserve"><value>What we can do right now</value></data>
+  <data name="EaLibraryPromptFallback" xml:space="preserve"><value>We found games from recent EA app logs on this PC. This list may be incomplete or outdated until the cache can be read again.</value></data>
+  <data name="EaLibraryPromptRepairTitle" xml:space="preserve"><value>If you continue now</value></data>
+  <data name="EaLibraryPromptRepair" xml:space="preserve"><value>Only your installed EA games will appear until the EA app syncs successfully. Open the EA app first, then refresh your library here.</value></data>
+  <data name="EaLibraryPromptOpenEaApp" xml:space="preserve"><value>Open EA app</value></data>
+  <data name="EaLibraryPromptContinue" xml:space="preserve"><value>Continue anyway</value></data>
+  <data name="EaLibraryPromptDontRemind" xml:space="preserve"><value>Don't ask again</value></data>
   <data name="ScanError" xml:space="preserve"><value>Scan failed: {0}</value></data>
   <data name="MainWindowUnavailable" xml:space="preserve"><value>Main window is not available.</value></data>
   <data name="SelectGameFirst" xml:space="preserve"><value>Select a game first.</value></data>

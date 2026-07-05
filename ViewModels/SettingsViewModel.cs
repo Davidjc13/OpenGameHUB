@@ -78,19 +78,21 @@ public partial class SettingsViewModel : ViewModelBase
     private async Task OpenSteamSetupAsync()
     {
         var window = new SteamSetupWindow(new SteamSetupViewModel(_settingsService));
+        await window.ShowDialog(GetOwnerWindow());
+        RefreshSteamStatus();
+        OnPropertyChanged(nameof(IsSteamApiConnected));
+    }
+
+    private static Window GetOwnerWindow()
+    {
         if (Avalonia.Application.Current?.ApplicationLifetime
             is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
             && desktop.MainWindow is { } owner)
         {
-            await window.ShowDialog(owner);
-        }
-        else
-        {
-            await window.ShowDialog(null);
+            return owner;
         }
 
-        RefreshSteamStatus();
-        OnPropertyChanged(nameof(IsSteamApiConnected));
+        throw new InvalidOperationException(Loc.T("MainWindowUnavailable"));
     }
 
     [RelayCommand]

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.Win32;
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.LibraryProviders;
 using OpenGameHUB.Services.Ubisoft;
 using GameLib;
@@ -32,7 +33,8 @@ public sealed class GameLibraryService : IDisposable
         _cloudProviders =
         [
             _steamCloudProvider,
-            new UbisoftCloudLibraryProvider()
+            new UbisoftCloudLibraryProvider(),
+            new EaCloudLibraryProvider()
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
@@ -41,6 +43,13 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsUbisoftCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ubisoft && p.IsAvailable());
+
+    public bool IsEaCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Ea && p.IsAvailable());
+
+    public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
+
+    public bool ShouldOfferEaLibraryPrompt => EaCatalogReader.ShouldOfferLibraryPrompt();
 
     public bool IsSteamCloudAvailable => _steamCloudProvider.IsAvailable();
 
@@ -234,8 +243,13 @@ public sealed class GameLibraryService : IDisposable
 
             try
             {
+                if (provider.Platform == Platform.Ea)
+                    EaCatalogReader.InvalidateCache();
+
                 if (provider.Platform == Platform.Ubisoft)
                     progress?.Report(Loc.T("SyncingUbisoftLibrary"));
+                else if (provider.Platform == Platform.Ea)
+                    progress?.Report(Loc.T("SyncingEaLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
@@ -263,10 +277,26 @@ public sealed class GameLibraryService : IDisposable
 
         return pathMerged
             .Concat(withoutPath)
-            .GroupBy(g => NormalizeTitleKey(g.Title), StringComparer.OrdinalIgnoreCase)
+            .GroupBy(GetDedupKey, StringComparer.OrdinalIgnoreCase)
             .Select(PickPreferredDuplicate)
             .OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    private static string GetDedupKey(UnifiedGame game)
+    {
+        var installPath = NormalizeInstallPath(game.InstallPath);
+        if (!string.IsNullOrEmpty(installPath))
+            return installPath;
+
+        if (game.Id.StartsWith("ea:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase))
+        {
+            return game.Id.ToLowerInvariant();
+        }
+
+        return NormalizeTitleKey(game.Title);
     }
 
     private static UnifiedGame PickPreferredDuplicate(IEnumerable<UnifiedGame> group) =>

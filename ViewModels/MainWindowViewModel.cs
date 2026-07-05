@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
+using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -19,6 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
     private bool _steamApiPromptOffered;
+    private bool _eaLibraryPromptOffered;
 
     public MainWindowViewModel()
     {
@@ -78,6 +80,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
 
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
+
+    public bool IsEaCloudAvailable => _libraryService.IsEaCloudAvailable;
 
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
@@ -154,9 +158,11 @@ public partial class MainWindowViewModel : ViewModelBase
                     : Loc.T("SteamLocalLibraryHint")
                 : string.Empty;
             var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + legendaryHint;
-
-            await OfferSteamApiKeyPromptIfNeededAsync();
+            var eaHint = IsEaCloudAvailable
+                && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
+                    ? Loc.T("EaCloudHint")
+                    : string.Empty;
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + legendaryHint;
         }
         catch (Exception ex)
         {
@@ -167,6 +173,9 @@ public partial class MainWindowViewModel : ViewModelBase
             IsRefreshing = false;
             ScheduleStatusClear(TimeSpan.Zero);
         }
+
+        await OfferSteamApiKeyPromptIfNeededAsync();
+        await OfferEaLibraryPromptIfNeededAsync();
     }
 
     [RelayCommand]
@@ -175,6 +184,50 @@ public partial class MainWindowViewModel : ViewModelBase
         var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
         await window.ShowDialog(GetMainWindow());
         ApplyLocalization();
+    }
+
+    private async Task OfferEaLibraryPromptIfNeededAsync()
+    {
+        if (_eaLibraryPromptOffered
+            || !_libraryService.ShouldOfferEaLibraryPrompt
+            || _libraryService.Settings.Current.DismissEaLibraryPrompt)
+        {
+            return;
+        }
+
+        _eaLibraryPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new EaLibraryPromptViewModel(
+            _libraryService.Settings,
+            _libraryService.EaLibraryCacheStatus);
+        var window = new EaLibraryPromptWindow(viewModel);
+        await window.ShowDialog(GetMainWindow());
+
+        if (viewModel.Choice == EaLibraryPromptChoice.OpenEaApp)
+            await LaunchEaAndRefreshLibraryAsync();
+    }
+
+    private async Task LaunchEaAndRefreshLibraryAsync()
+    {
+        EaCatalogReader.InvalidateCache();
+        var baselineStatus = EaCatalogReader.GetCacheStatus();
+        var baselineLogCount = EaCatalogReader.GetLogLibraryEntryCount();
+
+        EaDesktopSyncHelper.LaunchEaDesktop();
+        CancelScheduledStatusClear();
+        StatusText = Loc.T("WaitingEaAppLaunch");
+
+        if (await EaDesktopSyncHelper.WaitForEaDesktopProcessAsync(TimeSpan.FromSeconds(45)))
+        {
+            var progress = new Progress<string>(message => StatusText = message);
+            await EaDesktopSyncHelper.WaitForLibraryUpdateAsync(
+                baselineStatus,
+                baselineLogCount,
+                progress);
+        }
+
+        await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
     private async Task OfferSteamApiKeyPromptIfNeededAsync()
@@ -340,7 +393,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(query))
         {
             filtered = filtered.Where(g =>
-                g.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                TitleMatchesQuery(g.Title, query) ||
                 g.PlatformLabel.Contains(query, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -457,6 +510,34 @@ public partial class MainWindowViewModel : ViewModelBase
             // A new status message was scheduled before clearing.
         }
     }
+
+    private static bool TitleMatchesQuery(string title, string query)
+    {
+        if (title.Contains(query, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var compactTitle = CompactForSearch(title);
+        var compactQuery = CompactForSearch(query);
+        if (!string.IsNullOrEmpty(compactQuery)
+            && compactTitle.Contains(compactQuery, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var titleTokens = TokenizeForSearch(title);
+        var queryTokens = TokenizeForSearch(query);
+        return queryTokens.Length > 0
+               && queryTokens.All(queryToken =>
+                   titleTokens.Any(titleToken =>
+                       titleToken.Contains(queryToken, StringComparison.OrdinalIgnoreCase)
+                       || queryToken.Contains(titleToken, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static string CompactForSearch(string value) =>
+        new string(value.Where(char.IsLetterOrDigit).ToArray());
+
+    private static string[] TokenizeForSearch(string value) =>
+        value.Split([' ', '-', '_', ':', '&'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 public sealed class PlatformFilterItem

@@ -50,6 +50,17 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamApiKeyPromptConfigure => Loc.T("SteamApiKeyPromptConfigure");
     public string SteamApiKeyPromptContinue => Loc.T("SteamApiKeyPromptContinue");
     public string SteamApiKeyPromptDontRemind => Loc.T("SteamApiKeyPromptDontRemind");
+    public string EaLibraryPromptTitle => Loc.T("EaLibraryPromptTitle");
+    public string EaLibraryPromptIntro => Loc.T("EaLibraryPromptIntro");
+    public string EaLibraryPromptWhyTitle => Loc.T("EaLibraryPromptWhyTitle");
+    public string EaLibraryPromptWhy => Loc.T("EaLibraryPromptWhy");
+    public string EaLibraryPromptFallbackTitle => Loc.T("EaLibraryPromptFallbackTitle");
+    public string EaLibraryPromptFallback => Loc.T("EaLibraryPromptFallback");
+    public string EaLibraryPromptRepairTitle => Loc.T("EaLibraryPromptRepairTitle");
+    public string EaLibraryPromptRepair => Loc.T("EaLibraryPromptRepair");
+    public string EaLibraryPromptOpenEaApp => Loc.T("EaLibraryPromptOpenEaApp");
+    public string EaLibraryPromptContinue => Loc.T("EaLibraryPromptContinue");
+    public string EaLibraryPromptDontRemind => Loc.T("EaLibraryPromptDontRemind");
     public string SteamDisconnectApi => Loc.T("SteamDisconnectApi");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");

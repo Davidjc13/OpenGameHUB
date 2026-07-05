@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenGameHUB.ViewModels"
+        x:Class="OpenGameHUB.Views.EaLibraryPromptWindow"
+        x:DataType="vm:EaLibraryPromptViewModel"
+        Title="{Binding Strings.EaLibraryPromptTitle}"
+        Width="520"
+        Height="560"
+        MinWidth="480"
+        MinHeight="500"
+        WindowStartupLocation="CenterOwner"
+        Background="#10131A">
+
+    <Grid Margin="24"
+          RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0"
+                      Classes="dialogScroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                <TextBlock Text="{Binding Strings.EaLibraryPromptTitle}"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="#F4F7FF"/>
+                <TextBlock Text="{Binding Strings.EaLibraryPromptIntro}"
+                           Foreground="#9AA6BF"
+                           TextWrapping="Wrap"/>
+
+                <Border Background="#161B27"
+                        CornerRadius="10"
+                        Padding="14"
+                        BorderBrush="#2B3448"
+                        BorderThickness="1">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptWhyTitle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="#D7DFF1"/>
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptWhy}"
+                                   Foreground="#7E8AA3"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#161B27"
+                        CornerRadius="10"
+                        Padding="14"
+                        BorderBrush="#2B3448"
+                        BorderThickness="1"
+                        IsVisible="{Binding IsLogFallback}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptFallbackTitle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="#D7DFF1"/>
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptFallback}"
+                                   Foreground="#7E8AA3"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#161B27"
+                        CornerRadius="10"
+                        Padding="14"
+                        BorderBrush="#2B3448"
+                        BorderThickness="1"
+                        IsVisible="{Binding !IsLogFallback}">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptRepairTitle}"
+                                   FontWeight="SemiBold"
+                                   Foreground="#D7DFF1"/>
+                        <TextBlock Text="{Binding Strings.EaLibraryPromptRepair}"
+                                   Foreground="#7E8AA3"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1"
+                    Spacing="10"
+                    Margin="0,20,0,0">
+            <Button Classes="primary"
+                    Content="{Binding Strings.EaLibraryPromptOpenEaApp}"
+                    Command="{Binding OpenEaAppCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Content="{Binding Strings.EaLibraryPromptContinue}"
+                    Command="{Binding ContinueCommand}"
+                    HorizontalAlignment="Stretch"/>
+            <Button Content="{Binding Strings.EaLibraryPromptDontRemind}"
+                    Command="{Binding DontRemindAgainCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+    </Grid>
+</Window>
