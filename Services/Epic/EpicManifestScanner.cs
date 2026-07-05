@@ -63,6 +63,96 @@ internal static class EpicManifestScanner
         return games;
     }
 
+    public static bool IsAppInstalled(string appName, bool requireCompleteInstall = true)
+    {
+        if (string.IsNullOrWhiteSpace(appName))
+            return false;
+
+        foreach (var manifest in EnumerateManifests())
+        {
+            if (!string.Equals(manifest.AppName, appName, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (!requireCompleteInstall)
+                return true;
+
+            if (!manifest.IsIncomplete
+                && !string.IsNullOrWhiteSpace(manifest.InstallLocation)
+                && Directory.Exists(manifest.InstallLocation))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static IReadOnlySet<string> GetInstalledAppNames(bool requireCompleteInstall = true)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var manifest in EnumerateManifests())
+        {
+            if (string.IsNullOrWhiteSpace(manifest.AppName))
+                continue;
+
+            if (requireCompleteInstall)
+            {
+                if (manifest.IsIncomplete
+                    || string.IsNullOrWhiteSpace(manifest.InstallLocation)
+                    || !Directory.Exists(manifest.InstallLocation))
+                {
+                    continue;
+                }
+            }
+
+            names.Add(manifest.AppName.Trim());
+        }
+
+        return names;
+    }
+
+    private static IEnumerable<EpicItemManifest> EnumerateManifests()
+    {
+        foreach (var root in ManifestRoots.Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (!Directory.Exists(root))
+                continue;
+
+            IEnumerable<string> itemFiles;
+            try
+            {
+                itemFiles = Directory.EnumerateFiles(root, "*.item", SearchOption.TopDirectoryOnly);
+            }
+            catch
+            {
+                continue;
+            }
+
+            foreach (var itemFile in itemFiles)
+            {
+                EpicItemManifest? manifest;
+                try
+                {
+                    manifest = JsonSerializer.Deserialize<EpicItemManifest>(
+                        File.ReadAllText(itemFile),
+                        JsonOptions);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (manifest is null)
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(manifest.AppName))
+                    manifest.AppName = Path.GetFileNameWithoutExtension(itemFile);
+
+                yield return manifest;
+            }
+        }
+    }
+
     private static UnifiedGame? TryParseInstalledManifest(string itemFile)
     {
         var json = File.ReadAllText(itemFile);
