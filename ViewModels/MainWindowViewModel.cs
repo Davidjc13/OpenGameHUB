@@ -18,6 +18,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
+    private bool _offeredSteamSetup;
 
     public MainWindowViewModel()
     {
@@ -77,6 +78,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
 
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
+
+    public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
     public int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredGames.Count / (double)PageSize));
 
@@ -143,8 +146,20 @@ public partial class MainWindowViewModel : ViewModelBase
             ApplyFilter();
 
             var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
+            var steamHint = IsSteamCloudAvailable ? Loc.T("SteamCloudHint") : string.Empty;
+            var steamSetupHint = !IsSteamCloudAvailable && SteamLocalAccountReader.IsSteamInstalled
+                ? Loc.T("SteamSetupPrompt")
+                : string.Empty;
             var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint + ubisoftHint;
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamSetupHint + steamHint + ubisoftHint + legendaryHint;
+
+            if (!_offeredSteamSetup
+                && !_libraryService.Settings.Current.IsSteamApiConfigured
+                && SteamLocalAccountReader.IsSteamInstalled)
+            {
+                _offeredSteamSetup = true;
+                _ = OfferSteamSetupAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -163,6 +178,16 @@ public partial class MainWindowViewModel : ViewModelBase
         var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
         await window.ShowDialog(GetMainWindow());
         ApplyLocalization();
+    }
+
+    private async Task OfferSteamSetupAsync()
+    {
+        await Task.Delay(400);
+        var window = new SteamSetupWindow(new SteamSetupViewModel(_libraryService.Settings));
+        await window.ShowDialog(GetMainWindow());
+
+        if (_libraryService.Settings.Current.IsSteamApiConfigured)
+            await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
     private static Window GetMainWindow()

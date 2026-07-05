@@ -31,6 +31,16 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string LanguageSpanish => Loc.T("LanguageSpanish");
     public string SteamWebApi => Loc.T("SteamWebApi");
     public string SteamApiHelp => Loc.T("SteamApiHelp");
+    public string SteamSetupButton => Loc.T("SteamSetupButton");
+    public string SteamSetupTitle => Loc.T("SteamSetupTitle");
+    public string SteamSetupDescription => Loc.T("SteamSetupDescription");
+    public string SteamSetupStepAccount => Loc.T("SteamSetupStepAccount");
+    public string SteamSetupStepAccountHelp => Loc.T("SteamSetupStepAccountHelp");
+    public string SteamSetupDetectAccount => Loc.T("SteamSetupDetectAccount");
+    public string SteamSetupStepApiKey => Loc.T("SteamSetupStepApiKey");
+    public string SteamSetupStepApiKeyHelp => Loc.T("SteamSetupStepApiKeyHelp");
+    public string SteamSetupOpenApiKeyPage => Loc.T("SteamSetupOpenApiKeyPage");
+    public string SteamSetupTestAndSave => Loc.T("SteamSetupTestAndSave");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

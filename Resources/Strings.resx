@@ -90,6 +90,7 @@
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Downloading covers ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} games in library</value></data>
   <data name="EpicCloudHint" xml:space="preserve"><value> · Epic cloud via legendary</value></data>
+  <data name="SteamCloudHint" xml:space="preserve"><value> · Steam library via Web API</value></data>
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Ubisoft library via Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
@@ -117,6 +118,31 @@
   <data name="LanguageSpanish" xml:space="preserve"><value>Spanish</value></data>
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Get your key at steamcommunity.com/dev/apikey and your SteamID64 at steamid.io</value></data>
+  <data name="SteamSetupButton" xml:space="preserve"><value>Set up Steam library...</value></data>
+  <data name="SteamSetupTitle" xml:space="preserve"><value>Set up Steam library</value></data>
+  <data name="SteamSetupDescription" xml:space="preserve"><value>Link your Steam account to list uninstalled games and sync playtime. We detect your account automatically — you only need to paste an API key.</value></data>
+  <data name="SteamSetupStepAccount" xml:space="preserve"><value>1. Your Steam account</value></data>
+  <data name="SteamSetupStepAccountHelp" xml:space="preserve"><value>Detected from your local Steam installation. Sign in to the Steam client first if detection fails.</value></data>
+  <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detect account</value></data>
+  <data name="SteamSetupDetectedAccount" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="SteamSetupAccountDetected" xml:space="preserve"><value>Account detected.</value></data>
+  <data name="SteamSetupAccountNotFound" xml:space="preserve"><value>Could not read your Steam account. Open Steam, sign in, then try again.</value></data>
+  <data name="SteamSetupSteamNotInstalled" xml:space="preserve"><value>Steam is not installed on this PC.</value></data>
+  <data name="SteamSetupStepApiKey" xml:space="preserve"><value>2. Steam Web API key</value></data>
+  <data name="SteamSetupStepApiKeyHelp" xml:space="preserve"><value>Click the button below, sign in to Steam, and create a key. Use any domain (e.g. localhost). Then paste the key here.</value></data>
+  <data name="SteamSetupOpenApiKeyPage" xml:space="preserve"><value>Open Steam API key page</value></data>
+  <data name="SteamSetupApiKeyInstructions" xml:space="preserve"><value>Paste the API key you copied from Steam, then click Test and save.</value></data>
+  <data name="SteamSetupTestAndSave" xml:space="preserve"><value>Test and save</value></data>
+  <data name="SteamSetupTesting" xml:space="preserve"><value>Testing connection...</value></data>
+  <data name="SteamSetupSuccess" xml:space="preserve"><value>Connected. Found {0} games in your Steam library.</value></data>
+  <data name="SteamSetupMissingFields" xml:space="preserve"><value>Enter your Steam API key and make sure your account was detected.</value></data>
+  <data name="SteamSetupInvalidSteamId" xml:space="preserve"><value>The Steam ID does not look valid.</value></data>
+  <data name="SteamSetupInvalidApiKey" xml:space="preserve"><value>Invalid API key. Check the key and try again.</value></data>
+  <data name="SteamSetupConnectionFailed" xml:space="preserve"><value>Could not connect to Steam. Check your internet connection and try again.</value></data>
+  <data name="SteamConfiguredStatus" xml:space="preserve"><value>Connected · SteamID {0}</value></data>
+  <data name="SteamNotConfigured" xml:space="preserve"><value>Not connected. Set up Steam to see your full library.</value></data>
+  <data name="SteamNotConfiguredInstalled" xml:space="preserve"><value>Steam detected but library not linked yet.</value></data>
+  <data name="SteamSetupPrompt" xml:space="preserve"><value> · Set up Steam library in Settings</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

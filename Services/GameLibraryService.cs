@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Win32;
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services.LibraryProviders;
@@ -21,13 +22,17 @@ public sealed class GameLibraryService : IDisposable
         LoadLocalCatalogData = true,
         SearchExecutables = true
     });
-    private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders =
-    [
-        new UbisoftCloudLibraryProvider()
-    ];
+    private readonly SteamCloudLibraryProvider _steamCloudProvider;
+    private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
 
     public GameLibraryService()
     {
+        _steamCloudProvider = new SteamCloudLibraryProvider(_settingsService, _steamWebApiService);
+        _cloudProviders =
+        [
+            _steamCloudProvider,
+            new UbisoftCloudLibraryProvider()
+        ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
 
@@ -35,6 +40,8 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsUbisoftCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ubisoft && p.IsAvailable());
+
+    public bool IsSteamCloudAvailable => _steamCloudProvider.IsAvailable();
 
     public SettingsService Settings => _settingsService;
 
@@ -49,43 +56,43 @@ public sealed class GameLibraryService : IDisposable
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var games = await Task.Run(
-            () => ScanAllGames(progress, cancellationToken),
-            cancellationToken);
+        IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry> steamOwned = [];
 
         if (_settingsService.Current.IsSteamApiConfigured)
         {
             progress?.Report(Loc.T("SyncingSteamLibrary"));
             try
             {
-                var owned = await _steamWebApiService.GetOwnedGamesAsync(
+                steamOwned = await _steamWebApiService.GetOwnedGamesAsync(
                     _settingsService.Current.SteamApiKey,
                     _settingsService.Current.SteamId,
                     cancellationToken);
-                games = DeduplicateGames(games
-                    .Concat(_steamWebApiService.GetUninstalledOwnedGames(owned, games))
-                    .ToList())
-                    .ToList();
+                _steamCloudProvider.SetOwnedGames(steamOwned);
             }
             catch
             {
-                // Steam API cloud library is optional.
+                _steamCloudProvider.ClearOwnedGames();
             }
         }
+        else
+        {
+            _steamCloudProvider.ClearOwnedGames();
+        }
+
+        var games = await Task.Run(
+            () => ScanAllGames(progress, cancellationToken),
+            cancellationToken);
 
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
+        SteamWebApiService.EnrichCatalogCoverUrls(stored);
         UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
 
-        if (_settingsService.Current.IsSteamApiConfigured)
+        if (steamOwned.Count > 0)
         {
             progress?.Report(Loc.T("SyncingSteamPlaytime"));
-            await _steamWebApiService.EnrichPlaytimeAsync(
-                stored,
-                _settingsService.Current.SteamApiKey,
-                _settingsService.Current.SteamId,
-                cancellationToken);
+            _steamWebApiService.EnrichPlaytimeFromOwned(stored, steamOwned);
             _database.PersistPlaytimes(stored);
         }
 
@@ -397,11 +404,8 @@ public sealed class GameLibraryService : IDisposable
         if (game.Platform == Platform.Steam &&
             int.TryParse(game.PlatformGameId, out var appId))
         {
-            if (!game.IsInstalled)
-                attempts.Insert(0, () => StartProtocol($"steam://install/{appId}"));
-
-            var steamExe = @"C:\Program Files (x86)\Steam\steam.exe";
-            if (File.Exists(steamExe))
+            var steamExe = FindSteamExecutable();
+            if (steamExe is not null)
                 attempts.Add(() => StartProcess(steamExe, $"-applaunch {appId}", Path.GetDirectoryName(steamExe)));
         }
 
@@ -540,6 +544,28 @@ public sealed class GameLibraryService : IDisposable
                || name.Contains("createdump", StringComparison.Ordinal)
                || name.Contains("dotnet", StringComparison.Ordinal)
                || name is "unitycrashhandler64.exe" or "unitycrashhandler32.exe";
+    }
+
+    private static string? FindSteamExecutable()
+    {
+        const string defaultPath = @"C:\Program Files (x86)\Steam\steam.exe";
+        if (File.Exists(defaultPath))
+            return defaultPath;
+
+        foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, view);
+            using var steamKey = baseKey.OpenSubKey(@"Software\Valve\Steam");
+            var steamPath = steamKey?.GetValue("SteamPath") as string;
+            if (string.IsNullOrWhiteSpace(steamPath))
+                continue;
+
+            var candidate = Path.Combine(steamPath.Replace('/', Path.DirectorySeparatorChar), "steam.exe");
+            if (File.Exists(candidate))
+                return candidate;
+        }
+
+        return null;
     }
 
     private static Platform MapPlatform(string launcherName) => launcherName.ToLowerInvariant() switch

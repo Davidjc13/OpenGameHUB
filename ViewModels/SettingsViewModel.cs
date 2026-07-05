@@ -1,8 +1,10 @@
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
+using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
 
@@ -14,23 +16,19 @@ public partial class SettingsViewModel : ViewModelBase
     {
         _settingsService = settingsService;
         var current = settingsService.Current;
-        SteamApiKey = current.SteamApiKey;
-        SteamId = current.SteamId;
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
         ShowGridCovers = current.ShowGridCovers;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
+        RefreshSteamStatus();
     }
 
     public LocalizedStrings Strings { get; }
 
     [ObservableProperty]
-    private string _steamApiKey = string.Empty;
-
-    [ObservableProperty]
-    private string _steamId = string.Empty;
+    private string _steamStatusText = string.Empty;
 
     [ObservableProperty]
     private string _igdbClientId = string.Empty;
@@ -75,13 +73,46 @@ public partial class SettingsViewModel : ViewModelBase
     public event Action? RequestClose;
 
     [RelayCommand]
+    private async Task OpenSteamSetupAsync()
+    {
+        var window = new SteamSetupWindow(new SteamSetupViewModel(_settingsService));
+        if (Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
+            && desktop.MainWindow is { } owner)
+        {
+            await window.ShowDialog(owner);
+        }
+        else
+        {
+            await window.ShowDialog(null);
+        }
+
+        RefreshSteamStatus();
+    }
+
+    private void RefreshSteamStatus()
+    {
+        var settings = _settingsService.Current;
+        if (settings.IsSteamApiConfigured)
+        {
+            SteamStatusText = Loc.T("SteamConfiguredStatus", settings.SteamId);
+            return;
+        }
+
+        SteamStatusText = SteamLocalAccountReader.IsSteamInstalled
+            ? Loc.T("SteamNotConfiguredInstalled")
+            : Loc.T("SteamNotConfigured");
+    }
+
+    [RelayCommand]
     private void Save()
     {
+        var current = _settingsService.Current;
         _settingsService.Save(new AppSettings
         {
             Language = SelectedLanguage,
-            SteamApiKey = SteamApiKey.Trim(),
-            SteamId = SteamId.Trim(),
+            SteamApiKey = current.SteamApiKey,
+            SteamId = current.SteamId,
             IgdbClientId = IgdbClientId.Trim(),
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),

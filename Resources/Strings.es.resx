@@ -90,6 +90,7 @@
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Descargando portadas ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} juegos en biblioteca</value></data>
   <data name="EpicCloudHint" xml:space="preserve"><value> · Epic en la nube vía legendary</value></data>
+  <data name="SteamCloudHint" xml:space="preserve"><value> · Biblioteca Steam vía Web API</value></data>
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Biblioteca Ubisoft vía Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
@@ -117,6 +118,31 @@
   <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Obtén tu clave en steamcommunity.com/dev/apikey y tu SteamID64 en steamid.io</value></data>
+  <data name="SteamSetupButton" xml:space="preserve"><value>Configurar biblioteca de Steam...</value></data>
+  <data name="SteamSetupTitle" xml:space="preserve"><value>Configurar biblioteca de Steam</value></data>
+  <data name="SteamSetupDescription" xml:space="preserve"><value>Vincula tu cuenta de Steam para listar juegos no instalados y sincronizar tiempo de juego. Detectamos tu cuenta automáticamente — solo tienes que pegar una API key.</value></data>
+  <data name="SteamSetupStepAccount" xml:space="preserve"><value>1. Tu cuenta de Steam</value></data>
+  <data name="SteamSetupStepAccountHelp" xml:space="preserve"><value>Detectada desde tu instalación local de Steam. Inicia sesión en el cliente de Steam si falla la detección.</value></data>
+  <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detectar cuenta</value></data>
+  <data name="SteamSetupDetectedAccount" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="SteamSetupAccountDetected" xml:space="preserve"><value>Cuenta detectada.</value></data>
+  <data name="SteamSetupAccountNotFound" xml:space="preserve"><value>No se pudo leer tu cuenta de Steam. Abre Steam, inicia sesión e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupSteamNotInstalled" xml:space="preserve"><value>Steam no está instalado en este PC.</value></data>
+  <data name="SteamSetupStepApiKey" xml:space="preserve"><value>2. Steam Web API key</value></data>
+  <data name="SteamSetupStepApiKeyHelp" xml:space="preserve"><value>Pulsa el botón, inicia sesión en Steam y crea una clave. Puedes usar cualquier dominio (p. ej. localhost). Luego pega la clave aquí.</value></data>
+  <data name="SteamSetupOpenApiKeyPage" xml:space="preserve"><value>Abrir página de API key de Steam</value></data>
+  <data name="SteamSetupApiKeyInstructions" xml:space="preserve"><value>Pega la API key que copiaste de Steam y pulsa Probar y guardar.</value></data>
+  <data name="SteamSetupTestAndSave" xml:space="preserve"><value>Probar y guardar</value></data>
+  <data name="SteamSetupTesting" xml:space="preserve"><value>Probando conexión...</value></data>
+  <data name="SteamSetupSuccess" xml:space="preserve"><value>Conectado. Se encontraron {0} juegos en tu biblioteca de Steam.</value></data>
+  <data name="SteamSetupMissingFields" xml:space="preserve"><value>Introduce tu API key de Steam y asegúrate de que se detectó tu cuenta.</value></data>
+  <data name="SteamSetupInvalidSteamId" xml:space="preserve"><value>El Steam ID no parece válido.</value></data>
+  <data name="SteamSetupInvalidApiKey" xml:space="preserve"><value>API key inválida. Comprueba la clave e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupConnectionFailed" xml:space="preserve"><value>No se pudo conectar con Steam. Comprueba tu conexión e inténtalo de nuevo.</value></data>
+  <data name="SteamConfiguredStatus" xml:space="preserve"><value>Conectado · SteamID {0}</value></data>
+  <data name="SteamNotConfigured" xml:space="preserve"><value>Sin conectar. Configura Steam para ver tu biblioteca completa.</value></data>
+  <data name="SteamNotConfiguredInstalled" xml:space="preserve"><value>Steam detectado pero la biblioteca aún no está vinculada.</value></data>
+  <data name="SteamSetupPrompt" xml:space="preserve"><value> · Configura Steam en Ajustes</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>

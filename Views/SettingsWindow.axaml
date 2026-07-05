@@ -38,14 +38,12 @@
                        FontWeight="SemiBold"
                        Foreground="#D7DFF1"
                        Margin="0,8,0,0"/>
-            <TextBlock Text="{Binding Strings.SteamApiHelp}"
-                       Foreground="#7E8AA3"
-                       FontSize="12"
+            <TextBlock Text="{Binding SteamStatusText}"
+                       Foreground="#9AA6BF"
                        TextWrapping="Wrap"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamApiKeyPlaceholder}"
-                     Text="{Binding SteamApiKey}"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamIdPlaceholder}"
-                     Text="{Binding SteamId}"/>
+            <Button Content="{Binding Strings.SteamSetupButton}"
+                    Command="{Binding OpenSteamSetupCommand}"
+                    HorizontalAlignment="Left"/>
 
             <TextBlock Text="{Binding Strings.DisplaySection}"
                        FontWeight="SemiBold"
