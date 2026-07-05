@@ -48,6 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
         StatusText = Loc.T("LoadingLibrary");
         LoadCachedGames();
         _ = RefreshLibraryCommand.ExecuteAsync(null);
+        _ = CheckForAppUpdateOnStartupAsync();
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
@@ -243,6 +244,29 @@ public partial class MainWindowViewModel : ViewModelBase
                 });
             }
         }, token);
+    }
+
+    private async Task CheckForAppUpdateOnStartupAsync()
+    {
+        if (AppUpdateService.IsDevBuild)
+            return;
+
+        try
+        {
+            var release = await AppUpdateService.GetLatestReleaseAsync();
+            if (release is null || !AppUpdateService.IsNewer(release.TagName, AppUpdateService.CurrentVersion))
+                return;
+
+            await RunOnUiThreadAsync(() =>
+            {
+                StatusText = Loc.T("AppUpdateAvailableHint", release.TagName);
+                ScheduleStatusClear(TimeSpan.FromSeconds(12));
+            });
+        }
+        catch
+        {
+            // optional background check
+        }
     }
 
     private async Task OfferOnboardingPromptsAsync()

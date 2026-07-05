@@ -226,6 +226,20 @@
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Connections reset. Refresh the library to replay onboarding prompts.</value></data>
   <data name="DevClearLocalDatabase" xml:space="preserve"><value>Clear local database</value></data>
   <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Local database cleared. The library will refresh when you close settings.</value></data>
+  <data name="AppUpdateSection" xml:space="preserve"><value>Updates</value></data>
+  <data name="AppCurrentVersion" xml:space="preserve"><value>Current version: {0}</value></data>
+  <data name="AppCheckForUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="AppInstallUpdate" xml:space="preserve"><value>Download and install</value></data>
+  <data name="AppUpdateAvailable" xml:space="preserve"><value>Update available: {0}</value></data>
+  <data name="AppUpdateUpToDate" xml:space="preserve"><value>You are on the latest version ({0}).</value></data>
+  <data name="AppUpdateCheckFailed" xml:space="preserve"><value>Could not check for updates.</value></data>
+  <data name="AppUpdateCheckFailedDetail" xml:space="preserve"><value>Could not check for updates: {0}</value></data>
+  <data name="AppUpdateDownloading" xml:space="preserve"><value>Downloading update ({0:F0}%)...</value></data>
+  <data name="AppUpdateDownloadFailed" xml:space="preserve"><value>Could not download update: {0}</value></data>
+  <data name="AppUpdateInstalling" xml:space="preserve"><value>Starting installer. OpenGameHUB will close.</value></data>
+  <data name="AppUpdateLaunchFailed" xml:space="preserve"><value>Could not start the installer.</value></data>
+  <data name="AppUpdateInstallerMissing" xml:space="preserve"><value>Installer not found: {0}</value></data>
+  <data name="AppUpdateAvailableHint" xml:space="preserve"><value>Update {0} available. Open Settings to install.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

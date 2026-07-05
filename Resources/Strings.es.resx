@@ -226,6 +226,20 @@
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Conexiones restablecidas. Actualiza la biblioteca para volver a ver los avisos.</value></data>
   <data name="DevClearLocalDatabase" xml:space="preserve"><value>Borrar base de datos local</value></data>
   <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Base de datos local borrada. La biblioteca se actualizará al cerrar ajustes.</value></data>
+  <data name="AppUpdateSection" xml:space="preserve"><value>Actualizaciones</value></data>
+  <data name="AppCurrentVersion" xml:space="preserve"><value>Versión actual: {0}</value></data>
+  <data name="AppCheckForUpdates" xml:space="preserve"><value>Buscar actualizaciones</value></data>
+  <data name="AppInstallUpdate" xml:space="preserve"><value>Descargar e instalar</value></data>
+  <data name="AppUpdateAvailable" xml:space="preserve"><value>Actualización disponible: {0}</value></data>
+  <data name="AppUpdateUpToDate" xml:space="preserve"><value>Ya tienes la última versión ({0}).</value></data>
+  <data name="AppUpdateCheckFailed" xml:space="preserve"><value>No se pudo comprobar actualizaciones.</value></data>
+  <data name="AppUpdateCheckFailedDetail" xml:space="preserve"><value>No se pudo comprobar actualizaciones: {0}</value></data>
+  <data name="AppUpdateDownloading" xml:space="preserve"><value>Descargando actualización ({0:F0}%)...</value></data>
+  <data name="AppUpdateDownloadFailed" xml:space="preserve"><value>No se pudo descargar la actualización: {0}</value></data>
+  <data name="AppUpdateInstalling" xml:space="preserve"><value>Iniciando instalador. OpenGameHUB se cerrará.</value></data>
+  <data name="AppUpdateLaunchFailed" xml:space="preserve"><value>No se pudo iniciar el instalador.</value></data>
+  <data name="AppUpdateInstallerMissing" xml:space="preserve"><value>No se encontró el instalador: {0}</value></data>
+  <data name="AppUpdateAvailableHint" xml:space="preserve"><value>Actualización {0} disponible. Abre Ajustes para instalar.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>

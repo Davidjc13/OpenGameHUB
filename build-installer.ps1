@@ -18,12 +18,24 @@ try {
 }
 
 Write-Host "Publishing OpenGameHUB (Release, win-x64, self-contained)..." -ForegroundColor Cyan
-dotnet publish OpenGameHUB.csproj `
-    -c Release `
-    -r win-x64 `
-    --self-contained true `
-    -p:PublishSingleFile=false `
-    -o ./publish/win-x64-release
+$publishArgs = @(
+    "publish", "OpenGameHUB.csproj",
+    "-c", "Release",
+    "-r", "win-x64",
+    "--self-contained", "true",
+    "-p:PublishSingleFile=false",
+    "-o", "./publish/win-x64-release"
+)
+if ($AppVersion) {
+    $publishArgs += "-p:InformationalVersion=$AppVersion"
+    if ($AppVersion -match '(\d+\.\d+\.\d+)') {
+        $semver = $Matches[1]
+        $publishArgs += "-p:Version=$semver"
+        $publishArgs += "-p:AssemblyVersion=$semver.0"
+        $publishArgs += "-p:FileVersion=$semver.0"
+    }
+}
+dotnet @publishArgs
 
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
