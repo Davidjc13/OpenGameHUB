@@ -1,5 +1,7 @@
 #define MyAppName "OpenGameHUB"
-#define MyAppVersion "alpha-0.0.2"
+#ifndef MyAppVersion
+#define MyAppVersion "dev"
+#endif
 #define MyAppPublisher "OpenGameHUB"
 #define MyAppExeName "OpenGameHUB.exe"
 #define MyAppUrl "https://github.com/OpenGameHUB/OpenGameHUB"

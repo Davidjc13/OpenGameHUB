@@ -1,3 +1,8 @@
+param(
+    [string]$AppVersion = "",
+    [switch]$SkipWingetInstall
+)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -21,7 +26,7 @@ $iscc = @(
     "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 
-if (-not $iscc) {
+if (-not $iscc -and -not $SkipWingetInstall) {
     Write-Host "Inno Setup 6 not found. Installing via winget..." -ForegroundColor Yellow
     winget install --id JRSoftware.InnoSetup -e --accept-package-agreements --accept-source-agreements
 
@@ -36,8 +41,17 @@ if (-not $iscc) {
     Write-Error "Inno Setup compiler (ISCC.exe) not found. Install from https://jrsoftware.org/isinfo.php"
 }
 
+$isccArgs = if ($AppVersion) {
+    @("/DMyAppVersion=$AppVersion", ".\installer\OpenGameHUB.iss")
+} else {
+    @(".\installer\OpenGameHUB.iss")
+}
+
 Write-Host "Building installer with Inno Setup..." -ForegroundColor Cyan
-& $iscc ".\installer\OpenGameHUB.iss"
+if ($AppVersion) {
+    Write-Host "Version: $AppVersion" -ForegroundColor Cyan
+}
+& $iscc @isccArgs
 
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
