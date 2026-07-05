@@ -12,13 +12,9 @@ namespace OpenGameHUB.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private const int PageSize = 24;
-
     private readonly GameLibraryService _libraryService = new();
     private List<GameItemViewModel> _allGames = [];
-    private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
-    private bool _steamApiPromptOffered;
 
     public MainWindowViewModel()
     {
@@ -32,8 +28,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         RebuildSortOptions();
         RebuildPlatformFilters();
-
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
 
         StatusText = Loc.T("LoadingLibrary");
         LoadCachedGames();
@@ -72,34 +66,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showInstalledOnly;
 
-    [ObservableProperty]
-    private bool _showGridCovers = true;
-
     public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
-
-    public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
-
-    public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
-
-    public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
-
-    public int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredGames.Count / (double)PageSize));
-
-    public bool CanGoPrevious => CurrentPage > 1;
-
-    public bool CanGoNext => CurrentPage < TotalPages;
-
-    [ObservableProperty]
-    private int _currentPage = 1;
-
-    partial void OnCurrentPageChanged(int value)
-    {
-        ApplyCurrentPage();
-        OnPropertyChanged(nameof(CanGoPrevious));
-        OnPropertyChanged(nameof(CanGoNext));
-        PreviousPageCommand.NotifyCanExecuteChanged();
-        NextPageCommand.NotifyCanExecuteChanged();
-    }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
     partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
@@ -107,20 +74,10 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
     partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
 
-    private GameItemViewModel? _previousSelectedGame;
-
     partial void OnSelectedGameChanged(GameItemViewModel? value)
     {
-        if (!ReferenceEquals(_previousSelectedGame, value))
-            _previousSelectedGame?.ReleaseCover();
-
-        _previousSelectedGame = value;
-
         foreach (var game in _allGames)
             game.IsSelected = ReferenceEquals(game, value);
-
-        if (value is not null && !value.HasCover)
-            _ = value.LoadCoverAsync();
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
@@ -148,15 +105,7 @@ public partial class MainWindowViewModel : ViewModelBase
             ApplyFilter();
 
             var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
-            var steamHint = IsSteamCloudAvailable
-                ? IsSteamApiConfigured
-                    ? Loc.T("SteamCloudHint")
-                    : Loc.T("SteamLocalLibraryHint")
-                : string.Empty;
-            var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + legendaryHint;
-
-            await OfferSteamApiKeyPromptIfNeededAsync();
+            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint;
         }
         catch (Exception ex)
         {
@@ -175,36 +124,6 @@ public partial class MainWindowViewModel : ViewModelBase
         var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
         await window.ShowDialog(GetMainWindow());
         ApplyLocalization();
-    }
-
-    private async Task OfferSteamApiKeyPromptIfNeededAsync()
-    {
-        if (_steamApiPromptOffered
-            || IsSteamApiConfigured
-            || !SteamLocalAccountReader.IsSteamInstalled
-            || _libraryService.Settings.Current.DismissSteamApiKeyPrompt)
-        {
-            return;
-        }
-
-        _steamApiPromptOffered = true;
-        await Task.Delay(350);
-
-        var viewModel = new SteamApiKeyPromptViewModel(_libraryService.Settings);
-        var window = new SteamApiKeyPromptWindow(viewModel);
-        await window.ShowDialog(GetMainWindow());
-
-        if (viewModel.Choice == SteamApiKeyPromptChoice.Configure)
-            await OpenSteamSetupAsync();
-    }
-
-    private async Task OpenSteamSetupAsync()
-    {
-        var window = new SteamSetupWindow(new SteamSetupViewModel(_libraryService.Settings));
-        await window.ShowDialog(GetMainWindow());
-
-        if (_libraryService.Settings.Current.IsSteamApiConfigured)
-            await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
     private static Window GetMainWindow()
@@ -254,20 +173,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         SelectedGame = game;
         LaunchSelectedGame();
-    }
-
-    [RelayCommand(CanExecute = nameof(CanGoPrevious))]
-    private void PreviousPage()
-    {
-        if (CurrentPage > 1)
-            CurrentPage--;
-    }
-
-    [RelayCommand(CanExecute = nameof(CanGoNext))]
-    private void NextPage()
-    {
-        if (CurrentPage < TotalPages)
-            CurrentPage++;
     }
 
     [RelayCommand]
@@ -353,62 +258,15 @@ public partial class MainWindowViewModel : ViewModelBase
             _ => filtered.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
         };
 
-        _filteredGames = filtered.ToList();
-        CurrentPage = 1;
-        ApplyCurrentPage();
-
-        OnPropertyChanged(nameof(TotalPages));
-        OnPropertyChanged(nameof(CanGoPrevious));
-        OnPropertyChanged(nameof(CanGoNext));
-        PreviousPageCommand.NotifyCanExecuteChanged();
-        NextPageCommand.NotifyCanExecuteChanged();
-
         var selected = SelectedGame;
-        if (selected is not null && !Games.Contains(selected))
-            SelectedGame = null;
-    }
-
-    private void ApplyCurrentPage()
-    {
         Games.Clear();
-        var start = (CurrentPage - 1) * PageSize;
-        foreach (var game in _filteredGames.Skip(start).Take(PageSize))
+        foreach (var game in filtered)
             Games.Add(game);
 
-        GamesCountLabel = _filteredGames.Count == 0
-            ? Loc.T("ShowingGamesCount", 0)
-            : Loc.T("ShowingGamesPage", Games.Count, _filteredGames.Count, CurrentPage, TotalPages);
+        if (selected is not null && !Games.Contains(selected))
+            SelectedGame = null;
 
-        ApplyGridCovers();
-    }
-
-    private void ApplyGridCovers()
-    {
-        var pageGames = Games.ToHashSet();
-
-        foreach (var game in _allGames)
-        {
-            if (pageGames.Contains(game))
-                continue;
-
-            game.ShowCoverInGrid = false;
-            if (!ReferenceEquals(game, SelectedGame))
-                game.ReleaseCover();
-        }
-
-        if (!ShowGridCovers)
-        {
-            foreach (var game in pageGames)
-                game.ShowCoverInGrid = false;
-            return;
-        }
-
-        foreach (var game in pageGames)
-        {
-            game.ShowCoverInGrid = true;
-            if (!game.HasCover)
-                _ = game.LoadCoverAsync();
-        }
+        GamesCountLabel = Loc.T("ShowingGamesCount", Games.Count);
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>
@@ -422,8 +280,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
         foreach (var game in _allGames)
             game.ApplyLocalization();
-
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
