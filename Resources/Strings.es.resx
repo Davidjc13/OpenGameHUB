@@ -129,6 +129,7 @@
   <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detectar cuenta</value></data>
   <data name="SteamSetupDetectedAccount" xml:space="preserve"><value>{0} · {1}</value></data>
   <data name="SteamSetupAccountDetected" xml:space="preserve"><value>Cuenta detectada.</value></data>
+  <data name="SteamSetupApiKeyReady" xml:space="preserve"><value>Cuenta detectada. Lee las instrucciones del paso 2 y abre la página de API key cuando estés listo.</value></data>
   <data name="SteamSetupAccountNotFound" xml:space="preserve"><value>No se pudo leer tu cuenta de Steam. Abre Steam, inicia sesión e inténtalo de nuevo.</value></data>
   <data name="SteamSetupSteamNotInstalled" xml:space="preserve"><value>Steam no está instalado en este PC.</value></data>
   <data name="SteamSetupStepApiKey" xml:space="preserve"><value>2. Steam Web API key</value></data>

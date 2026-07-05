@@ -11,7 +11,6 @@ public partial class SteamSetupViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
     private readonly SteamWebApiService _steamWebApiService = new();
-    private bool _openedApiKeyPage;
 
     public SteamSetupViewModel(SettingsService settingsService)
     {
@@ -65,13 +64,9 @@ public partial class SteamSetupViewModel : ViewModelBase
 
         var displayName = account.PersonaName ?? account.AccountName ?? account.SteamId64;
         DetectedAccountLabel = Loc.T("SteamSetupDetectedAccount", displayName, account.SteamId64);
-        StatusMessage = Loc.T("SteamSetupAccountDetected");
-
-        if (!_openedApiKeyPage && string.IsNullOrWhiteSpace(SteamApiKey))
-        {
-            _openedApiKeyPage = true;
-            OpenApiKeyPage();
-        }
+        StatusMessage = string.IsNullOrWhiteSpace(SteamApiKey)
+            ? Loc.T("SteamSetupApiKeyReady")
+            : Loc.T("SteamSetupAccountDetected");
 
         return Task.CompletedTask;
     }
