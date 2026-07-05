@@ -30,7 +30,6 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
             .Select(g => MetadataSearchHelper.NormalizeTitle(g.Title).ToLowerInvariant())
             .ToHashSet(StringComparer.Ordinal);
 
-        var legendary = LegendaryClient.FindExecutable()!;
         var results = new List<UnifiedGame>();
 
         foreach (var entry in LegendaryClient.ListCatalogEntries(cancellationToken))
@@ -44,6 +43,9 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
             if (installedTitles.Contains(titleKey))
                 continue;
 
+            var protocolUrl = entry.BuildInstallProtocolUrl()
+                ?? $"com.epicgames.launcher://apps/{entry.AppName}?action=install";
+
             var game = new UnifiedGame
             {
                 Id = $"epic:legendary:{entry.AppName}",
@@ -51,7 +53,7 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
                 PlatformGameId = entry.AppName,
                 Title = entry.AppTitle,
                 IsInstalled = false,
-                LaunchSpec = LaunchSpec.LauncherArgs(legendary, $"install {entry.AppName}")
+                LaunchSpec = LaunchSpec.Protocol(protocolUrl)
             };
 
             if (!GameEntryFilter.IsExcluded(game))

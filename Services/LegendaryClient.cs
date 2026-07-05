@@ -20,6 +20,21 @@ public static class LegendaryClient
 
     public static bool IsAvailable() => FindExecutable() is not null;
 
+    public static bool IsLegendaryExecutable(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+
+        var resolved = FindExecutable();
+        if (resolved is not null
+            && string.Equals(Path.GetFullPath(path), Path.GetFullPath(resolved), StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return path.EndsWith("legendary.exe", StringComparison.OrdinalIgnoreCase);
+    }
+
     public static bool IsEpicLauncherInstalled() => FindEpicLauncherExecutable() is not null;
 
     public static bool ShouldOfferAuthPrompt() =>
@@ -376,7 +391,13 @@ public static class LegendaryClient
                 .Where(entry => !entry.IsDlc && !string.IsNullOrWhiteSpace(entry.AppName))
                 .Select(entry => new LegendaryCatalogEntry(
                     entry.AppName.Trim(),
-                    string.IsNullOrWhiteSpace(entry.AppTitle) ? entry.AppName.Trim() : entry.AppTitle.Trim()))
+                    string.IsNullOrWhiteSpace(entry.AppTitle) ? entry.AppName.Trim() : entry.AppTitle.Trim(),
+                    string.IsNullOrWhiteSpace(entry.Metadata?.CatalogNamespace)
+                        ? null
+                        : entry.Metadata.CatalogNamespace.Trim(),
+                    string.IsNullOrWhiteSpace(entry.Metadata?.CatalogItemId)
+                        ? null
+                        : entry.Metadata.CatalogItemId.Trim()))
                 .ToList();
         }
         catch
@@ -497,4 +518,3 @@ public sealed record LegendaryCatalogEntry(
     }
 }
 
-public sealed record LegendaryCatalogEntry(string AppName, string AppTitle);
