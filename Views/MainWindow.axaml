@@ -16,7 +16,7 @@
         <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
     </Window.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*" Margin="24">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="24">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
             <StackPanel Spacing="6">
                 <TextBlock Text="OpenGameHUB"
@@ -26,6 +26,9 @@
                 <TextBlock Text="{Binding Strings.AppSubtitle}"
                            Foreground="#9AA6BF"
                            FontSize="14"/>
+                <TextBlock Text="{Binding AppVersionText}"
+                           Foreground="#6B7A96"
+                           FontSize="12"/>
             </StackPanel>
             <Button Grid.Column="1"
                     Margin="0,0,8,0"
@@ -40,7 +43,43 @@
                     IsEnabled="{Binding !IsRefreshing}"/>
         </Grid>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,20,0,16">
+        <Border Grid.Row="1"
+                Margin="0,0,0,16"
+                Padding="14,12"
+                CornerRadius="10"
+                Background="#1A2438"
+                BorderBrush="#3D6FB8"
+                BorderThickness="1"
+                IsVisible="{Binding IsAppUpdateBannerVisible}">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <StackPanel Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding AppUpdateBannerText}"
+                               Foreground="#E8F0FF"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                    <ProgressBar Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding AppUpdateProgress}"
+                                 IsVisible="{Binding IsAppUpdateInstalling}"
+                                 Height="4"
+                                 Margin="0,4,0,0"/>
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Classes="primary"
+                        Margin="12,0,8,0"
+                        VerticalAlignment="Center"
+                        Content="{Binding Strings.AppUpdateInstallNow}"
+                        Command="{Binding InstallAppUpdateCommand}"
+                        IsEnabled="{Binding CanInstallAppUpdate}"/>
+                <Button Grid.Column="2"
+                        VerticalAlignment="Center"
+                        Content="{Binding Strings.AppUpdateDismissLater}"
+                        Command="{Binding DismissAppUpdateBannerCommand}"
+                        IsEnabled="{Binding !IsAppUpdateInstalling}"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
             <TextBox PlaceholderText="{Binding Strings.SearchPlaceholder}"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      CornerRadius="8"
@@ -63,7 +102,7 @@
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="2" ColumnDefinitions="220,*">
+        <Grid Grid.Row="3" ColumnDefinitions="220,*">
             <Border Background="#161B27"
                     CornerRadius="12"
                     Padding="14"

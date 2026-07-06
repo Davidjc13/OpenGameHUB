@@ -328,13 +328,11 @@ public partial class SettingsViewModel : ViewModelBase
                 StatusMessage = Loc.T("AppUpdateDownloading", value);
             });
 
-            var installerPath = await AppUpdateService.DownloadInstallerAsync(
+            StatusMessage = Loc.T("AppUpdateInstalling");
+            await AppUpdateService.DownloadAndInstallAsync(
                 _pendingRelease,
                 progress,
                 cancellationToken);
-
-            StatusMessage = Loc.T("AppUpdateInstalling");
-            AppUpdateService.LaunchInstallerAndExit(installerPath);
         }
         catch (OperationCanceledException)
         {

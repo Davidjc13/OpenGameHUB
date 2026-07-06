@@ -259,6 +259,9 @@
   <data name="AppUpdateLaunchFailed" xml:space="preserve"><value>Could not start the installer.</value></data>
   <data name="AppUpdateInstallerMissing" xml:space="preserve"><value>Installer not found: {0}</value></data>
   <data name="AppUpdateAvailableHint" xml:space="preserve"><value>Update {0} available. Open Settings to install.</value></data>
+  <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Update {0} is available.</value></data>
+  <data name="AppUpdateInstallNow" xml:space="preserve"><value>Install update</value></data>
+  <data name="AppUpdateDismissLater" xml:space="preserve"><value>Later</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>

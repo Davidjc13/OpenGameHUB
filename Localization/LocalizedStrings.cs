@@ -84,6 +84,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppUpdateSection => Loc.T("AppUpdateSection");
     public string AppCheckForUpdates => Loc.T("AppCheckForUpdates");
     public string AppInstallUpdate => Loc.T("AppInstallUpdate");
+    public string AppUpdateInstallNow => Loc.T("AppUpdateInstallNow");
+    public string AppUpdateDismissLater => Loc.T("AppUpdateDismissLater");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ShowGridCovers => Loc.T("ShowGridCovers");

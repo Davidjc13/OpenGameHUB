@@ -259,6 +259,9 @@
   <data name="AppUpdateLaunchFailed" xml:space="preserve"><value>No se pudo iniciar el instalador.</value></data>
   <data name="AppUpdateInstallerMissing" xml:space="preserve"><value>No se encontró el instalador: {0}</value></data>
   <data name="AppUpdateAvailableHint" xml:space="preserve"><value>Actualización {0} disponible. Abre Ajustes para instalar.</value></data>
+  <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Hay una actualización disponible: {0}.</value></data>
+  <data name="AppUpdateInstallNow" xml:space="preserve"><value>Instalar actualización</value></data>
+  <data name="AppUpdateDismissLater" xml:space="preserve"><value>Más tarde</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
   <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
