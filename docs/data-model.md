@@ -54,14 +54,16 @@ GameLib maps launcher names to this enum in `GameLibraryService.MapPlatform`.
 
 File: `Models/AppSettings.cs`
 
-Persisted in `settings.json` by `SettingsService`.
+Persisted by `SettingsService`: preferences in `settings.json`; `SteamApiKey`, `IgdbClientSecret`, and `SteamGridDbApiKey` in encrypted `secrets.dat` (DPAPI).
 
 | Field | Use |
 |-------|-----|
 | `Language` | `en` / `es` |
-| `SteamApiKey`, `SteamId` | Steam Web API |
-| `IgdbClientId`, `IgdbClientSecret` | IGDB covers |
-| `SteamGridDbApiKey` | Alternative covers |
+| `SteamApiKey` | Steam Web API (encrypted on disk) |
+| `SteamId` | Steam Web API |
+| `IgdbClientId` | IGDB covers |
+| `IgdbClientSecret` | IGDB covers (encrypted on disk) |
+| `SteamGridDbApiKey` | Alternative covers (encrypted on disk) |
 | `ShowGridCovers` | Grid covers vs detail panel only |
 | `LibraryViewMode` | `Grid` or `List` library layout |
 | `DismissSteamApiKeyPrompt` | Do not show Steam prompt again |
