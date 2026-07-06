@@ -6,7 +6,8 @@ Everything under the Windows user profile (no admin):
 
 | Path | Contents | Written by |
 |------|----------|------------|
-| `%LocalAppData%\OpenGameHUB\settings.json` | Preferences | `SettingsService` |
+| `%LocalAppData%\OpenGameHUB\settings.json` | Preferences (no API secrets) | `SettingsService` |
+| `%LocalAppData%\OpenGameHUB\secrets.dat` | Steam / IGDB / SteamGridDB API keys (DPAPI) | `SettingsSecretsStore` |
 | `%LocalAppData%\OpenGameHUB\library.db` | SQLite library | `GameDatabase` |
 | `%LocalAppData%\OpenGameHUB\covers\` | JPEG/PNG covers | `MetadataService` |
 | `%LocalAppData%\OpenGameHUB\tools\legendary.exe` | legendary CLI | `LegendaryBootstrap` |
@@ -23,10 +24,18 @@ Program installation (Inno Setup):
 File: `Services/SettingsService.cs`
 
 - Loads JSON on startup (`Current`)
-- `Save(AppSettings)` — atomic write to disk
+- `Save(AppSettings)` — writes preferences to `settings.json` and API secrets to `secrets.dat`
 - If file missing → `AppSettings` defaults
 
-Does not encrypt JSON: API keys are stored in plain text on the user's PC (like many desktop clients). **Do not commit** `settings.json`.
+### API secrets (`SettingsSecretsStore`)
+
+`SteamApiKey`, `IgdbClientSecret`, and `SteamGridDbApiKey` are **not** written to `settings.json`. They are stored in `secrets.dat`, encrypted with Windows DPAPI (`DataProtectionScope.CurrentUser`) — the same mechanism as Xbox tokens in `xbox/login.dat`.
+
+The DPAPI blob wraps a versioned JSON envelope (`version: 1` + `secrets` payload) so future format changes can migrate without breaking existing installs.
+
+On first launch after an upgrade, plaintext secrets in an old `settings.json` are migrated automatically into `secrets.dat` and removed from the JSON file.
+
+**Do not commit** `settings.json` or `secrets.dat`.
 
 ## `AppSettings` fields
 

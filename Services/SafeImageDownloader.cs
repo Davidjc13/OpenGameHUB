@@ -8,17 +8,13 @@ internal sealed class SafeImageDownloader
 
     public async Task<bool> DownloadAsync(string url, string destinationPath, CancellationToken cancellationToken)
     {
-        if (IsDirectSvgUrl(url))
+        if (!IsAllowedDownloadUrl(url) || IsDirectSvgUrl(url))
             return false;
 
         try
         {
             using var response = await _httpClient.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
-                return false;
-
-            var contentType = response.Content.Headers.ContentType?.MediaType;
-            if (!IsAllowedResponseContentType(contentType))
                 return false;
 
             await using var networkStream = await response.Content.ReadAsStreamAsync(cancellationToken);
@@ -41,6 +37,10 @@ internal sealed class SafeImageDownloader
             if (!SafeImageValidator.HasValidImageSignature(bytes))
                 return false;
 
+            var contentType = response.Content.Headers.ContentType?.MediaType;
+            if (!IsAllowedResponseContentType(contentType))
+                return false;
+
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
             await File.WriteAllBytesAsync(destinationPath, bytes, cancellationToken);
             return SafeImageValidator.IsValidImageFile(destinationPath);
@@ -53,6 +53,21 @@ internal sealed class SafeImageDownloader
         }
     }
 
+    internal static bool IsAllowedDownloadUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+
+        if (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+            return uri.Host.Length > 0;
+
+        if (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+            return uri.IsLoopback
+                   || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase);
+
+        return false;
+    }
+
     private static bool IsDirectSvgUrl(string url)
     {
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
@@ -63,6 +78,9 @@ internal sealed class SafeImageDownloader
 
     private static bool IsAllowedResponseContentType(string? contentType)
     {
+        if (string.IsNullOrWhiteSpace(contentType))
+            return true;
+
         if (SafeImageValidator.IsAllowedMimeType(contentType))
             return true;
 

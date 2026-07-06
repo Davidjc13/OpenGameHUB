@@ -93,6 +93,8 @@ public sealed class GameLibraryService : IDisposable
 
     public SettingsService Settings => _settingsService;
 
+    public MetadataService Metadata => _metadataService;
+
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {
         var games = _database.GetAllGames().ToList();
@@ -106,6 +108,7 @@ public sealed class GameLibraryService : IDisposable
         CancellationToken cancellationToken = default)
     {
         IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry> steamOwned = [];
+        var failedCloudPlatforms = new HashSet<Platform>();
 
         if (_settingsService.Current.IsSteamApiConfigured)
         {
@@ -120,7 +123,7 @@ public sealed class GameLibraryService : IDisposable
             }
             catch
             {
-                _steamCloudProvider.ClearOwnedGames();
+                failedCloudPlatforms.Add(Platform.Steam);
             }
         }
         else if (SteamLocalAccountReader.IsSteamInstalled)
@@ -133,7 +136,7 @@ public sealed class GameLibraryService : IDisposable
             }
             catch
             {
-                _steamCloudProvider.ClearOwnedGames();
+                failedCloudPlatforms.Add(Platform.Steam);
             }
         }
         else
@@ -174,10 +177,12 @@ public sealed class GameLibraryService : IDisposable
             }
         }
 
+        var existingGames = _database.GetAllGames();
         var games = await Task.Run(
-            () => ScanAllGames(progress, cancellationToken),
+            () => ScanAllGames(progress, cancellationToken, failedCloudPlatforms),
             cancellationToken);
 
+        games = PreserveCatalogEntriesForFailedProviders(games, existingGames, failedCloudPlatforms);
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
@@ -299,8 +304,9 @@ public sealed class GameLibraryService : IDisposable
     }
 
     private List<UnifiedGame> ScanAllGames(
-        IProgress<string>? progress = null,
-        CancellationToken cancellationToken = default)
+        IProgress<string>? progress,
+        CancellationToken cancellationToken,
+        ISet<Platform> failedCloudPlatforms)
     {
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
@@ -337,12 +343,42 @@ public sealed class GameLibraryService : IDisposable
             }
             catch
             {
-                // cloud library providers are optional
+                failedCloudPlatforms.Add(provider.Platform);
             }
         }
 
         return DeduplicateGames(games).ToList();
     }
+
+    private static List<UnifiedGame> PreserveCatalogEntriesForFailedProviders(
+        List<UnifiedGame> scanned,
+        IReadOnlyList<UnifiedGame> existing,
+        IReadOnlySet<Platform> failedCloudPlatforms)
+    {
+        if (failedCloudPlatforms.Count == 0)
+            return scanned;
+
+        var scannedIds = scanned.Select(g => g.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var game in existing)
+        {
+            if (!IsCatalogGameId(game.Id)
+                || !failedCloudPlatforms.Contains(game.Platform)
+                || scannedIds.Contains(game.Id))
+            {
+                continue;
+            }
+
+            scanned.Add(game);
+            scannedIds.Add(game.Id);
+        }
+
+        return scanned;
+    }
+
+    private static bool IsCatalogGameId(string id) =>
+        id.Contains(":catalog:", StringComparison.OrdinalIgnoreCase)
+        || id.StartsWith("steam:store:", StringComparison.OrdinalIgnoreCase)
+        || id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase);
 
     private static IReadOnlyList<UnifiedGame> DeduplicateGames(List<UnifiedGame> games)
     {

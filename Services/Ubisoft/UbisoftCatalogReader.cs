@@ -196,9 +196,20 @@ internal static class UbisoftCatalogReader
         if (resolved.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
             || resolved.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
         {
-            return resolved;
+            return NormalizeCoverUrl(resolved);
         }
 
-        return AssetUrlBase + resolved;
+        return NormalizeCoverUrl(AssetUrlBase + resolved);
+    }
+
+    private static string? NormalizeCoverUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
+
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            return "https://" + url["http://".Length..];
+
+        return url;
     }
 }

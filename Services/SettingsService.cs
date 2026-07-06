@@ -24,7 +24,9 @@ public sealed class SettingsService
     public void Save(AppSettings settings)
     {
         Current = settings;
-        var json = JsonSerializer.Serialize(settings, JsonOptions);
+        SettingsSecretsStore.Save(SettingsSecrets.From(settings));
+        var document = AppSettingsDocument.From(settings);
+        var json = JsonSerializer.Serialize(document, JsonOptions);
         File.WriteAllText(_settingsPath, json);
     }
 
@@ -37,15 +39,25 @@ public sealed class SettingsService
         {
             var json = File.ReadAllText(_settingsPath);
             using var document = JsonDocument.Parse(json);
-            var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            var root = document.RootElement;
 
-            if (!document.RootElement.TryGetProperty(nameof(AppSettings.CoverQualityMode), out _))
+            var persisted = JsonSerializer.Deserialize<AppSettingsDocument>(json, JsonOptions)
+                            ?? new AppSettingsDocument();
+
+            if (!root.TryGetProperty(nameof(AppSettings.CoverQualityMode), out _))
             {
-                settings.CoverQualityMode = document.RootElement.TryGetProperty("ShowGridCovers", out var showGridCovers)
-                                                && showGridCovers.ValueKind == JsonValueKind.False
+                persisted.CoverQualityMode = root.TryGetProperty("ShowGridCovers", out var showGridCovers)
+                                             && showGridCovers.ValueKind == JsonValueKind.False
                     ? CoverQualityMode.None
                     : CoverQualityMode.Low;
             }
+
+            var secrets = SettingsSecretsStore.Load();
+            var migratedFromPlaintext = MigratePlaintextSecrets(root, secrets);
+
+            var settings = persisted.ToSettings(secrets);
+            if (migratedFromPlaintext)
+                Save(settings);
 
             return settings;
         }
@@ -53,5 +65,46 @@ public sealed class SettingsService
         {
             return new AppSettings();
         }
+    }
+
+    private static bool MigratePlaintextSecrets(JsonElement root, SettingsSecrets secrets)
+    {
+        var migrated = false;
+
+        if (string.IsNullOrWhiteSpace(secrets.SteamApiKey)
+            && TryReadLegacyString(root, nameof(AppSettings.SteamApiKey), out var steamApiKey))
+        {
+            secrets.SteamApiKey = steamApiKey;
+            migrated = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(secrets.IgdbClientSecret)
+            && TryReadLegacyString(root, nameof(AppSettings.IgdbClientSecret), out var igdbClientSecret))
+        {
+            secrets.IgdbClientSecret = igdbClientSecret;
+            migrated = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(secrets.SteamGridDbApiKey)
+            && TryReadLegacyString(root, nameof(AppSettings.SteamGridDbApiKey), out var steamGridDbApiKey))
+        {
+            secrets.SteamGridDbApiKey = steamGridDbApiKey;
+            migrated = true;
+        }
+
+        if (migrated)
+            SettingsSecretsStore.Save(secrets);
+
+        return migrated;
+    }
+
+    private static bool TryReadLegacyString(JsonElement root, string propertyName, out string value)
+    {
+        value = string.Empty;
+        if (!root.TryGetProperty(propertyName, out var property) || property.ValueKind != JsonValueKind.String)
+            return false;
+
+        value = property.GetString() ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(value);
     }
 }

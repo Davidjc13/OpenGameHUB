@@ -16,8 +16,6 @@ namespace OpenGameHUB.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private const int PageSize = 24;
-
     private readonly GameLibraryService _libraryService = new();
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
@@ -213,7 +211,8 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             _ = value.EnsureCoverAsync(
                 currentProfile.DetailDecodeWidth,
-                currentProfile.Interpolation);
+                currentProfile.Interpolation,
+                _libraryService.Metadata);
         }
 
         OnPropertyChanged(nameof(ShowDetailCover));
@@ -271,7 +270,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     : string.Empty;
                 var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
                 var eaHint = IsEaCloudAvailable
-                    && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
+                    && _libraryService.EaLibraryCacheStatus is EaLibraryCacheStatus.Available
+                        or EaLibraryCacheStatus.DecryptFailedUsingLogs
                         ? Loc.T("EaCloudHint")
                         : string.Empty;
                 var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
@@ -457,7 +457,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             // optional
         }
-        catch
+        catch (Exception ex)
         {
             StatusText = Loc.T("AppUpdateDownloadFailed", ex.Message);
             IsAppUpdateInstalling = false;
@@ -1063,7 +1063,10 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var game in pageGames)
         {
             game.ShowCoverInGrid = true;
-            _ = game.EnsureCoverAsync(decodeWidth, profile.Interpolation);
+            _ = game.EnsureCoverAsync(
+                decodeWidth,
+                profile.Interpolation,
+                _libraryService.Metadata);
         }
     }
 
