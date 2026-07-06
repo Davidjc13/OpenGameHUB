@@ -109,7 +109,7 @@ public sealed class MetadataService
     public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath)
     {
         var cachePath = CoverPathHelper.GetCachePath(game.Id);
-        if (!TryCopyValidatedImage(sourceImagePath, cachePath))
+        if (!CoverImageProcessor.TryResizeToCacheFile(sourceImagePath, cachePath))
             return false;
 
         game.CoverPath = cachePath;

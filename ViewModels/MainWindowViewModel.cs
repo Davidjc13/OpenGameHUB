@@ -30,6 +30,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _replayOnboardingAfterSettings;
     private bool _pendingDevRelaunch;
     private bool _pendingDevClearDatabase;
+    private bool _suppressCoverLoading = true;
 
     public MainWindowViewModel()
     {
@@ -142,11 +143,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSelectedGameChanged(GameItemViewModel? value)
     {
-        if (!ReferenceEquals(_previousSelectedGame, value)
-            && _previousSelectedGame is not null
-            && !Games.Contains(_previousSelectedGame))
+        if (!ReferenceEquals(_previousSelectedGame, value) && _previousSelectedGame is not null)
         {
-            _previousSelectedGame.ReleaseCover();
+            var keepForGrid = ShowGridCovers && Games.Contains(_previousSelectedGame);
+            if (!keepForGrid)
+                _previousSelectedGame.ReleaseCover();
         }
 
         _previousSelectedGame = value;
@@ -188,7 +189,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
             await RunOnUiThreadAsync(() =>
             {
+                ReleaseAllGameCovers();
+                SelectedGame = null;
+                _previousSelectedGame = null;
+
                 _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                _suppressCoverLoading = false;
                 RebuildPlatformFilters();
                 ApplyFilter();
 
@@ -222,6 +228,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await RunOnUiThreadAsync(() =>
             {
+                if (_suppressCoverLoading)
+                {
+                    _suppressCoverLoading = false;
+                    ApplyVisibleCovers();
+                }
+
                 IsRefreshing = false;
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
             });
@@ -819,7 +831,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void ApplyVisibleCovers()
     {
+        if (_suppressCoverLoading)
+        {
+            foreach (var game in _allGames)
+                game.ShowCoverInGrid = false;
+            return;
+        }
+
         var pageGames = Games.ToHashSet();
+
+        if (!ShowGridCovers)
+        {
+            foreach (var game in _allGames)
+            {
+                game.ShowCoverInGrid = false;
+                if (!ReferenceEquals(game, SelectedGame))
+                    game.ReleaseCover();
+            }
+
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
+            return;
+        }
 
         foreach (var game in _allGames)
         {
@@ -831,19 +863,18 @@ public partial class MainWindowViewModel : ViewModelBase
                 game.ReleaseCover();
         }
 
-        if (!ShowGridCovers)
-        {
-            foreach (var game in pageGames)
-                game.ShowCoverInGrid = false;
-            return;
-        }
-
         foreach (var game in pageGames)
         {
             game.ShowCoverInGrid = true;
             if (!game.HasCover)
                 _ = game.LoadCoverAsync();
         }
+    }
+
+    private void ReleaseAllGameCovers()
+    {
+        foreach (var game in _allGames)
+            game.ReleaseCover();
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>
