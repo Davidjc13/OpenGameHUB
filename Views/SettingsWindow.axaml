@@ -142,6 +142,7 @@
                         <Button Classes="primary"
                                 Content="{Binding Strings.AppInstallUpdate}"
                                 Command="{Binding InstallUpdateCommand}"
+                                IsEnabled="{Binding !IsUpdateBusy}"
                                 IsVisible="{Binding IsUpdateAvailable}"/>
                     </StackPanel>
                     <ProgressBar Minimum="0"

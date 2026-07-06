@@ -95,20 +95,25 @@ Progress bar: indeterminate when querying API; percentage during download.
 
 ## Installation
 
-```csharp
-Process.Start(installer, "/SILENT /CLOSEAPPLICATIONS");
-Environment.Exit(0);
+The app exits and a detached `.cmd` helper runs the installer, then relaunches OpenGameHUB:
+
+```batch
+installer.exe /SILENT /CLOSEAPPLICATIONS
+if exist "OpenGameHUB.exe" start "" /D "{app dir}" "OpenGameHUB.exe"
 ```
+
+Launched via `cmd /c start /MIN` so the helper survives `Environment.Exit(0)`.
 
 Inno Setup (`installer/OpenGameHUB.iss`):
 
 - Same `AppId` across versions → in-place upgrade
 - `PrivilegesRequired=lowest` — no admin
 - Default directory: `%LocalAppData%\Programs\OpenGameHUB`
-- `[Run]` postinstall launches `{app}\OpenGameHUB.exe` **without** `skipifsilent`, so silent updates from the app relaunch when setup finishes
+- `[Run]` postinstall launches `{app}\OpenGameHUB.exe` with `skipifsilent` (interactive installs only)
+- Silent in-app updates rely on the helper script above instead of `[Run]`
 - `CloseApplications=force` — unlock files if a stray process remains
 
-**Why not rely on `/RESTARTAPPLICATIONS`:** the app calls `Environment.Exit` after starting the installer, so Inno did not close it and has nothing to restart. The `[Run]` postinstall step handles relaunch instead.
+**Why a helper script:** the app calls `Environment.Exit` after starting the installer, so Inno's `RestartApplications` has nothing to restart. The `[Run]` postinstall step is also unreliable in `/SILENT` mode, so the helper waits for setup and relaunches explicitly.
 
 **Why exit the app:** the installer must replace the running `OpenGameHUB.exe`; `CLOSEAPPLICATIONS` handles any leftover lock.
 

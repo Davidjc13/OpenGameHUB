@@ -377,6 +377,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 UpdateAppUpdateBannerText();
                 IsAppUpdateBannerVisible = showBanner;
                 OnPropertyChanged(nameof(CanInstallAppUpdate));
+                InstallAppUpdateCommand.NotifyCanExecuteChanged();
                 StatusText = Loc.T("AppUpdateAvailableHint", release.TagName);
                 ScheduleStatusClear(TimeSpan.FromSeconds(12));
             });
@@ -424,10 +425,10 @@ public partial class MainWindowViewModel : ViewModelBase
         IsAppUpdateBannerVisible = false;
     }
 
-    [RelayCommand(CanExecute = nameof(CanInstallAppUpdate))]
+    [RelayCommand]
     private async Task InstallAppUpdateAsync()
     {
-        if (_pendingAppUpdate is null)
+        if (_pendingAppUpdate is null || IsAppUpdateInstalling)
             return;
 
         _appUpdateInstallCts?.Cancel();
