@@ -111,6 +111,9 @@
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Syncing EA library...</value></data>
   <data name="SyncingRiotLibrary" xml:space="preserve"><value>Syncing Riot library...</value></data>
+  <data name="SyncingGogLibrary" xml:space="preserve"><value>Syncing GOG library...</value></data>
+  <data name="GogCloudHint" xml:space="preserve"><value> · GOG library via GOG Galaxy</value></data>
+  <data name="GogDatabaseMissing" xml:space="preserve"><value>GOG Galaxy library database not found. Open GOG Galaxy and sign in at least once.</value></data>
   <data name="RiotCloudHint" xml:space="preserve"><value> · Riot library via Riot Client</value></data>
   <data name="RiotClientInstallStarted" xml:space="preserve"><value>Riot Client opened to install {0}. Refresh your library when it finishes.</value></data>
   <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client is not installed.</value></data>

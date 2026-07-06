@@ -104,6 +104,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsRiotCloudAvailable => _libraryService.IsRiotCloudAvailable;
 
+    public bool IsGogCloudAvailable => _libraryService.IsGogCloudAvailable;
+
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
     public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
@@ -210,7 +212,8 @@ public partial class MainWindowViewModel : ViewModelBase
                         ? Loc.T("EaCloudHint")
                         : string.Empty;
                 var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + epicHint;
+                var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
