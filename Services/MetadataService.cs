@@ -175,6 +175,9 @@ public sealed class MetadataService
         if (localCover is not null && TryCopyValidatedImage(localCover, cachePath))
             return cachePath;
 
+        if (TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
+            return cachePath;
+
         foreach (var url in await ResolveCoverUrlsAsync(game, settings, cancellationToken))
         {
             if (await TryDownloadAsync(url, cachePath, cancellationToken))
@@ -182,6 +185,17 @@ public sealed class MetadataService
         }
 
         return null;
+    }
+
+    private static bool TryCopyCatalogCoverFile(string? catalogCoverUrl, string cachePath)
+    {
+        if (string.IsNullOrWhiteSpace(catalogCoverUrl)
+            || catalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return File.Exists(catalogCoverUrl) && TryCopyValidatedImage(catalogCoverUrl, cachePath);
     }
 
     private static bool TryCopyValidatedImage(string sourcePath, string destinationPath)
@@ -210,8 +224,11 @@ public sealed class MetadataService
     {
         var urls = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl))
+        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl)
+            && game.CatalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
             urls.Add(game.CatalogCoverUrl);
+        }
 
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out _))
         {

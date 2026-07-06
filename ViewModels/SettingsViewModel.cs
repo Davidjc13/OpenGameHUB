@@ -5,6 +5,7 @@ using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Xbox;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -37,6 +38,7 @@ public partial class SettingsViewModel : ViewModelBase
         Strings = new LocalizedStrings();
         RefreshSteamStatus();
         RefreshEpicStatus();
+        RefreshXboxStatus();
         AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
         _ = CheckForUpdatesAsync();
     }
@@ -65,6 +67,10 @@ public partial class SettingsViewModel : ViewModelBase
         LegendaryClient.HasStoredCredentials()
         || _settingsService.Current.HasEpicAuth;
 
+    public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
+
+    public bool CanConnectXbox => !IsXboxConnected;
+
     public bool CanConnectEpic => LegendaryClient.IsAvailable() && !IsEpicConnected;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
@@ -76,6 +82,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _epicStatusText = string.Empty;
+
+    [ObservableProperty]
+    private string _xboxStatusText = string.Empty;
 
     [ObservableProperty]
     private string _igdbClientId = string.Empty;
@@ -157,12 +166,55 @@ public partial class SettingsViewModel : ViewModelBase
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
-            EpicDisplayName = current.EpicDisplayName
+            EpicDisplayName = current.EpicDisplayName,
+            XboxGamertag = current.XboxGamertag
         });
 
         RefreshSteamStatus();
         OnPropertyChanged(nameof(IsSteamApiConnected));
         StatusMessage = Loc.T("SteamApiDisconnected");
+    }
+
+    [RelayCommand]
+    private async Task ConnectXboxAsync()
+    {
+        try
+        {
+            StatusMessage = Loc.T("XboxAuthStarted");
+            await XboxAuthService.SignInAsync(_settingsService, GetOwnerWindow());
+            RefreshXboxStatus();
+            OnPropertyChanged(nameof(IsXboxConnected));
+            OnPropertyChanged(nameof(CanConnectXbox));
+            StatusMessage = Loc.T("XboxConnected");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Loc.T("XboxConnectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void DisconnectXbox()
+    {
+        XboxAuthHelper.Clear(_settingsService);
+        RefreshXboxStatus();
+        OnPropertyChanged(nameof(IsXboxConnected));
+        OnPropertyChanged(nameof(CanConnectXbox));
+        StatusMessage = Loc.T("XboxDisconnected");
+    }
+
+    private void RefreshXboxStatus()
+    {
+        if (!IsXboxConnected)
+        {
+            XboxStatusText = Loc.T("XboxNotConnectedStatus");
+            return;
+        }
+
+        var gamertag = _settingsService.Current.XboxGamertag;
+        XboxStatusText = string.IsNullOrWhiteSpace(gamertag)
+            ? Loc.T("XboxConnectedStatus")
+            : Loc.T("XboxConnectedStatusNamed", gamertag);
     }
 
     [RelayCommand]
@@ -432,7 +484,8 @@ public partial class SettingsViewModel : ViewModelBase
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
-            EpicDisplayName = current.EpicDisplayName
+            EpicDisplayName = current.EpicDisplayName,
+            XboxGamertag = current.XboxGamertag
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);

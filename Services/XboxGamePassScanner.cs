@@ -1,11 +1,11 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml.Linq;
 using GameFinder.Common;
 using GameFinder.StoreHandlers.Xbox;
 using NexusMods.Paths;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Xbox;
 
 namespace OpenGameHUB.Services;
 
@@ -28,15 +28,27 @@ internal static class XboxGamePassScanner
                 continue;
 
             var installPath = xboxGame.Path.ToString();
-            var manifestPath = ResolveManifestPath(installPath);
-            if (manifestPath is null || !IsGameManifest(manifestPath))
+            var manifestPath = XboxManifestReader.ResolveManifestPath(installPath);
+            if (manifestPath is null)
+                continue;
+
+            XboxManifestReader.ManifestInfo metadata;
+            try
+            {
+                metadata = XboxManifestReader.Read(manifestPath);
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (!XboxManifestReader.IsGameManifest(metadata))
                 continue;
 
             var normalizedPath = NormalizePath(installPath);
             if (!seenPaths.Add(normalizedPath))
                 continue;
 
-            var metadata = ReadManifestMetadata(manifestPath);
             var title = metadata.DisplayName ?? xboxGame.DisplayName;
             if (string.IsNullOrWhiteSpace(title))
                 continue;
@@ -49,6 +61,7 @@ internal static class XboxGamePassScanner
                 Title = title,
                 IsInstalled = true,
                 InstallPath = installPath,
+                CatalogCoverUrl = metadata.CoverPath,
                 LaunchSpec = BuildLaunchSpec(installPath, manifestPath, metadata)
             });
         }
@@ -56,69 +69,10 @@ internal static class XboxGamePassScanner
         return games;
     }
 
-    private static string? ResolveManifestPath(string installPath)
-    {
-        var direct = Path.Combine(installPath, "AppxManifest.xml");
-        if (File.Exists(direct))
-            return direct;
-
-        var content = Path.Combine(installPath, "Content", "AppxManifest.xml");
-        return File.Exists(content) ? content : null;
-    }
-
-    private static bool IsGameManifest(string manifestPath)
-    {
-        try
-        {
-            var metadata = ReadManifestMetadata(manifestPath);
-            if (metadata.Categories.Any(category =>
-                    category.Equals("games", StringComparison.OrdinalIgnoreCase) ||
-                    category.Equals("game", StringComparison.OrdinalIgnoreCase)))
-            {
-                return true;
-            }
-
-            return !string.IsNullOrWhiteSpace(metadata.Executable);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static ManifestMetadata ReadManifestMetadata(string manifestPath)
-    {
-        var document = XDocument.Load(manifestPath);
-        var root = document.Root ?? throw new InvalidDataException("Missing manifest root.");
-        var ns = root.Name.Namespace;
-
-        var displayName = root
-            .Element(ns + "Properties")
-            ?.Element(ns + "DisplayName")
-            ?.Value;
-
-        var categories = root
-            .Element(ns + "Properties")
-            ?.Elements(ns + "Category")
-            .Select(element => element.Value.Trim())
-            .Where(value => value.Length > 0)
-            .ToList() ?? [];
-
-        var application = root
-            .Element(ns + "Applications")
-            ?.Elements(ns + "Application")
-            .FirstOrDefault(element => element.Attribute("Executable") is not null);
-
-        var applicationId = application?.Attribute("Id")?.Value;
-        var executable = application?.Attribute("Executable")?.Value;
-
-        return new ManifestMetadata(displayName, categories, applicationId, executable);
-    }
-
     private static LaunchSpec BuildLaunchSpec(
         string installPath,
         string manifestPath,
-        ManifestMetadata metadata)
+        XboxManifestReader.ManifestInfo metadata)
     {
         var executable = FindBestExecutable(installPath, metadata.Executable);
         if (executable is not null)
@@ -202,27 +156,7 @@ internal static class XboxGamePassScanner
 
     private static string? FindXboxAppExecutable()
     {
-        var candidates = new[]
-        {
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "WindowsApps"),
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "WindowsApps")
-        };
-
-        foreach (var root in candidates)
-        {
-            if (!Directory.Exists(root))
-                continue;
-
-            var match = Directory
-                .EnumerateDirectories(root, "Microsoft.GamingApp_*", SearchOption.TopDirectoryOnly)
-                .Select(path => Path.Combine(path, "XboxPcApp.exe"))
-                .FirstOrDefault(File.Exists);
-
-            if (match is not null)
-                return match;
-        }
-
-        return null;
+        return XboxInstallClient.FindXboxAppExecutable();
     }
 
     private static bool IsUtilityExecutable(string path)
@@ -243,10 +177,4 @@ internal static class XboxGamePassScanner
 
     private static string EscapePowerShellString(string value) =>
         value.Replace("'", "''");
-
-    private sealed record ManifestMetadata(
-        string? DisplayName,
-        IReadOnlyList<string> Categories,
-        string? ApplicationId,
-        string? Executable);
 }

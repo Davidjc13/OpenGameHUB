@@ -21,7 +21,7 @@ Legend:
 | Battle.net | GameLib | — | GameLib | — | Metadata pipeline |
 | Rockstar | GameLib | — | GameLib | — | Metadata pipeline |
 | Riot | GameLib | Metadata + known catalog | `RiotClientServices.exe` | — | `RiotCoverClient` (IGDB map) |
-| Xbox / Game Pass | GameFinder Appx | — | exe / shell URI | — | Metadata pipeline |
+| Xbox / Game Pass | GameFinder Appx | Xbox Live (account) | `msxbox://` / Store PDP | Xbox stats API | Manifest logos |
 
 ---
 
@@ -149,13 +149,14 @@ Summary:
 
 ## Xbox PC / Game Pass
 
-### Installed only
+See dedicated document: [xbox.md](xbox.md).
 
-- `XboxGamePassScanner` + **GameFinder.StoreHandlers.Xbox**
-- Reads Appx manifests in `WindowsApps`, uses PowerShell `Get-AppxPackage` in some cases
+Summary:
+
+- Installed: `XboxGamePassScanner` + **GameFinder.StoreHandlers.Xbox** (Appx manifests)
 - Launch: executable, `shell:AppsFolder\...`, or `XboxPcApp` with ApplicationId
-
-**Why no cloud:** Game Pass catalog is not exposed in a stable way for third-party apps on Windows like the Steam API.
+- Covers: logos from `AppxManifest.xml` → local `CatalogCoverUrl`
+- **Cloud library:** Microsoft account in Settings → Xbox title hub API (see [xbox.md](xbox.md))
 
 ---
 

@@ -51,6 +51,8 @@ public partial class GameItemViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showCoverInGrid;
 
+    private int _loadGeneration;
+
     public bool DisplayGridCover => ShowCoverInGrid && HasCover;
 
     public bool DisplayListCover => ShowCoverInGrid && HasCover;
@@ -101,33 +103,38 @@ public partial class GameItemViewModel : ViewModelBase
             : Loc.T("PlaytimeLastPlayed", hours, minutes, Source.LastPlayed.Value.ToString("d"));
     }
 
-    public Task LoadCoverAsync(MetadataService? metadata = null, CancellationToken cancellationToken = default)
+    public Task LoadCoverAsync(
+        MetadataService? metadata = null,
+        int decodeWidth = CoverImageLoader.ThumbnailWidth,
+        CancellationToken cancellationToken = default)
     {
         if (metadata is not null)
-            return LoadCoverFromMetadataAsync(metadata, cancellationToken);
+            return LoadCoverFromMetadataAsync(metadata, cancellationToken, decodeWidth);
 
-        return LoadCoverFromCacheAsync();
+        return LoadCoverFromCacheAsync(decodeWidth);
     }
 
     private async Task LoadCoverFromMetadataAsync(
         MetadataService metadata,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int decodeWidth)
     {
         var path = await metadata.EnsureCoverAsync(Source, cancellationToken);
         if (path is null)
             return;
 
-        await SetCoverFromPathAsync(path);
+        await SetCoverFromPathAsync(path, decodeWidth);
     }
 
-    private Task LoadCoverFromCacheAsync()
+    private Task LoadCoverFromCacheAsync(int decodeWidth)
     {
         var path = CoverPathHelper.ResolveExistingPath(Source);
-        return path is null ? Task.CompletedTask : SetCoverFromPathAsync(path);
+        return path is null ? Task.CompletedTask : SetCoverFromPathAsync(path, decodeWidth);
     }
 
     public void ReleaseCover()
     {
+        _loadGeneration++;
         CoverImage?.Dispose();
         CoverImage = null;
         HasCover = false;
@@ -140,19 +147,33 @@ public partial class GameItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(DisplayListCover));
     }
 
-    public async Task ApplyCoverFromPathAsync(string path)
+    public async Task ApplyCoverFromPathAsync(string path, int decodeWidth = CoverImageLoader.DetailWidth)
     {
-        await SetCoverFromPathAsync(path);
+        await SetCoverFromPathAsync(path, decodeWidth);
         RefreshCoverState();
     }
 
-    private async Task SetCoverFromPathAsync(string path)
+    private async Task SetCoverFromPathAsync(string path, int decodeWidth = CoverImageLoader.ThumbnailWidth)
     {
+        var generation = _loadGeneration;
+        var bitmap = await CoverImageLoader.LoadDecodedAsync(path, decodeWidth);
+        if (bitmap is null || generation != _loadGeneration)
+        {
+            bitmap?.Dispose();
+            return;
+        }
+
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            if (generation != _loadGeneration)
+            {
+                bitmap.Dispose();
+                return;
+            }
+
             CoverImage?.Dispose();
             Source.CoverPath = path;
-            CoverImage = new Bitmap(path);
+            CoverImage = bitmap;
             HasCover = true;
         });
     }

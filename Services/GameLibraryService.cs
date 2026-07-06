@@ -6,6 +6,7 @@ using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Services.LibraryProviders;
 using OpenGameHUB.Services.Ubisoft;
+using OpenGameHUB.Services.Xbox;
 using GameLib;
 using GameLib.Core;
 using GameLib.Plugin.Steam.Model;
@@ -27,12 +28,14 @@ public sealed class GameLibraryService : IDisposable
     });
     private readonly SteamCloudLibraryProvider _steamCloudProvider;
     private readonly EpicCloudLibraryProvider _epicCloudProvider;
+    private readonly XboxCloudLibraryProvider _xboxCloudProvider;
     private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
 
     public GameLibraryService()
     {
         _steamCloudProvider = new SteamCloudLibraryProvider(_settingsService, _steamWebApiService);
         _epicCloudProvider = new EpicCloudLibraryProvider();
+        _xboxCloudProvider = new XboxCloudLibraryProvider();
         _cloudProviders =
         [
             _steamCloudProvider,
@@ -40,7 +43,8 @@ public sealed class GameLibraryService : IDisposable
             new UbisoftCloudLibraryProvider(),
             new EaCloudLibraryProvider(),
             new RiotCloudLibraryProvider(),
-            new GogCloudLibraryProvider()
+            new GogCloudLibraryProvider(),
+            _xboxCloudProvider
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
@@ -68,6 +72,11 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsGogCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Gog && p.IsAvailable());
+
+    public bool IsXboxCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.GamePass && p.IsAvailable());
+
+    public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
 
     public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
 
@@ -144,6 +153,21 @@ public sealed class GameLibraryService : IDisposable
             EpicAuthHelper.PersistFromLegendary(_settingsService);
         }
 
+        if (XboxAccountClient.IsAuthenticated())
+        {
+            progress?.Report(Loc.T("SyncingXboxLibrary"));
+            try
+            {
+                await _xboxCloudProvider.LoadLibraryAsync(cancellationToken);
+                var gamertag = await new XboxAccountClient().GetGamertagAsync(cancellationToken);
+                XboxAuthHelper.PersistProfile(_settingsService, gamertag);
+            }
+            catch
+            {
+                // optional cloud sync
+            }
+        }
+
         var games = await Task.Run(
             () => ScanAllGames(progress, cancellationToken),
             cancellationToken);
@@ -153,6 +177,7 @@ public sealed class GameLibraryService : IDisposable
         var stored = _database.GetAllGames();
         SteamWebApiService.EnrichCatalogCoverUrls(stored);
         UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
+        XboxManifestReader.EnrichCatalogCoverUrls(stored);
 
         if (steamOwned.Count > 0)
         {
@@ -299,6 +324,8 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingRiotLibrary"));
                 else if (provider.Platform == Platform.Gog)
                     progress?.Report(Loc.T("SyncingGogLibrary"));
+                else if (provider.Platform == Platform.GamePass)
+                    progress?.Report(Loc.T("SyncingXboxLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
@@ -343,7 +370,8 @@ public sealed class GameLibraryService : IDisposable
             || game.Id.StartsWith("gog:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }

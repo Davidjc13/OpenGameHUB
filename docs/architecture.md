@@ -44,7 +44,7 @@ Main dependencies:
 
 - `LauncherManager` (GameLib) — installed launchers
 - `ICloudLibraryProvider` — Steam, Epic, Ubisoft, EA, Riot, GOG
-- Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `GogDesktopScanner`, `XboxGamePassScanner`
+- Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `GogDesktopScanner`, `XboxGamePassScanner` (+ `XboxManifestReader`)
 - `MetadataService` — covers and custom covers
 - `SettingsService` — credentials and preferences
 

@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenGameHUB.ViewModels"
+        x:Class="OpenGameHUB.Views.XboxPasteAuthWindow"
+        x:DataType="vm:XboxPasteAuthViewModel"
+        Title="{Binding Strings.XboxPasteAuthTitle}"
+        Width="520"
+        Height="280"
+        WindowStartupLocation="CenterOwner"
+        Background="#10131A">
+    <Grid Margin="24" RowDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Row="0" Spacing="8">
+            <TextBlock Text="{Binding Strings.XboxPasteAuthTitle}"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#F4F7FF"/>
+            <TextBlock Text="{Binding Strings.XboxPasteAuthIntro}"
+                       Foreground="#9AA6BF"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <TextBox Grid.Row="1"
+                 Margin="0,16,0,16"
+                 Text="{Binding RedirectUrl}"
+                 PlaceholderText="{Binding Strings.XboxPasteAuthPlaceholder}"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Right">
+            <Button Content="{Binding Strings.Cancel}"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            <Button Classes="primary"
+                    Content="{Binding Strings.XboxPasteAuthConfirm}"
+                    Command="{Binding ConfirmCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+        </StackPanel>
+    </Grid>
+</Window>

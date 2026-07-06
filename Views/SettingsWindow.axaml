@@ -75,6 +75,22 @@
                                 IsVisible="{Binding IsEpicConnected}"/>
                     </StackPanel>
 
+                    <TextBlock Text="{Binding Strings.XboxLibrarySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding XboxStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="{Binding Strings.XboxConnectAccount}"
+                                Command="{Binding ConnectXboxCommand}"
+                                IsEnabled="{Binding CanConnectXbox}"/>
+                        <Button Content="{Binding Strings.XboxDisconnectAccount}"
+                                Command="{Binding DisconnectXboxCommand}"
+                                IsVisible="{Binding IsXboxConnected}"/>
+                    </StackPanel>
+
                     <TextBlock Text="{Binding Strings.DisplaySection}"
                                FontWeight="SemiBold"
                                Foreground="#D7DFF1"
