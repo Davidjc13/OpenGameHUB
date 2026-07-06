@@ -48,6 +48,8 @@ ViewModels/  Views/  Converters/  Localization/
 
 `GlobalUsings.cs` imports the common namespaces so ViewModels and providers do not need long `using` lists.
 
+See [project-structure.md](project-structure.md) for a full guide to layers, data flows, and adding new platforms.
+
 ## Application startup
 
 ```

@@ -8,6 +8,7 @@ Transparent technical documentation: what each piece does, where it gets data fr
 
 | Document | Contents |
 |----------|----------|
+| [project-structure.md](project-structure.md) | **Project layout**: layers, flows, adding platforms |
 | [architecture.md](architecture.md) | Overview, startup, main flows |
 | [design-decisions.md](design-decisions.md) | Why SQLite, legendary, Epic protocols, etc. |
 | [data-model.md](data-model.md) | `UnifiedGame`, `LaunchSpec`, SQLite schema |
@@ -36,13 +37,14 @@ Transparent technical documentation: what each piece does, where it gets data fr
 ```
 Program.cs → App.axaml.cs → MainWindowViewModel
                                     │
-                    GameLibraryService (orchestrator)
+                    GameLibraryService (orchestrator, ~300 lines)
+                    ├── InstalledGameScanner / GameLibraryMerger / GameLaunchService
                     ├── GameDatabase (SQLite)
-                    ├── GameLib LauncherManager (installed)
-                    ├── Scanners (Epic manifests, EA, Xbox…)
-                    ├── ICloudLibraryProvider × 6 (cloud)
-                    └── MetadataService (covers, custom covers)
+                    ├── Providers/* (Steam, Epic, Ubisoft, EA, Riot, …)
+                    └── MetadataService (covers)
 ```
+
+Ver [project-structure.md](project-structure.md) for the full layer guide and how to integrate new platforms.
 
 ## Runtime data
 
