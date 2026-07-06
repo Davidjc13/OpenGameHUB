@@ -22,7 +22,7 @@ Downloads missing covers (configurable limit, e.g. 32 in background from `MainWi
 ```
 For each game without valid CoverPath:
   1. LocalCoverScanner — search .jpg/.png in InstallPath
-  2. If CatalogCoverUrl (Steam/Ubisoft CDN) → download
+  2. If CatalogCoverUrl (Steam/Ubisoft/GOG CDN or local webcache) → download or copy
   3. If known Steam AppId → Steam CDN
   4. IgdbClient (if credentials)
   5. SteamGridDbClient (if API key)
@@ -43,7 +43,9 @@ Saves to `%LocalAppData%\OpenGameHUB\covers\` via `CoverPathHelper`.
 | `SteamStoreSearchClient` | Steam store search | None |
 | `RiotCoverClient` | Static URLs | None |
 
-Steam CDN and Ubisoft CDN do not go through `MetadataService` the same way: they are used as `CatalogCoverUrl` during scanning (`SteamWebApiService.EnrichCatalogCoverUrls`, `UbisoftCatalogReader.EnrichCatalogCoverUrls`).
+Steam CDN, Ubisoft CDN, and GOG CDN do not go through `MetadataService` the same way: they are used as `CatalogCoverUrl` during scanning (`SteamWebApiService.EnrichCatalogCoverUrls`, `UbisoftCatalogReader.EnrichCatalogCoverUrls`, `GogCatalogReader.EnrichCatalogCoverUrls`).
+
+For GOG, `CatalogCoverUrl` may also be a **local file path** from Galaxy's webcache; `MetadataService` copies it directly instead of downloading via HTTP.
 
 ## Download safety
 

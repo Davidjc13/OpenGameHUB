@@ -43,7 +43,7 @@ Responsibilities:
 Main dependencies:
 
 - `LauncherManager` (GameLib) — installed launchers
-- `ICloudLibraryProvider` — Steam, Epic, Ubisoft, EA
+- `ICloudLibraryProvider` — Steam, Epic, Ubisoft, EA, GOG
 - Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `XboxGamePassScanner`
 - `MetadataService` — covers
 - `SettingsService` — credentials and preferences
@@ -73,7 +73,7 @@ RefreshLibraryAsync
 ├─ GameDatabase.SyncScannedGames
 │   (upsert + delete stale; keeps favorites and cached covers)
 │
-├─ Enrich catalog URLs (Steam CDN, Ubisoft CDN)
+├─ Enrich catalog URLs (Steam CDN, Ubisoft CDN, GOG CDN)
 ├─ Enrich Steam playtime (if owned list available)
 └─ MetadataService.ReconcileCachedCovers
 ```
@@ -91,6 +91,11 @@ MainWindowViewModel.LaunchSelectedGame
 │   → EpicLauncherClient.StartInstall(url)
 │   → App does NOT wait for download (message and continues)
 │
+├─ GOG special case (not installed):
+│   Platform == Gog + GOG Galaxy installed
+│   → GogLauncherClient.StartInstall(releaseKey, productId)
+│   → App does NOT wait for download (message and continues)
+│
 └─ Otherwise → GameLibraryService.LaunchGame
      ├─ If not installed: GetInstallLaunchAttempts from cloud provider
      ├─ Interpret LaunchSpec: protocol | executable | launcher-args
@@ -98,7 +103,8 @@ MainWindowViewModel.LaunchSelectedGame
 ```
 
 See [ea-desktop.md](ea-desktop.md) for EA flow details.
-See [epic-and-legendary.md](epic-and-legendary.md) for Epic flow details. EA install/launch via protocols is documented in [ea-desktop.md](ea-desktop.md).
+See [epic-and-legendary.md](epic-and-legendary.md) for Epic flow details.
+See [gog-galaxy.md](gog-galaxy.md) for GOG flow details.
 
 ## UI layers
 

@@ -11,9 +11,10 @@ Transparent technical documentation: what each piece does, where it gets data fr
 | [architecture.md](architecture.md) | Overview, startup, main flows |
 | [design-decisions.md](design-decisions.md) | Why SQLite, legendary, Epic protocols, etc. |
 | [data-model.md](data-model.md) | `UnifiedGame`, `LaunchSpec`, SQLite schema |
-| [platform-integrations.md](platform-integrations.md) | Steam, Epic, EA, Ubisoft, Xbox… by source type |
+| [platform-integrations.md](platform-integrations.md) | Steam, Epic, GOG, EA, Ubisoft, Xbox… by source type |
 | [cloud-providers.md](cloud-providers.md) | `ICloudLibraryProvider` pattern |
 | [epic-and-legendary.md](epic-and-legendary.md) | Auth, cloud library, installation |
+| [gog-galaxy.md](gog-galaxy.md) | Local DB library, installation, covers |
 | [ea-desktop.md](ea-desktop.md) | Encrypted cache, logs, registry scan, onboarding |
 | [metadata-and-covers.md](metadata-and-covers.md) | Cover pipeline and optional APIs |
 | [ui-and-viewmodels.md](ui-and-viewmodels.md) | Avalonia, MVVM, windows and onboarding |
@@ -38,7 +39,7 @@ Program.cs → App.axaml.cs → MainWindowViewModel
                     ├── GameDatabase (SQLite)
                     ├── GameLib LauncherManager (installed)
                     ├── Scanners (Epic manifests, EA, Xbox…)
-                    ├── ICloudLibraryProvider × 4 (cloud)
+                    ├── ICloudLibraryProvider × 5 (cloud)
                     └── MetadataService (covers)
 ```
 

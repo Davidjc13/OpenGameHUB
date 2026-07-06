@@ -34,11 +34,12 @@ _cloudProviders = [
     _steamCloudProvider,
     _epicCloudProvider,
     new UbisoftCloudLibraryProvider(),
-    new EaCloudLibraryProvider()
+    new EaCloudLibraryProvider(),
+    new GogCloudLibraryProvider()
 ];
 ```
 
-Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA (each if `IsAvailable()`).
+Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA → GOG (each if `IsAvailable()`).
 
 Errors: empty `try/catch` per provider — **silent failure** so the full scan is not broken.
 
@@ -102,6 +103,25 @@ File: `Services/LibraryProviders/EaCloudLibraryProvider.cs`
 | **Install attempts** | EA Desktop, origin/link2ea protocols |
 
 Before reading catalog, `ScanAllGames` calls `EaCatalogReader.InvalidateCache()` to force re-read. See [ea-desktop.md](ea-desktop.md) for full EA flow.
+
+---
+
+## `GogCloudLibraryProvider`
+
+File: `Services/LibraryProviders/GogCloudLibraryProvider.cs`
+
+| | |
+|--|--|
+| **Available if** | GOG Galaxy installed **and** `galaxy-2.0.db` exists |
+| **Source** | `GogCatalogReader.ReadLibraryEntries()` — SQLite `ProductPurchaseDates` + `GamePieces` |
+| **Filtering** | `gog_*` releases only; skips hidden, DLC, and already-installed (by product ID or title) |
+| **LaunchSpec** | `goggalaxy://openGameView/{releaseKey}` |
+| **CatalogCoverUrl** | `originalImages` CDN URLs or local webcache path |
+| **Install attempts** | `GogLauncherClient.StartInstall`, Galaxy exe with protocol |
+
+No real-time remote API — only what GOG Galaxy already synced to `%ProgramData%`.
+
+See [gog-galaxy.md](gog-galaxy.md) for database schema, cover pipeline, and install flow.
 
 ---
 

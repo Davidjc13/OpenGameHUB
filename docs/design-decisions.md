@@ -93,6 +93,7 @@ This document captures the **why** behind decisions visible in the code. It is n
 - Installed: `{platform}:path:{hash}` from normalized path
 - Steam cloud: `steam:{appId}`
 - Epic cloud: `epic:legendary:{appName}`
+- GOG cloud: `gog:catalog:{releaseKey}`
 - EA catalog: `ea:catalog:{softwareId}@{slug}`
 
 **Reason:** favorites and covers in SQLite link by `id`. Changing the ID algorithm would break existing favorites.
@@ -103,7 +104,7 @@ This document captures the **why** behind decisions visible in the code. It is n
 
 | Kind | Use |
 |------|-----|
-| `protocol` | `steam://`, `com.epicgames.launcher://`, `uplay://`, etc. |
+| `protocol` | `steam://`, `com.epicgames.launcher://`, `uplay://`, `goggalaxy://`, etc. |
 | `executable` | Direct path to `.exe` |
 | `launcher-args` | `{launcher_path}\|{arguments}` |
 
@@ -113,7 +114,7 @@ This document captures the **why** behind decisions visible in the code. It is n
 
 ## Cover metadata in layers
 
-**Typical order:** local cover in install folder → disk cache → Steam CDN (if AppId) → IGDB / SteamGridDB / Wikipedia / Riot maps.
+**Typical order:** local cover in install folder → disk cache → catalog URL (Steam / Ubisoft / GOG CDN or Galaxy webcache) → IGDB / SteamGridDB / Wikipedia / Riot maps.
 
 **Reason:** minimize paid/rate-limited API calls; work without configuration (Steam CDN and Wikipedia as safety net).
 
@@ -128,6 +129,24 @@ API keys (IGDB, SteamGridDB) are **optional** in Settings.
 **Reason:** EA does not expose a public library API. Local cache is the only reliable channel; logs are a documented fallback in code.
 
 The user can open EA App from an onboarding prompt to force cache refresh (`EaDesktopSyncHelper`). See [ea-desktop.md](ea-desktop.md).
+
+---
+
+## GOG: local Galaxy database (no account linking)
+
+**Decision:** read owned games from `galaxy-2.0.db` instead of scraping gog.com or bundling gogdl/comet.
+
+**Reasons:**
+
+- GOG has no public desktop library API for third parties
+- The SQLite file is already on disk after the user signs in to GOG Galaxy
+- Same data model used by community export tools; no extra credentials in OpenGameHUB
+
+**Install:** delegate to GOG Galaxy via `goggalaxy://openGameView/{releaseKey}` (and `installGame` CLI when Galaxy is running), same rationale as Epic — official client handles downloads and DRM.
+
+**Covers:** read `originalImages` URLs from the database; fall back to Galaxy's local webcache before hitting IGDB/SteamGridDB.
+
+See [gog-galaxy.md](gog-galaxy.md).
 
 ---
 

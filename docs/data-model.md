@@ -111,6 +111,7 @@ Defined in scanners and providers when creating `UnifiedGame`:
 | Installed (GameLib) | Hash of normalized path |
 | Steam cloud | `steam:{appId}` |
 | Epic cloud | `epic:legendary:{appName}` |
+| GOG cloud | `gog:catalog:{releaseKey}` |
 | Ubisoft cloud | `ubisoft:{uplayId}` |
 | EA cloud | `ea:catalog:{softwareId}@{slug}` |
 
