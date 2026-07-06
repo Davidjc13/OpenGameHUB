@@ -8,6 +8,7 @@ using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Gog;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -91,6 +92,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
 
     public bool IsEaCloudAvailable => _libraryService.IsEaCloudAvailable;
+
+    public bool IsGogCloudAvailable => _libraryService.IsGogCloudAvailable;
 
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
@@ -180,7 +183,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
                         ? Loc.T("EaCloudHint")
                         : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
+                var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + gogHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
@@ -516,6 +520,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
+            if (!SelectedGame.Source.IsInstalled
+                && SelectedGame.Platform == Platform.Gog
+                && SelectedGame.Source.LaunchSpec.Kind == "protocol"
+                && GogCatalogReader.IsLauncherInstalled())
+            {
+                var releaseKey = SelectedGame.Source.Id.StartsWith("gog:catalog:", StringComparison.OrdinalIgnoreCase)
+                    ? SelectedGame.Source.Id["gog:catalog:".Length..]
+                    : $"gog_{SelectedGame.Source.PlatformGameId}";
+                GogLauncherClient.StartInstall(releaseKey, SelectedGame.Source.PlatformGameId);
+                StatusText = Loc.T("GogInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
             if (!SelectedGame.Source.IsInstalled
                 && SelectedGame.Platform == Platform.Epic
                 && SelectedGame.Source.LaunchSpec.Kind == "protocol"

@@ -4,6 +4,7 @@ using OpenGameHUB.Data;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Gog;
 using OpenGameHUB.Services.LibraryProviders;
 using OpenGameHUB.Services.Ubisoft;
 using GameLib;
@@ -38,7 +39,8 @@ public sealed class GameLibraryService : IDisposable
             _steamCloudProvider,
             _epicCloudProvider,
             new UbisoftCloudLibraryProvider(),
-            new EaCloudLibraryProvider()
+            new EaCloudLibraryProvider(),
+            new GogCloudLibraryProvider()
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
@@ -60,6 +62,9 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsEaCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ea && p.IsAvailable());
+
+    public bool IsGogCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Gog && p.IsAvailable());
 
     public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
 
@@ -145,6 +150,7 @@ public sealed class GameLibraryService : IDisposable
         var stored = _database.GetAllGames();
         SteamWebApiService.EnrichCatalogCoverUrls(stored);
         UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
+        GogCatalogReader.EnrichCatalogCoverUrls(stored);
 
         if (steamOwned.Count > 0)
         {
@@ -278,6 +284,8 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingEaLibrary"));
                 else if (provider.Platform == Platform.Epic)
                     progress?.Report(Loc.T("SyncingEpicLibrary"));
+                else if (provider.Platform == Platform.Gog)
+                    progress?.Report(Loc.T("SyncingGogLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
@@ -321,7 +329,8 @@ public sealed class GameLibraryService : IDisposable
             || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("gog:catalog:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }

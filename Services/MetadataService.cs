@@ -1,5 +1,6 @@
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Gog;
 
 namespace OpenGameHUB.Services;
 
@@ -126,6 +127,13 @@ public sealed class MetadataService
         if (localCover is not null && TryCopyValidatedImage(localCover, cachePath))
             return cachePath;
 
+        if (game.Platform == Platform.Gog)
+        {
+            var catalogPath = ResolveGogCatalogCoverPath(game);
+            if (catalogPath is not null && TryCopyValidatedImage(catalogPath, cachePath))
+                return cachePath;
+        }
+
         foreach (var url in await ResolveCoverUrlsAsync(game, settings, cancellationToken))
         {
             if (await TryDownloadAsync(url, cachePath, cancellationToken))
@@ -161,7 +169,7 @@ public sealed class MetadataService
     {
         var urls = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl))
+        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl) && IsRemoteCoverUrl(game.CatalogCoverUrl))
             urls.Add(game.CatalogCoverUrl);
 
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out _))
@@ -201,6 +209,21 @@ public sealed class MetadataService
 
     private static bool ShouldDownloadCover(UnifiedGame game) =>
         !GameEntryFilter.IsExcluded(game);
+
+    private static bool IsRemoteCoverUrl(string value) =>
+        value.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+        || value.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+
+    private static string? ResolveGogCatalogCoverPath(UnifiedGame game)
+    {
+        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl) && File.Exists(game.CatalogCoverUrl))
+            return game.CatalogCoverUrl;
+
+        if (!string.IsNullOrWhiteSpace(game.PlatformGameId))
+            return GogCatalogReader.FindWebcacheCover(game.PlatformGameId);
+
+        return null;
+    }
 
     private Task<bool> TryDownloadAsync(string url, string cachePath, CancellationToken cancellationToken) =>
         _safeImageDownloader.DownloadAsync(url, cachePath, cancellationToken);

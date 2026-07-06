@@ -96,6 +96,12 @@
   <data name="SteamCloudHint" xml:space="preserve"><value> · Biblioteca Steam vía Web API</value></data>
   <data name="UbisoftCloudHint" xml:space="preserve"><value> · Biblioteca Ubisoft vía Ubisoft Connect</value></data>
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
+  <data name="SyncingGogLibrary" xml:space="preserve"><value>Sincronizando biblioteca de GOG...</value></data>
+  <data name="GogCloudHint" xml:space="preserve"><value> · Biblioteca GOG vía GOG Galaxy</value></data>
+  <data name="GogCacheMissing" xml:space="preserve"><value>No se encontró la caché de GOG Galaxy. Abre GOG Galaxy e inicia sesión al menos una vez.</value></data>
+  <data name="GogLauncherNotInstalled" xml:space="preserve"><value>GOG Galaxy no está instalado en este equipo.</value></data>
+  <data name="GogInstallUrlMissing" xml:space="preserve"><value>Falta información de instalación de GOG para este juego.</value></data>
+  <data name="GogInstallStarted" xml:space="preserve"><value>Abriendo GOG Galaxy para instalar {0}...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Sincronizando biblioteca de EA...</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
