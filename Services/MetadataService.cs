@@ -1,5 +1,6 @@
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
 
 namespace OpenGameHUB.Services;
@@ -15,6 +16,7 @@ public sealed class MetadataService
     private readonly RiotCoverClient _riotCoverClient = new();
     private readonly RockstarCoverClient _rockstarCoverClient = new();
     private readonly EpicCoverClient _epicCoverClient = new();
+    private readonly EaCoverClient _eaCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
 
@@ -156,7 +158,15 @@ public sealed class MetadataService
     {
         var existingPath = CoverPathHelper.ResolveExistingPath(game);
         if (existingPath is null)
+        {
+            if (!string.IsNullOrWhiteSpace(game.CoverPath))
+            {
+                game.CoverPath = null;
+                _database.UpdateCoverPath(game.Id, string.Empty);
+            }
+
             return false;
+        }
 
         if (!string.Equals(game.CoverPath, existingPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -230,17 +240,21 @@ public sealed class MetadataService
         if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl)
             && game.CatalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
-            urls.Add(game.CatalogCoverUrl);
+            urls.Add(NormalizeCoverUrl(game.CatalogCoverUrl));
         }
 
-        if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out _))
+        if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out var steamAppId))
         {
-            urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/library_600x900.jpg");
-            urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/header.jpg");
+            urls.Add(SteamWebApiService.GetCoverUrl(steamAppId));
+            urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{steamAppId}/header.jpg");
         }
         else if (game.Platform == Platform.Epic)
         {
             urls.AddRange(await _epicCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.Ea)
+        {
+            urls.AddRange(await _eaCoverClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else if (game.Platform == Platform.Riot)
         {
@@ -274,6 +288,14 @@ public sealed class MetadataService
             urls.Add(wikipediaUrl);
 
         return urls;
+    }
+
+    private static string NormalizeCoverUrl(string url)
+    {
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            return "https://" + url["http://".Length..];
+
+        return url;
     }
 
     private static bool ShouldDownloadCover(UnifiedGame game) =>

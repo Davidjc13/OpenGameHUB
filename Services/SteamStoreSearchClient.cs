@@ -6,13 +6,26 @@ namespace OpenGameHUB.Services;
 
 public sealed class SteamStoreSearchClient
 {
-    private readonly HttpClient _httpClient = new() { Timeout = TimeSpan.FromSeconds(8) };
+    private readonly HttpClient _httpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(8)
+    };
+
+    public SteamStoreSearchClient()
+    {
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("OpenGameHUB/1.0");
+    }
 
     public async Task<IReadOnlyList<string>> FindCoverUrlsAsync(
         UnifiedGame game,
+        CancellationToken cancellationToken = default) =>
+        await FindCoverUrlsByTitleAsync(game.Title, cancellationToken);
+
+    public async Task<IReadOnlyList<string>> FindCoverUrlsByTitleAsync(
+        string title,
         CancellationToken cancellationToken = default)
     {
-        var appId = await FindBestAppIdAsync(game.Title, cancellationToken);
+        var appId = await FindBestAppIdAsync(title, cancellationToken);
         if (appId is null)
             return [];
 

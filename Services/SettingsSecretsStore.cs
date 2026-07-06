@@ -28,7 +28,7 @@ internal static class SettingsSecretsStore
         {
             var protectedBytes = File.ReadAllBytes(SecretsPath);
             var jsonBytes = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
-            return JsonSerializer.Deserialize<SettingsSecrets>(jsonBytes, JsonOptions) ?? new SettingsSecrets();
+            return DeserializeSecrets(jsonBytes);
         }
         catch
         {
@@ -49,12 +49,38 @@ internal static class SettingsSecretsStore
             return;
         }
 
-        var jsonBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(secrets, JsonOptions));
+        var envelope = new SettingsSecretsEnvelope { Secrets = secrets };
+        var jsonBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(envelope, JsonOptions));
         var protectedBytes = ProtectedData.Protect(jsonBytes, null, DataProtectionScope.CurrentUser);
         File.WriteAllBytes(SecretsPath, protectedBytes);
     }
 
     public static void Clear() => TryDelete(SecretsPath);
+
+    private static SettingsSecrets DeserializeSecrets(byte[] jsonBytes)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(jsonBytes);
+            var root = document.RootElement;
+
+            if (root.TryGetProperty("version", out var versionElement)
+                && versionElement.TryGetInt32(out var version)
+                && version == SettingsSecretsEnvelope.CurrentVersion
+                && root.TryGetProperty("secrets", out var secretsElement))
+            {
+                return JsonSerializer.Deserialize<SettingsSecrets>(secretsElement.GetRawText(), JsonOptions)
+                       ?? new SettingsSecrets();
+            }
+        }
+        catch
+        {
+            // fall through to legacy format
+        }
+
+        // v0: DPAPI blob was a bare SettingsSecrets JSON object (no version header).
+        return JsonSerializer.Deserialize<SettingsSecrets>(jsonBytes, JsonOptions) ?? new SettingsSecrets();
+    }
 
     private static void TryDelete(string path)
     {

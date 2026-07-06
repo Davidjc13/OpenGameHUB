@@ -31,6 +31,8 @@ File: `Services/SettingsService.cs`
 
 `SteamApiKey`, `IgdbClientSecret`, and `SteamGridDbApiKey` are **not** written to `settings.json`. They are stored in `secrets.dat`, encrypted with Windows DPAPI (`DataProtectionScope.CurrentUser`) — the same mechanism as Xbox tokens in `xbox/login.dat`.
 
+The DPAPI blob wraps a versioned JSON envelope (`version: 1` + `secrets` payload) so future format changes can migrate without breaking existing installs.
+
 On first launch after an upgrade, plaintext secrets in an old `settings.json` are migrated automatically into `secrets.dat` and removed from the JSON file.
 
 **Do not commit** `settings.json` or `secrets.dat`.
