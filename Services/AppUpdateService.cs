@@ -133,7 +133,7 @@ public static class AppUpdateService
         var psi = new ProcessStartInfo
         {
             FileName = installerPath,
-            Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
+            Arguments = "/SILENT /CLOSEAPPLICATIONS",
             UseShellExecute = true
         };
 

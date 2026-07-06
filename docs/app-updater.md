@@ -82,7 +82,7 @@ Progress bar: indeterminate when querying API; percentage during download.
 ## Installation
 
 ```csharp
-Process.Start(installer, "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS");
+Process.Start(installer, "/SILENT /CLOSEAPPLICATIONS");
 Environment.Exit(0);
 ```
 
@@ -91,8 +91,12 @@ Inno Setup (`installer/OpenGameHUB.iss`):
 - Same `AppId` across versions → in-place upgrade
 - `PrivilegesRequired=lowest` — no admin
 - Default directory: `%LocalAppData%\Programs\OpenGameHUB`
+- `[Run]` postinstall launches `{app}\OpenGameHUB.exe` **without** `skipifsilent`, so silent updates from the app relaunch when setup finishes
+- `CloseApplications=force` — unlock files if a stray process remains
 
-**Why exit the app:** the installer must replace the running `OpenGameHUB.exe`; `CLOSEAPPLICATIONS` closes blocking processes.
+**Why not rely on `/RESTARTAPPLICATIONS`:** the app calls `Environment.Exit` after starting the installer, so Inno did not close it and has nothing to restart. The `[Run]` postinstall step handles relaunch instead.
+
+**Why exit the app:** the installer must replace the running `OpenGameHUB.exe`; `CLOSEAPPLICATIONS` handles any leftover lock.
 
 ## CI
 
