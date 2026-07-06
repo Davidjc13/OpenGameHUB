@@ -16,6 +16,8 @@ namespace OpenGameHUB.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private const int PageSize = 24;
+
     private readonly GameLibraryService _libraryService = new();
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
@@ -455,7 +457,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             // optional
         }
-        catch (Exception ex)
+        catch
         {
             StatusText = Loc.T("AppUpdateDownloadFailed", ex.Message);
             IsAppUpdateInstalling = false;
