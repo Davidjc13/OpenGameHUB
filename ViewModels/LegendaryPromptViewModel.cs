@@ -1,8 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Localization;
-using OpenGameHUB.Models;
-using OpenGameHUB.Services;
 
 namespace OpenGameHUB.ViewModels;
 

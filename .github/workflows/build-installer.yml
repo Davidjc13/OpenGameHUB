@@ -1,25 +1,123 @@
-name: Build Installer
+name: Build and Publish
 
 on:
   push:
+    branches:
+      - main
+      - master
     tags:
       - 'alpha-*'
       - 'beta-*'
       - '[0-9]*.[0-9]*.[0-9]*'
+  pull_request:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Installer version (used for manual test builds)'
-        required: true
-        default: 'dev'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build:
+  ci:
+    name: CI
+    runs-on: windows-2022
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore OpenGameHUB.sln
+
+      - name: Lint (format)
+        shell: pwsh
+        run: |
+          git config --local core.autocrlf false
+          dotnet format OpenGameHUB.sln --verify-no-changes --verbosity minimal
+
+      - name: Build
+        shell: pwsh
+        run: dotnet build OpenGameHUB.sln -c Release --no-restore
+
+      - name: Test with coverage
+        shell: pwsh
+        run: |
+          dotnet test OpenGameHUB.sln -c Release --no-build `
+            --settings coverlet.runsettings `
+            --collect:"XPlat Code Coverage" `
+            --results-directory ./coverage/raw `
+            --verbosity normal
+
+      - name: Coverage report
+        shell: pwsh
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          $reports = @(
+            Get-ChildItem -Path ./coverage/raw -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue
+            Get-ChildItem -Path ./tests/OpenGameHUB.Tests/TestResults -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue
+          ) | Sort-Object LastWriteTime -Descending
+          if ($reports.Count -eq 0) { throw "No coverage files found." }
+          reportgenerator `
+            -reports:$reports[0].FullName `
+            -targetdir:./coverage/report `
+            -reporttypes:"TextSummary;HtmlInline_AzurePipelines;Cobertura"
+          Get-Content ./coverage/report/Summary.txt
+
+      - name: Prepare PR coverage comment
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          $summary = (Get-Content ./coverage/report/Summary.txt -Raw).TrimEnd()
+          $nl = [Environment]::NewLine
+          $body = @(
+            '## Test coverage',
+            '',
+            'Scope: types listed in `coverlet.runsettings` (minimum **70%** line coverage).',
+            '',
+            'Download the full HTML report from the **coverage-report** workflow artifact.',
+            '',
+            '<details>',
+            '<summary>Summary.txt</summary>',
+            '',
+            '```text',
+            $summary,
+            '```',
+            '',
+            '</details>'
+          ) -join $nl
+          Set-Content -Path ./coverage/report/pr-comment.md -Value $body -Encoding utf8
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage
+          path: coverage/report/pr-comment.md
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/report/
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    needs: ci
+    if: github.ref_type == 'tag'
     runs-on: windows-2022
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -34,16 +132,12 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          if ("${{ github.ref_type }}" -eq "tag") {
-            $version = "${{ github.ref_name }}"
-            $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
-            if (-not $valid) {
-              Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
-            }
-          } else {
-            $version = "${{ inputs.version }}"
+          $version = "${{ github.ref_name }}"
+          $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
+          if (-not $valid) {
+            Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
           }
-          Write-Host "Building version: $version"
+          Write-Host "Publishing version: $version"
           "version=$version" >> $env:GITHUB_OUTPUT
           $prerelease = $version -match '^(alpha-|beta-)'
           "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
@@ -60,7 +154,6 @@ jobs:
           if-no-files-found: error
 
       - name: Attach installer to release
-        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/OpenGameHUB-Setup-*.exe

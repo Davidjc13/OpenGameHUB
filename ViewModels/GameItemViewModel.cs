@@ -1,8 +1,8 @@
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using OpenGameHUB.Models;
-using OpenGameHUB.Services;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Domain.Models;
 
 namespace OpenGameHUB.ViewModels;
 

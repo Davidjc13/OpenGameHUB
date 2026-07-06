@@ -12,6 +12,44 @@
 
 Target: `net8.0-windows` (see [windows-specific.md](windows-specific.md)).
 
+## Project layout
+
+Domain and infrastructure are separated from platform integrations and UI services:
+
+```
+Domain/
+├── Models/          # UnifiedGame, AppSettings, LaunchSpec, …
+└── Enums/           # Platform, CoverQualityMode, SortOption, …
+
+Infrastructure/
+├── Database/        # GameDatabase (SQLite + Dapper)
+├── Secrets/         # DPAPI secrets store, Xbox token store
+└── Http/            # IgdbClient, SafeImageDownloader
+
+Services/
+├── Covers/          # MetadataService, cover cache, image processing
+├── Games/           # GameLibraryService, ICloudLibraryProvider
+├── Configuration/   # SettingsService, LocalizationService, DevModeService
+└── Updates/         # AppUpdateService
+
+Providers/
+├── Steam/
+├── Epic/
+├── GOG/
+├── Ubisoft/
+├── Xbox/
+├── Ea/              # EA App (no public API; local catalog)
+├── Riot/
+├── Rockstar/
+└── BattleNet/       # placeholder — today handled via GameLib only
+
+ViewModels/  Views/  Converters/  Localization/
+```
+
+`GlobalUsings.cs` imports the common namespaces so ViewModels and providers do not need long `using` lists.
+
+See [project-structure.md](project-structure.md) for a full guide to layers, data flows, and adding new platforms.
+
 ## Application startup
 
 ```
@@ -30,7 +68,7 @@ MainWindowViewModel (constructor):
 
 ## Central orchestrator: `GameLibraryService`
 
-File: `Services/GameLibraryService.cs`
+File: `Services/Games/GameLibraryService.cs`
 
 Responsibilities:
 
@@ -47,6 +85,31 @@ Main dependencies:
 - Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `GogDesktopScanner`, `XboxGamePassScanner` (+ `XboxManifestReader`)
 - `MetadataService` — covers and custom covers
 - `SettingsService` — credentials and preferences
+
+### Keep it thin (~500 lines max)
+
+`GameLibraryService` is an **orchestrator**, not a dumping ground. Launch, GameLib scan, and dedup live in dedicated classes:
+
+| Class | Responsibility |
+|-------|----------------|
+| `GameLibraryService` | Refresh orchestration, availability flags, DB/metadata delegation |
+| `GameLaunchService` | Launch attempts, process/protocol execution |
+| `InstalledGameScanner` | GameLib `LauncherManager` scan and `LaunchSpec` mapping |
+| `GameLibraryMerger` | Deduplicate games, preserve catalog on failed cloud sync |
+
+**Already extracted** (do not move back in):
+
+| Concern | Where it lives |
+|---------|----------------|
+| Per-platform cloud library | `Providers/*/…CloudLibraryProvider` |
+| Per-platform installed scan | `Providers/*/*Scanner`, `EpicManifestScanner`, … |
+| Cover download & cache | `Services/Covers/MetadataService` |
+| SQLite persistence | `Infrastructure/Database/GameDatabase` |
+| Settings & locale | `Services/Configuration/` |
+
+**Rule of thumb:** if you add a platform-specific `DetectX()` method to `GameLibraryService`, stop — put it in `Providers/<Platform>/` and call it from the orchestrator.
+
+`GameLibraryService` public API stays stable for ViewModels: `LoadCachedGames`, `RefreshLibraryAsync`, `LaunchGame`, `ToggleFavorite`, availability flags.
 
 ## Flow: refresh library
 
@@ -120,9 +183,16 @@ See [metadata-and-covers.md](metadata-and-covers.md) for cover loading and custo
 
 ## CI and releases
 
-`.github/workflows/build-installer.yml` — on pushing tags `alpha-*`, `beta-*`, or `x.y.z`:
+`.github/workflows/build-installer.yml`:
 
-1. `build-installer.ps1 -AppVersion <tag>`
-2. Uploads `OpenGameHUB-Setup-<tag>.exe` to GitHub Releases
+| Trigger | CI job | Publish job |
+|---------|--------|-------------|
+| Push / PR to `main` | format + build + test + coverage | — |
+| Tag `alpha-*`, `beta-*`, `x.y.z` | same | installer + GitHub Release |
+| Manual `workflow_dispatch` | same | — |
+
+CI runs as one job with separate steps (restore → lint → build → test/coverage). Publish runs only after CI passes on tags.
+
+Publish runs `build-installer.ps1 -AppVersion <tag>` and attaches `OpenGameHUB-Setup-<tag>.exe` to the release.
 
 See [app-updater.md](app-updater.md).

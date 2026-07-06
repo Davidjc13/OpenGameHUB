@@ -3,7 +3,7 @@ using Avalonia.Interactivity;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
-using OpenGameHUB.Services.Xbox;
+using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.ViewModels;
 

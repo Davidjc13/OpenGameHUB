@@ -8,7 +8,7 @@ Riot does not expose a third-party REST API for "games I own" like Steam's Web A
 2. **Local metadata** — `%ProgramData%\Riot Games\Metadata\` with per-product YAML settings
 3. **Known catalog** — fixed list of live games (LoL, VALORANT, TFT, LoR, 2XKO)
 
-OpenGameHUB combines GameLib's installed scan with **`RiotCloudLibraryProvider`**, which lists **owned but not installed** titles when Riot Client is present. Install and launch go through **`RiotClientServices.exe`** with `--launch-product` / `--skip-to-install` flags.
+OpenGameHUB combines GameLib's installed scan with **`RiotCloudLibraryProvider`**, which lists **owned but not installed** titles when Riot Client is present. Install and launch go through **`RiotLauncherClient`** (`Providers/Riot/RiotLauncherClient.cs`), which closes any open Riot Client UI, then runs `RiotClientServices.exe` with `--launch-product` / `--skip-to-install` flags.
 
 There is **no Riot account linking** in OpenGameHUB — the user must already use Riot Client on the same PC.
 
