@@ -5,11 +5,11 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
-using OpenGameHUB.Models;
-using OpenGameHUB.Services;
-using OpenGameHUB.Services.Ea;
-using OpenGameHUB.Services.Epic;
-using OpenGameHUB.Services.Rockstar;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Providers.Ea;
+using OpenGameHUB.Providers.Epic;
+using OpenGameHUB.Providers.Rockstar;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -752,7 +752,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Riot)
             {
-                _libraryService.LaunchGame(SelectedGame.Source);
+                RiotLauncherClient.StartInstall(SelectedGame.Source);
                 StatusText = Loc.T("RiotClientInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;

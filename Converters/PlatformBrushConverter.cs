@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using Avalonia.Media;
-using OpenGameHUB.Models;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Domain.Models;
 using System.Globalization;
 
 namespace OpenGameHUB.Converters;

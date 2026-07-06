@@ -1,25 +1,49 @@
-name: Build Installer
+name: Build and Publish
 
 on:
   push:
+    branches:
+      - main
+      - master
     tags:
       - 'alpha-*'
       - 'beta-*'
       - '[0-9]*.[0-9]*.[0-9]*'
+  pull_request:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Installer version (used for manual test builds)'
-        required: true
-        default: 'dev'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
+    name: Build
+    runs-on: windows-2022
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        shell: pwsh
+        run: |
+          dotnet restore OpenGameHUB.csproj
+          dotnet build OpenGameHUB.csproj -c Release
+
+  publish:
+    name: Publish
+    needs: build
+    if: github.ref_type == 'tag'
     runs-on: windows-2022
     timeout-minutes: 30
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -34,16 +58,12 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          if ("${{ github.ref_type }}" -eq "tag") {
-            $version = "${{ github.ref_name }}"
-            $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
-            if (-not $valid) {
-              Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
-            }
-          } else {
-            $version = "${{ inputs.version }}"
+          $version = "${{ github.ref_name }}"
+          $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
+          if (-not $valid) {
+            Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
           }
-          Write-Host "Building version: $version"
+          Write-Host "Publishing version: $version"
           "version=$version" >> $env:GITHUB_OUTPUT
           $prerelease = $version -match '^(alpha-|beta-)'
           "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
@@ -60,7 +80,6 @@ jobs:
           if-no-files-found: error
 
       - name: Attach installer to release
-        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/OpenGameHUB-Setup-*.exe

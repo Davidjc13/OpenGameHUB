@@ -16,7 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Models\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="Providers\" />
+    <Folder Include="Services\" />
     <AvaloniaResource Include="Assets\**" />
     <Compile Remove="tools\**" />
     <None Include="tools\**" />
