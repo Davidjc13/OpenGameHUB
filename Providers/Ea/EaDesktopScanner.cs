@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
-using Microsoft.Win32;
 
 namespace OpenGameHUB.Providers.Ea;
 

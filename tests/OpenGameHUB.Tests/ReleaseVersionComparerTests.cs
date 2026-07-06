@@ -17,4 +17,13 @@ public sealed class ReleaseVersionComparerTests
         var result = Math.Sign(ReleaseVersionComparer.Compare(latest, current));
         Assert.Equal(expectedSign, result);
     }
+
+    [Theory]
+    [InlineData("not-a-version", "1.0.0", 1)]
+    [InlineData("1.0.0", "not-a-version", -1)]
+    public void Compare_falls_back_to_string_compare_for_unparsed_tags(string latest, string current, int expectedSign)
+    {
+        var result = Math.Sign(ReleaseVersionComparer.Compare(latest, current));
+        Assert.Equal(expectedSign, result);
+    }
 }

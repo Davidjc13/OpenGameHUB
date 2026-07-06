@@ -59,16 +59,19 @@ public static class SteamLocalLibraryReader
     public static long ToAccountId(string steamId64) =>
         long.Parse(steamId64) & 0xFFFFFFFFL;
 
-    private static IEnumerable<LocalAppEntry> ParseLocalConfigApps(string path)
+    private static IEnumerable<LocalAppEntry> ParseLocalConfigApps(string path) =>
+        ParseLocalConfigAppsFromText(File.ReadAllText(path));
+
+    internal static IReadOnlyList<LocalAppEntry> ParseLocalConfigAppsFromText(string text)
     {
-        var text = File.ReadAllText(path);
+        var results = new List<LocalAppEntry>();
         var match = AppsSectionRegex.Match(text);
         if (!match.Success)
-            yield break;
+            return results;
 
         var section = ExtractBalancedBlock(text, match.Index + match.Length - 1);
         if (section is null)
-            yield break;
+            return results;
 
         string? currentAppId = null;
         var playtime = 0;
@@ -87,7 +90,7 @@ public static class SteamLocalLibraryReader
                     && int.TryParse(currentAppId, out var finishedAppId)
                     && !IgnoredAppIds.Contains(finishedAppId))
                 {
-                    yield return CreateEntry(finishedAppId, playtime, lastPlayedUnix);
+                    results.Add(CreateEntry(finishedAppId, playtime, lastPlayedUnix));
                 }
 
                 currentAppId = appMatch.Groups[1].Value;
@@ -112,13 +115,15 @@ public static class SteamLocalLibraryReader
             else if (line == "}" && currentAppId is not null)
             {
                 if (int.TryParse(currentAppId, out var appId) && !IgnoredAppIds.Contains(appId))
-                    yield return CreateEntry(appId, playtime, lastPlayedUnix);
+                    results.Add(CreateEntry(appId, playtime, lastPlayedUnix));
 
                 currentAppId = null;
                 playtime = 0;
                 lastPlayedUnix = 0;
             }
         }
+
+        return results;
     }
 
     private static LocalAppEntry CreateEntry(int appId, int playtimeMinutes, long lastPlayedUnix) =>

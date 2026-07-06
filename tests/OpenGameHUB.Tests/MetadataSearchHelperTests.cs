@@ -8,6 +8,7 @@ public sealed class MetadataSearchHelperTests
     [InlineData("Counter-Strike 2™", "Counter-Strike 2")]
     [InlineData("Halo Infinite - PC", "Halo Infinite")]
     [InlineData("Sea of Thieves (Windows)", "Sea of Thieves")]
+    [InlineData("Halo Game Preview", "Halo")]
     public void NormalizeTitle_strips_store_suffixes_and_symbols(string input, string expected)
     {
         Assert.Equal(expected, MetadataSearchHelper.NormalizeTitle(input));

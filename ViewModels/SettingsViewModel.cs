@@ -1,9 +1,9 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OpenGameHUB.Localization;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Xbox;
 using OpenGameHUB.Views;

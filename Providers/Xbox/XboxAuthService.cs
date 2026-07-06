@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.Views;

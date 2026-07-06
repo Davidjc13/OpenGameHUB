@@ -1,7 +1,7 @@
 using Dapper;
+using Microsoft.Data.Sqlite;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
-using Microsoft.Data.Sqlite;
 
 namespace OpenGameHUB.Infrastructure.Database;
 

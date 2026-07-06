@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>
+            [OpenGameHUB]OpenGameHUB.Domain.Models.AppSettings,
+            [OpenGameHUB]OpenGameHUB.Domain.Models.AppSettingsDocument,
+            [OpenGameHUB]OpenGameHUB.Domain.Models.LaunchSpec,
+            [OpenGameHUB]OpenGameHUB.Domain.Models.PlatformLabels,
+            [OpenGameHUB]OpenGameHUB.Domain.Models.SettingsSecrets,
+            [OpenGameHUB]OpenGameHUB.Domain.Models.UnifiedGame,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameEntryFilter,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameLibraryMerger,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameSearchHelper,
+            [OpenGameHUB]OpenGameHUB.Services.Covers.CoverPathHelper,
+            [OpenGameHUB]OpenGameHUB.Services.Covers.CoverQualitySettings,
+            [OpenGameHUB]OpenGameHUB.Services.Covers.MetadataSearchHelper,
+            [OpenGameHUB]OpenGameHUB.Services.Covers.SafeImageValidator,
+            [OpenGameHUB]OpenGameHUB.Services.Updates.ReleaseVersionComparer,
+            [OpenGameHUB]OpenGameHUB.Services.Configuration.LocalizationService,
+            [OpenGameHUB]OpenGameHUB.Providers.Ea.EaLogCatalogReader,
+            [OpenGameHUB]OpenGameHUB.Providers.Epic.EpicKeyImageHelper,
+            [OpenGameHUB]OpenGameHUB.Providers.Steam.SteamLocalLibraryReader,
+            [OpenGameHUB]OpenGameHUB.Providers.Rockstar.RockstarCoverUrls,
+            [OpenGameHUB]OpenGameHUB.Providers.Xbox.XboxCatalogReader
+          </Include>
+          <Threshold>70</Threshold>
+          <ThresholdType>line</ThresholdType>
+          <ThresholdStat>total</ThresholdStat>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

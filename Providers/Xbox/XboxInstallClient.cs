@@ -93,13 +93,20 @@ internal static class XboxInstallClient
             if (!Directory.Exists(root))
                 continue;
 
-            var match = Directory
-                .EnumerateDirectories(root, "Microsoft.GamingApp_*", SearchOption.TopDirectoryOnly)
-                .Select(path => Path.Combine(path, "XboxPcApp.exe"))
-                .FirstOrDefault(File.Exists);
+            try
+            {
+                var match = Directory
+                    .EnumerateDirectories(root, "Microsoft.GamingApp_*", SearchOption.TopDirectoryOnly)
+                    .Select(path => Path.Combine(path, "XboxPcApp.exe"))
+                    .FirstOrDefault(File.Exists);
 
-            if (match is not null)
-                return match;
+                if (match is not null)
+                    return match;
+            }
+            catch
+            {
+                // WindowsApps may be inaccessible without elevated rights.
+            }
         }
 
         return null;

@@ -25,31 +25,51 @@ internal static class EaLogCatalogReader
                 continue;
             }
 
-            foreach (Match match in InstallInfoLine.Matches(content))
-            {
-                var softwareId = match.Groups["id"].Value.Trim();
-                var slug = match.Groups["slug"].Value.Trim();
-                var status = match.Groups["status"].Value.Trim();
-
-                if (string.IsNullOrWhiteSpace(softwareId) || !EaCatalogReader.IsValidGameSlug(slug))
-                    continue;
-
-                if (!DateTimeOffset.TryParse(
-                        match.Groups["ts"].Value.Trim(),
-                        CultureInfo.InvariantCulture,
-                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                        out var timestamp))
-                {
-                    continue;
-                }
-
-                if (latestBySlug.TryGetValue(slug, out var existing) && existing.Timestamp > timestamp)
-                    continue;
-
-                latestBySlug[slug] = new InstallInfoSnapshot(softwareId, slug, status, timestamp);
-            }
+            MergeInstallInfoSnapshots(latestBySlug, content);
         }
 
+        return BuildCatalogEntries(latestBySlug);
+    }
+
+    internal static IReadOnlyList<EaCatalogEntry> ParseLibraryEntriesFromLogContent(string content)
+    {
+        var latestBySlug = new Dictionary<string, InstallInfoSnapshot>(StringComparer.OrdinalIgnoreCase);
+        MergeInstallInfoSnapshots(latestBySlug, content);
+        return BuildCatalogEntries(latestBySlug);
+    }
+
+    private static void MergeInstallInfoSnapshots(
+        Dictionary<string, InstallInfoSnapshot> latestBySlug,
+        string content)
+    {
+        foreach (Match match in InstallInfoLine.Matches(content))
+        {
+            var softwareId = match.Groups["id"].Value.Trim();
+            var slug = match.Groups["slug"].Value.Trim();
+            var status = match.Groups["status"].Value.Trim();
+
+            if (string.IsNullOrWhiteSpace(softwareId) || !EaCatalogReader.IsValidGameSlug(slug))
+                continue;
+
+            if (!DateTimeOffset.TryParse(
+                    match.Groups["ts"].Value.Trim(),
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out var timestamp))
+            {
+                continue;
+            }
+
+            if (latestBySlug.TryGetValue(slug, out var existing) && existing.Timestamp > timestamp)
+                continue;
+
+            latestBySlug[slug] = new InstallInfoSnapshot(softwareId, slug, status, timestamp);
+        }
+    }
+
+    private static IReadOnlyList<EaCatalogEntry> BuildCatalogEntries(
+        Dictionary<string, InstallInfoSnapshot> latestBySlug)
+    {
         var entries = new List<EaCatalogEntry>();
 
         foreach (var snapshot in latestBySlug.Values)

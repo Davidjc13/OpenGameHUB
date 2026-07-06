@@ -11,7 +11,7 @@ global using OpenGameHUB.Providers.Rockstar;
 global using OpenGameHUB.Providers.Steam;
 global using OpenGameHUB.Providers.Ubisoft;
 global using OpenGameHUB.Providers.Xbox;
+global using OpenGameHUB.Services.Configuration;
 global using OpenGameHUB.Services.Covers;
 global using OpenGameHUB.Services.Games;
-global using OpenGameHUB.Services.Configuration;
 global using OpenGameHUB.Services.Updates;

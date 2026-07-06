@@ -16,10 +16,13 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build
+  ci:
+    name: CI
     runs-on: windows-2022
-    timeout-minutes: 15
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -34,40 +37,80 @@ jobs:
         shell: pwsh
         run: dotnet restore OpenGameHUB.sln
 
+      - name: Lint (format)
+        shell: pwsh
+        run: dotnet format OpenGameHUB.sln --verify-no-changes --verbosity diagnostic
+
       - name: Build
         shell: pwsh
         run: dotnet build OpenGameHUB.sln -c Release --no-restore
 
-  test:
-    name: Test
-    needs: build
-    runs-on: windows-2022
-    timeout-minutes: 15
+      - name: Test with coverage
+        shell: pwsh
+        run: |
+          dotnet test OpenGameHUB.sln -c Release --no-build `
+            --settings coverlet.runsettings `
+            --collect:"XPlat Code Coverage" `
+            --results-directory ./coverage/raw `
+            --verbosity normal
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Coverage report
+        shell: pwsh
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          $reports = @(
+            Get-ChildItem -Path ./coverage/raw -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue
+            Get-ChildItem -Path ./tests/OpenGameHUB.Tests/TestResults -Recurse -Filter coverage.cobertura.xml -ErrorAction SilentlyContinue
+          ) | Sort-Object LastWriteTime -Descending
+          if ($reports.Count -eq 0) { throw "No coverage files found." }
+          reportgenerator `
+            -reports:$reports[0].FullName `
+            -targetdir:./coverage/report `
+            -reporttypes:"TextSummary;HtmlInline_AzurePipelines;Cobertura"
+          Get-Content ./coverage/report/Summary.txt
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Prepare PR coverage comment
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          $summary = (Get-Content ./coverage/report/Summary.txt -Raw).TrimEnd()
+          $nl = [Environment]::NewLine
+          $body = @(
+            '## Test coverage',
+            '',
+            'Scope: types listed in `coverlet.runsettings` (minimum **70%** line coverage).',
+            '',
+            'Download the full HTML report from the **coverage-report** workflow artifact.',
+            '',
+            '<details>',
+            '<summary>Summary.txt</summary>',
+            '',
+            '```text',
+            $summary,
+            '```',
+            '',
+            '</details>'
+          ) -join $nl
+          Set-Content -Path ./coverage/report/pr-comment.md -Value $body -Encoding utf8
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          dotnet-version: 8.0.x
+          header: coverage
+          path: coverage/report/pr-comment.md
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Restore
-        shell: pwsh
-        run: dotnet restore OpenGameHUB.sln
-
-      - name: Build
-        shell: pwsh
-        run: dotnet build OpenGameHUB.sln -c Release --no-restore
-
-      - name: Test
-        shell: pwsh
-        run: dotnet test OpenGameHUB.sln -c Release --no-build --verbosity normal
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/report/
+          if-no-files-found: error
 
   publish:
     name: Publish
-    needs: test
+    needs: ci
     if: github.ref_type == 'tag'
     runs-on: windows-2022
     timeout-minutes: 30

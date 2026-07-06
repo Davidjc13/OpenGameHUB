@@ -445,9 +445,8 @@ GameLib covers Steam, Epic, GOG, Ubisoft, EA, Battle.net, Rockstar, and Riot **i
 
 Workflow `.github/workflows/build-installer.yml`:
 
-- **Build** — every push/PR: `dotnet build -c Release`
-- **Test** — after build passes: `dotnet test -c Release`
-- **Publish** — tags only (`alpha-*`, `beta-*`, `x.y.z`), after tests pass: Inno installer + GitHub Release
+- **CI** — every push/PR: format lint, build (analyzers), tests + coverage report
+- **Publish** — tags only (`alpha-*`, `beta-*`, `x.y.z`), after CI passes: Inno installer + GitHub Release
 
 See [app-updater.md](app-updater.md).
 

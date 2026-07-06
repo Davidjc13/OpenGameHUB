@@ -102,4 +102,29 @@ public sealed class GameLibraryMergerTests
 
         Assert.Single(result);
     }
+
+    [Fact]
+    public void NormalizeInstallPath_returns_null_for_missing_paths()
+    {
+        Assert.Null(GameLibraryMerger.NormalizeInstallPath(null));
+        Assert.Null(GameLibraryMerger.NormalizeInstallPath(@"C:\does-not-exist-ogh-test"));
+    }
+
+    [Fact]
+    public void NormalizeInstallPath_normalizes_existing_directory()
+    {
+        var dir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"ogh-merge-{Guid.NewGuid():N}"));
+        try
+        {
+            var normalized = GameLibraryMerger.NormalizeInstallPath(dir.FullName);
+            Assert.NotNull(normalized);
+            Assert.Equal(
+                dir.FullName.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).ToLowerInvariant(),
+                normalized);
+        }
+        finally
+        {
+            Directory.Delete(dir.FullName, recursive: true);
+        }
+    }
 }

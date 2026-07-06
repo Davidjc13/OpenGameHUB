@@ -32,6 +32,42 @@ public sealed class GameEntryFilterTests
     }
 
     [Fact]
+    public void IsExcluded_filters_utility_title_keywords()
+    {
+        Assert.True(GameEntryFilter.IsExcluded(
+            "Steamworks Common Redistributables",
+            Platform.Steam,
+            platformGameId: "123"));
+    }
+
+    [Fact]
+    public void IsExcluded_allows_regular_steam_game()
+    {
+        Assert.False(GameEntryFilter.IsExcluded(
+            "Portal 2",
+            Platform.Steam,
+            platformGameId: "620"));
+    }
+
+    [Fact]
+    public void IsExcluded_filters_riot_pbe_title_suffix()
+    {
+        Assert.True(GameEntryFilter.IsExcluded(
+            "valorant.pbe",
+            Platform.Riot,
+            platformGameId: "valorant"));
+    }
+
+    [Fact]
+    public void IsExcluded_filters_provisioning_utilities()
+    {
+        Assert.True(GameEntryFilter.IsExcluded(
+            "Provisioning Tool",
+            Platform.Steam,
+            platformGameId: "999"));
+    }
+
+    [Fact]
     public void IsExcluded_filters_steamworks_shared_install_path()
     {
         Assert.True(GameEntryFilter.IsExcluded(

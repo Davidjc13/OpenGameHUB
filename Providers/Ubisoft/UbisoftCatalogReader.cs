@@ -1,10 +1,9 @@
 using Microsoft.Win32;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Domain.Models;
 using ProtoBuf;
 using YamlDotNet.Serialization;
 using YamlDeserializer = YamlDotNet.Serialization.IDeserializer;
-
-using OpenGameHUB.Domain.Enums;
-using OpenGameHUB.Domain.Models;
 
 namespace OpenGameHUB.Providers.Ubisoft;
 

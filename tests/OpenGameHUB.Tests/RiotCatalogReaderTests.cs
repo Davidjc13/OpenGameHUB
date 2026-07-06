@@ -1,3 +1,4 @@
+using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Providers.Riot;
 
@@ -33,5 +34,14 @@ public sealed class RiotCatalogReaderTests
 
         Assert.True(RiotCatalogReader.TryGetLaunchPatchlineFromSpec(spec, out var patchline));
         Assert.Equal("pbe", patchline);
+    }
+
+    [Fact]
+    public void MatchesInstalledGame_matches_by_product_id_or_title()
+    {
+        var game = TestGames.Create("riot:1", Platform.Riot, "VALORANT", platformGameId: "valorant");
+        var entry = new RiotCatalogEntry("valorant", "VALORANT");
+
+        Assert.True(RiotCatalogReader.MatchesInstalledGame(game, entry));
     }
 }

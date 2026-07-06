@@ -185,13 +185,13 @@ See [metadata-and-covers.md](metadata-and-covers.md) for cover loading and custo
 
 `.github/workflows/build-installer.yml`:
 
-| Trigger | Build | Test | Publish |
-|---------|-------|------|---------|
-| Push / PR to `main` | `dotnet build` | `dotnet test` | — |
-| Tag `alpha-*`, `beta-*`, `x.y.z` | same | same | installer + GitHub Release |
-| Manual `workflow_dispatch` | same | same | — |
+| Trigger | CI job | Publish job |
+|---------|--------|-------------|
+| Push / PR to `main` | format + build + test + coverage | — |
+| Tag `alpha-*`, `beta-*`, `x.y.z` | same | installer + GitHub Release |
+| Manual `workflow_dispatch` | same | — |
 
-Jobs run in order: **Build** → **Test** (`needs: build`) → **Publish** (`needs: test`, tags only).
+CI runs as one job with separate steps (restore → lint → build → test/coverage). Publish runs only after CI passes on tags.
 
 Publish runs `build-installer.ps1 -AppVersion <tag>` and attaches `OpenGameHUB-Setup-<tag>.exe` to the release.
 
