@@ -39,7 +39,9 @@ jobs:
 
       - name: Lint (format)
         shell: pwsh
-        run: dotnet format OpenGameHUB.sln --verify-no-changes --verbosity diagnostic
+        run: |
+          git config --local core.autocrlf false
+          dotnet format OpenGameHUB.sln --verify-no-changes --verbosity minimal
 
       - name: Build
         shell: pwsh

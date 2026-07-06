@@ -1,0 +1,13 @@
+# Store source files as-is (LF enforced by .editorconfig and dotnet format).
+# Avoid Git's text/eol filters, which conflict with core.autocrlf=true on Windows.
+* -text
+
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.exe binary
+*.dll binary
+*.zip binary
