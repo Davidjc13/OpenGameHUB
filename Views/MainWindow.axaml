@@ -69,8 +69,8 @@
                         Margin="12,0,8,0"
                         VerticalAlignment="Center"
                         Content="{Binding Strings.AppUpdateInstallNow}"
-                        Command="{Binding InstallAppUpdateCommand}"
-                        IsEnabled="{Binding CanInstallAppUpdate}"/>
+                        Click="OnInstallAppUpdateClick"
+                        IsEnabled="{Binding !IsAppUpdateInstalling}"/>
                 <Button Grid.Column="2"
                         VerticalAlignment="Center"
                         Content="{Binding Strings.AppUpdateDismissLater}"

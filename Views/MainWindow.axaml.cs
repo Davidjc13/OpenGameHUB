@@ -42,6 +42,15 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private async void OnInstallAppUpdateClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        await vm.InstallAppUpdateCommand.ExecuteAsync(null);
+        e.Handled = true;
+    }
+
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: GameItemViewModel game })
