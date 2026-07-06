@@ -119,6 +119,10 @@
   <data name="RiotCloudHint" xml:space="preserve"><value> · Biblioteca Riot vía Riot Client</value></data>
   <data name="RiotClientInstallStarted" xml:space="preserve"><value>Riot Client abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
   <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client no está instalado.</value></data>
+  <data name="SyncingRockstarLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Rockstar...</value></data>
+  <data name="RockstarCloudHint" xml:space="preserve"><value> · Biblioteca Rockstar vía Rockstar Games Launcher</value></data>
+  <data name="RockstarLauncherInstallStarted" xml:space="preserve"><value>Rockstar Games Launcher abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
+  <data name="RockstarLauncherNotInstalled" xml:space="preserve"><value>Rockstar Games Launcher no está instalado.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
   <data name="DownloadingLegendary" xml:space="preserve"><value>Descargando ayudante de biblioteca Epic...</value></data>
   <data name="SyncingEpicLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Epic...</value></data>

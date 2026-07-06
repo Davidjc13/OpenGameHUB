@@ -9,6 +9,7 @@ using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Rockstar;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -135,6 +136,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public bool IsRiotCloudAvailable => _libraryService.IsRiotCloudAvailable;
 
     public bool IsGogCloudAvailable => _libraryService.IsGogCloudAvailable;
+
+    public bool IsRockstarCloudAvailable => _libraryService.IsRockstarCloudAvailable;
 
     public bool IsXboxCloudAvailable => _libraryService.IsXboxCloudAvailable;
 
@@ -271,8 +274,9 @@ public partial class MainWindowViewModel : ViewModelBase
                         : string.Empty;
                 var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
                 var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
+                var rockstarHint = IsRockstarCloudAvailable ? Loc.T("RockstarCloudHint") : string.Empty;
                 var xboxHint = IsXboxCloudAvailable ? Loc.T("XboxCloudHint") : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + xboxHint + epicHint;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + rockstarHint + xboxHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
@@ -748,6 +752,15 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _libraryService.LaunchGame(SelectedGame.Source);
                 StatusText = Loc.T("RiotClientInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Rockstar)
+            {
+                RockstarLauncherClient.StartInstall(SelectedGame.Source.PlatformGameId
+                    ?? throw new InvalidOperationException(Loc.T("NoLaunchMethod")));
+                StatusText = Loc.T("RockstarLauncherInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;
             }
