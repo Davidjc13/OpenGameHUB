@@ -92,6 +92,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsEaCloudAvailable => _libraryService.IsEaCloudAvailable;
 
+    public bool IsRiotCloudAvailable => _libraryService.IsRiotCloudAvailable;
+
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
     public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
@@ -180,7 +182,8 @@ public partial class MainWindowViewModel : ViewModelBase
                     && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
                         ? Loc.T("EaCloudHint")
                         : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
+                var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
@@ -524,6 +527,14 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 EpicLauncherClient.StartInstall(SelectedGame.Source.LaunchSpec.Value);
                 StatusText = Loc.T("EpicLauncherInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Riot)
+            {
+                _libraryService.LaunchGame(SelectedGame.Source);
+                StatusText = Loc.T("RiotClientInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;
             }

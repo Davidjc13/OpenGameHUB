@@ -14,6 +14,19 @@ internal static class GameEntryFilter
 
     public static bool IsExcluded(string title, Platform platform, string? platformGameId = null, string? installPath = null)
     {
+        if (platform == Platform.Riot)
+        {
+            if (!string.IsNullOrWhiteSpace(platformGameId) && platformGameId.Contains('.', StringComparison.Ordinal))
+                return true;
+
+            if (title.Contains(".live", StringComparison.OrdinalIgnoreCase)
+                || title.Contains(".pbe", StringComparison.OrdinalIgnoreCase)
+                || title.Contains(".game_patch", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
         if (platform == Platform.Steam && !string.IsNullOrWhiteSpace(platformGameId)
             && ExcludedSteamAppIds.Contains(platformGameId))
         {

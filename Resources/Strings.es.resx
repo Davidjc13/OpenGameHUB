@@ -98,6 +98,10 @@
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Sincronizando biblioteca de EA...</value></data>
+  <data name="SyncingRiotLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Riot...</value></data>
+  <data name="RiotCloudHint" xml:space="preserve"><value> · Biblioteca Riot vía Riot Client</value></data>
+  <data name="RiotClientInstallStarted" xml:space="preserve"><value>Riot Client abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
+  <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client no está instalado.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
   <data name="DownloadingLegendary" xml:space="preserve"><value>Descargando ayudante de biblioteca Epic...</value></data>
   <data name="SyncingEpicLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Epic...</value></data>

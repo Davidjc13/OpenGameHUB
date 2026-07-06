@@ -38,7 +38,8 @@ public sealed class GameLibraryService : IDisposable
             _steamCloudProvider,
             _epicCloudProvider,
             new UbisoftCloudLibraryProvider(),
-            new EaCloudLibraryProvider()
+            new EaCloudLibraryProvider(),
+            new RiotCloudLibraryProvider()
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
@@ -60,6 +61,9 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsEaCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ea && p.IsAvailable());
+
+    public bool IsRiotCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Riot && p.IsAvailable());
 
     public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
 
@@ -278,6 +282,8 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingEaLibrary"));
                 else if (provider.Platform == Platform.Epic)
                     progress?.Report(Loc.T("SyncingEpicLibrary"));
+                else if (provider.Platform == Platform.Riot)
+                    progress?.Report(Loc.T("SyncingRiotLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
