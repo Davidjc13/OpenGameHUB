@@ -95,8 +95,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppUpdateDismissLater => Loc.T("AppUpdateDismissLater");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
-    public string ShowGridCovers => Loc.T("ShowGridCovers");
-    public string ShowGridCoversHelp => Loc.T("ShowGridCoversHelp");
+    public string CoverQualitySection => Loc.T("CoverQualitySection");
+    public string CoverQualityHelp => Loc.T("CoverQualityHelp");
     public string CoverArtHelp => Loc.T("CoverArtHelp");
     public string SteamApiKeyPlaceholder => Loc.T("SteamApiKeyPlaceholder");
     public string SteamIdPlaceholder => Loc.T("SteamIdPlaceholder");

@@ -95,10 +95,20 @@
                                FontWeight="SemiBold"
                                Foreground="#D7DFF1"
                                Margin="0,8,0,0"/>
-                    <CheckBox Content="{Binding Strings.ShowGridCovers}"
-                              IsChecked="{Binding ShowGridCovers}"
-                              Foreground="#C5CEE0"/>
-                    <TextBlock Text="{Binding Strings.ShowGridCoversHelp}"
+                    <TextBlock Text="{Binding Strings.CoverQualitySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding CoverQualityOptions}"
+                              SelectedItem="{Binding SelectedCoverQualityOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CoverQualityOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{Binding Strings.CoverQualityHelp}"
                                Foreground="#7E8AA3"
                                FontSize="12"
                                TextWrapping="Wrap"/>

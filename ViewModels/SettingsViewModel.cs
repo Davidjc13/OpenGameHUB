@@ -33,9 +33,10 @@ public partial class SettingsViewModel : ViewModelBase
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
-        ShowGridCovers = current.ShowGridCovers;
+        SelectedCoverQuality = current.CoverQualityMode;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
+        CoverQualityOptions = BuildCoverQualityOptions();
         RefreshSteamStatus();
         RefreshEpicStatus();
         RefreshXboxStatus();
@@ -96,7 +97,25 @@ public partial class SettingsViewModel : ViewModelBase
     private string _steamGridDbApiKey = string.Empty;
 
     [ObservableProperty]
-    private bool _showGridCovers = true;
+    private CoverQualityMode _selectedCoverQuality = CoverQualityMode.Low;
+
+    partial void OnSelectedCoverQualityChanged(CoverQualityMode value) =>
+        OnPropertyChanged(nameof(SelectedCoverQualityOption));
+
+    public CoverQualityOption? SelectedCoverQualityOption
+    {
+        get => CoverQualityOptions.FirstOrDefault(option => option.Mode == SelectedCoverQuality);
+        set
+        {
+            if (value is null || value.Mode == SelectedCoverQuality)
+                return;
+
+            SelectedCoverQuality = value.Mode;
+            OnPropertyChanged(nameof(SelectedCoverQualityOption));
+        }
+    }
+
+    public IReadOnlyList<CoverQualityOption> CoverQualityOptions { get; }
 
     [ObservableProperty]
     private string _selectedLanguage = "en";
@@ -161,7 +180,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientId = current.IgdbClientId,
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
-            ShowGridCovers = current.ShowGridCovers,
+            CoverQualityMode = current.CoverQualityMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -476,7 +495,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientId = IgdbClientId.Trim(),
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
-            ShowGridCovers = ShowGridCovers,
+            CoverQualityMode = SelectedCoverQuality,
             LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
@@ -493,6 +512,15 @@ public partial class SettingsViewModel : ViewModelBase
 
     [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();
+
+    private static IReadOnlyList<CoverQualityOption> BuildCoverQualityOptions() =>
+    [
+        new(CoverQualityMode.None, Loc.T("CoverQualityNone")),
+        new(CoverQualityMode.Low, Loc.T("CoverQualityLow")),
+        new(CoverQualityMode.High, Loc.T("CoverQualityHigh"))
+    ];
 }
 
 public sealed record LanguageOption(string Code, string Label);
+
+public sealed record CoverQualityOption(CoverQualityMode Mode, string Label);

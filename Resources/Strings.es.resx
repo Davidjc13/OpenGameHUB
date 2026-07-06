@@ -283,8 +283,11 @@
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Más tarde</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
-  <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
-  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Desactívalo para ahorrar memoria. Las portadas siguen viéndose en el panel de detalles al seleccionar un juego.</value></data>
+  <data name="CoverQualitySection" xml:space="preserve"><value>Calidad de portadas</value></data>
+  <data name="CoverQualityNone" xml:space="preserve"><value>Sin portadas</value></data>
+  <data name="CoverQualityLow" xml:space="preserve"><value>Calidad baja (menos memoria)</value></data>
+  <data name="CoverQualityHigh" xml:space="preserve"><value>Calidad alta</value></data>
+  <data name="CoverQualityHelp" xml:space="preserve"><value>Baja usa imágenes más pequeñas y menos descargas. Sin portadas desactiva todo el arte para ahorrar memoria.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>

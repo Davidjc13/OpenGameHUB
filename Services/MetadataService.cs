@@ -1,5 +1,6 @@
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Epic;
 
 namespace OpenGameHUB.Services;
 
@@ -12,6 +13,7 @@ public sealed class MetadataService
     private readonly SteamStoreSearchClient _steamStoreSearchClient = new();
     private readonly WikipediaCoverClient _wikipediaCoverClient = new();
     private readonly RiotCoverClient _riotCoverClient = new();
+    private readonly EpicCoverClient _epicCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
 
@@ -234,6 +236,10 @@ public sealed class MetadataService
         {
             urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/library_600x900.jpg");
             urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/header.jpg");
+        }
+        else if (game.Platform == Platform.Epic)
+        {
+            urls.AddRange(await _epicCoverClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else if (game.Platform == Platform.Riot)
         {

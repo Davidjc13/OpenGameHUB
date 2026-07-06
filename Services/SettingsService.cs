@@ -36,7 +36,18 @@ public sealed class SettingsService
         try
         {
             var json = File.ReadAllText(_settingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+            using var document = JsonDocument.Parse(json);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+
+            if (!document.RootElement.TryGetProperty(nameof(AppSettings.CoverQualityMode), out _))
+            {
+                settings.CoverQualityMode = document.RootElement.TryGetProperty("ShowGridCovers", out var showGridCovers)
+                                                && showGridCovers.ValueKind == JsonValueKind.False
+                    ? CoverQualityMode.None
+                    : CoverQualityMode.Low;
+            }
+
+            return settings;
         }
         catch
         {

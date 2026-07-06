@@ -30,7 +30,7 @@ internal static class DevModeService
             IgdbClientId = current.IgdbClientId,
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
-            ShowGridCovers = current.ShowGridCovers,
+            CoverQualityMode = current.CoverQualityMode,
             DismissSteamApiKeyPrompt = false,
             DismissEaLibraryPrompt = false,
             DismissLegendaryPrompt = false,

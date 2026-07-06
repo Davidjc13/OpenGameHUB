@@ -15,8 +15,6 @@ namespace OpenGameHUB.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
-    private const int PageSize = 24;
-
     private readonly GameLibraryService _libraryService = new();
     private List<GameItemViewModel> _allGames = [];
     private List<GameItemViewModel> _filteredGames = [];
@@ -49,7 +47,7 @@ public partial class MainWindowViewModel : ViewModelBase
         RebuildSortOptions();
         RebuildPlatformFilters();
 
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
+        CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
 
         AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
@@ -113,12 +111,18 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _showInstalledOnly;
 
     [ObservableProperty]
-    private bool _showGridCovers = true;
+    private CoverQualityMode _coverQualityMode = CoverQualityMode.Low;
 
     [ObservableProperty]
     private bool _isListView;
 
     public bool IsGridView => !IsListView;
+
+    public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
+
+    private CoverQualityProfile CoverProfile => CoverQualitySettings.Get(CoverQualityMode);
+
+    private int PageSize => CoverProfile.PageSize;
 
     public bool SelectedGameHasCustomCover => SelectedGame?.HasCustomCover == true;
 
@@ -162,7 +166,18 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
     partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
 
-    partial void OnShowGridCoversChanged(bool value) => ApplyVisibleCovers();
+    partial void OnCoverQualityModeChanged(CoverQualityMode value)
+    {
+        OnPropertyChanged(nameof(ShowDetailCover));
+        ReleaseAllGameCovers();
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+        ApplyCurrentPage();
+        ApplyVisibleCovers();
+    }
 
     partial void OnIsListViewChanged(bool value)
     {
@@ -177,7 +192,8 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (!ReferenceEquals(_previousSelectedGame, value) && _previousSelectedGame is not null)
         {
-            var keepForGrid = ShowGridCovers && Games.Contains(_previousSelectedGame);
+            var profile = CoverProfile;
+            var keepForGrid = profile.ShowLibraryCovers && Games.Contains(_previousSelectedGame);
             if (!keepForGrid)
                 _previousSelectedGame.ReleaseCover();
         }
@@ -187,8 +203,15 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var game in _allGames)
             game.IsSelected = ReferenceEquals(game, value);
 
-        if (value is not null && !value.HasCover)
-            _ = value.LoadCoverAsync(decodeWidth: CoverImageLoader.DetailWidth);
+        var currentProfile = CoverProfile;
+        if (value is not null && currentProfile.ShowDetailCover)
+        {
+            _ = value.EnsureCoverAsync(
+                currentProfile.DetailDecodeWidth,
+                currentProfile.Interpolation);
+        }
+
+        OnPropertyChanged(nameof(ShowDetailCover));
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
@@ -284,6 +307,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void StartBackgroundCoverEnrichment()
     {
+        var maxCovers = CoverProfile.BackgroundMaxCovers;
+        if (maxCovers <= 0)
+            return;
+
         _coverCts?.Cancel();
         _coverCts?.Dispose();
         _coverCts = new CancellationTokenSource();
@@ -300,7 +327,7 @@ public partial class MainWindowViewModel : ViewModelBase
                             StatusText = message;
                     }));
 
-                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: 32);
+                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: maxCovers);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -823,7 +850,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            await SelectedGame.ApplyCoverFromPathAsync(SelectedGame.Source.CoverPath!);
+            var profile = CoverProfile;
+            await SelectedGame.ApplyCoverFromPathAsync(
+                SelectedGame.Source.CoverPath!,
+                profile.DetailDecodeWidth,
+                profile.Interpolation);
             ApplyVisibleCovers();
             OnPropertyChanged(nameof(SelectedGameHasCustomCover));
             StatusText = Loc.T("CoverUpdated", SelectedGame.Title);
@@ -849,7 +880,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
             var path = await _libraryService.TryResetCustomCoverAsync(SelectedGame.Source);
             if (path is not null)
-                await SelectedGame.ApplyCoverFromPathAsync(path);
+            {
+                var profile = CoverProfile;
+                await SelectedGame.ApplyCoverFromPathAsync(path, profile.DetailDecodeWidth, profile.Interpolation);
+            }
 
             ApplyVisibleCovers();
             OnPropertyChanged(nameof(SelectedGameHasCustomCover));
@@ -982,18 +1016,21 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        var profile = CoverProfile;
         var pageGames = Games.ToHashSet();
 
-        if (!ShowGridCovers)
+        if (!profile.ShowLibraryCovers)
         {
             foreach (var game in _allGames)
             {
                 game.ShowCoverInGrid = false;
-                if (!ReferenceEquals(game, SelectedGame))
+                if (!ReferenceEquals(game, SelectedGame) || !profile.ShowDetailCover)
                     game.ReleaseCover();
             }
 
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
+            if (!profile.ShowDetailCover)
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
+
             return;
         }
 
@@ -1003,15 +1040,15 @@ public partial class MainWindowViewModel : ViewModelBase
                 continue;
 
             game.ShowCoverInGrid = false;
-            if (!ReferenceEquals(game, SelectedGame))
+            if (!ReferenceEquals(game, SelectedGame) || !profile.ShowDetailCover)
                 game.ReleaseCover();
         }
 
+        var decodeWidth = IsListView ? profile.ListDecodeWidth : profile.GridDecodeWidth;
         foreach (var game in pageGames)
         {
             game.ShowCoverInGrid = true;
-            if (!game.HasCover)
-                _ = game.LoadCoverAsync();
+            _ = game.EnsureCoverAsync(decodeWidth, profile.Interpolation);
         }
     }
 
@@ -1035,14 +1072,19 @@ public partial class MainWindowViewModel : ViewModelBase
         foreach (var game in _allGames)
             game.ApplyLocalization();
 
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
+        var previousQuality = CoverQualityMode;
+        CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        OnPropertyChanged(nameof(ShowDetailCover));
+        if (previousQuality != CoverQualityMode)
+            ReleaseAllGameCovers();
         OnPropertyChanged(nameof(IsGridView));
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         ApplyFilter();
+        ApplyVisibleCovers();
     }
 
     private void ScheduleStatusClear(TimeSpan delay)

@@ -283,8 +283,11 @@
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Later</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
-  <data name="ShowGridCovers" xml:space="preserve"><value>Show cover art in game grid</value></data>
-  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Disable to save memory. Covers are still shown in the details panel when you select a game.</value></data>
+  <data name="CoverQualitySection" xml:space="preserve"><value>Cover art quality</value></data>
+  <data name="CoverQualityNone" xml:space="preserve"><value>No covers</value></data>
+  <data name="CoverQualityLow" xml:space="preserve"><value>Low quality (less memory)</value></data>
+  <data name="CoverQualityHigh" xml:space="preserve"><value>High quality</value></data>
+  <data name="CoverQualityHelp" xml:space="preserve"><value>Low uses smaller images and fewer downloads. None disables all cover art to save memory.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>

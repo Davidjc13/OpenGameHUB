@@ -8,7 +8,7 @@ public sealed class AppSettings
     public string IgdbClientId { get; set; } = string.Empty;
     public string IgdbClientSecret { get; set; } = string.Empty;
     public string SteamGridDbApiKey { get; set; } = string.Empty;
-    public bool ShowGridCovers { get; set; } = true;
+    public CoverQualityMode CoverQualityMode { get; set; } = CoverQualityMode.Low;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
@@ -38,7 +38,7 @@ public sealed class AppSettings
             IgdbClientId = IgdbClientId,
             IgdbClientSecret = IgdbClientSecret,
             SteamGridDbApiKey = SteamGridDbApiKey,
-            ShowGridCovers = ShowGridCovers,
+            CoverQualityMode = CoverQualityMode,
             LibraryViewMode = LibraryViewMode,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,

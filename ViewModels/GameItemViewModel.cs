@@ -52,6 +52,7 @@ public partial class GameItemViewModel : ViewModelBase
     private bool _showCoverInGrid;
 
     private int _loadGeneration;
+    private int _loadedDecodeWidth;
 
     public bool DisplayGridCover => ShowCoverInGrid && HasCover;
 
@@ -105,36 +106,57 @@ public partial class GameItemViewModel : ViewModelBase
 
     public Task LoadCoverAsync(
         MetadataService? metadata = null,
-        int decodeWidth = CoverImageLoader.ThumbnailWidth,
+        int decodeWidth = 96,
+        BitmapInterpolationMode interpolation = BitmapInterpolationMode.LowQuality,
         CancellationToken cancellationToken = default)
     {
         if (metadata is not null)
-            return LoadCoverFromMetadataAsync(metadata, cancellationToken, decodeWidth);
+            return LoadCoverFromMetadataAsync(metadata, cancellationToken, decodeWidth, interpolation);
 
-        return LoadCoverFromCacheAsync(decodeWidth);
+        return LoadCoverFromCacheAsync(decodeWidth, interpolation);
+    }
+
+    public Task EnsureCoverAsync(
+        int decodeWidth,
+        BitmapInterpolationMode interpolation = BitmapInterpolationMode.LowQuality,
+        MetadataService? metadata = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (decodeWidth <= 0)
+            return Task.CompletedTask;
+
+        if (HasCover && _loadedDecodeWidth == decodeWidth)
+            return Task.CompletedTask;
+
+        ReleaseCover();
+        return LoadCoverAsync(metadata, decodeWidth, interpolation, cancellationToken);
     }
 
     private async Task LoadCoverFromMetadataAsync(
         MetadataService metadata,
         CancellationToken cancellationToken,
-        int decodeWidth)
+        int decodeWidth,
+        BitmapInterpolationMode interpolation)
     {
         var path = await metadata.EnsureCoverAsync(Source, cancellationToken);
         if (path is null)
             return;
 
-        await SetCoverFromPathAsync(path, decodeWidth);
+        await SetCoverFromPathAsync(path, decodeWidth, interpolation);
     }
 
-    private Task LoadCoverFromCacheAsync(int decodeWidth)
+    private Task LoadCoverFromCacheAsync(int decodeWidth, BitmapInterpolationMode interpolation)
     {
         var path = CoverPathHelper.ResolveExistingPath(Source);
-        return path is null ? Task.CompletedTask : SetCoverFromPathAsync(path, decodeWidth);
+        return path is null
+            ? Task.CompletedTask
+            : SetCoverFromPathAsync(path, decodeWidth, interpolation);
     }
 
     public void ReleaseCover()
     {
         _loadGeneration++;
+        _loadedDecodeWidth = 0;
         CoverImage?.Dispose();
         CoverImage = null;
         HasCover = false;
@@ -147,16 +169,25 @@ public partial class GameItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(DisplayListCover));
     }
 
-    public async Task ApplyCoverFromPathAsync(string path, int decodeWidth = CoverImageLoader.DetailWidth)
+    public async Task ApplyCoverFromPathAsync(
+        string path,
+        int decodeWidth = CoverImageLoader.HighDetailWidth,
+        BitmapInterpolationMode interpolation = BitmapInterpolationMode.MediumQuality)
     {
-        await SetCoverFromPathAsync(path, decodeWidth);
+        await SetCoverFromPathAsync(path, decodeWidth, interpolation);
         RefreshCoverState();
     }
 
-    private async Task SetCoverFromPathAsync(string path, int decodeWidth = CoverImageLoader.ThumbnailWidth)
+    private async Task SetCoverFromPathAsync(
+        string path,
+        int decodeWidth,
+        BitmapInterpolationMode interpolation)
     {
+        if (decodeWidth <= 0)
+            return;
+
         var generation = _loadGeneration;
-        var bitmap = await CoverImageLoader.LoadDecodedAsync(path, decodeWidth);
+        var bitmap = await CoverImageLoader.LoadDecodedAsync(path, decodeWidth, interpolation);
         if (bitmap is null || generation != _loadGeneration)
         {
             bitmap?.Dispose();
@@ -175,6 +206,7 @@ public partial class GameItemViewModel : ViewModelBase
             Source.CoverPath = path;
             CoverImage = bitmap;
             HasCover = true;
+            _loadedDecodeWidth = decodeWidth;
         });
     }
 }

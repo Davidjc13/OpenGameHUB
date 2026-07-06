@@ -383,7 +383,8 @@
                                 HorizontalAlignment="Center"
                                 CornerRadius="8"
                                 ClipToBounds="True"
-                                Background="#141A28">
+                                Background="#141A28"
+                                IsVisible="{Binding ShowDetailCover}">
                             <Image Source="{Binding SelectedGame.CoverImage}"
                                    Stretch="UniformToFill"
                                    HorizontalAlignment="Center"

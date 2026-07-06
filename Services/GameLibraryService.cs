@@ -91,6 +91,7 @@ public sealed class GameLibraryService : IDisposable
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {
         var games = _database.GetAllGames().ToList();
+        EnrichTransientCatalogCovers(games);
         _metadataService.ReconcileCachedCovers(games);
         return games;
     }
@@ -175,9 +176,7 @@ public sealed class GameLibraryService : IDisposable
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
-        SteamWebApiService.EnrichCatalogCoverUrls(stored);
-        UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
-        XboxManifestReader.EnrichCatalogCoverUrls(stored);
+        EnrichTransientCatalogCovers(stored);
 
         if (steamOwned.Count > 0)
         {
@@ -735,6 +734,14 @@ public sealed class GameLibraryService : IDisposable
         "riot games" or "riot" => Platform.Riot,
         _ => Platform.Unknown
     };
+
+    private static void EnrichTransientCatalogCovers(IReadOnlyList<UnifiedGame> games)
+    {
+        SteamWebApiService.EnrichCatalogCoverUrls(games);
+        UbisoftCatalogReader.EnrichCatalogCoverUrls(games);
+        XboxManifestReader.EnrichCatalogCoverUrls(games);
+        EpicCatalogReader.EnrichCatalogCoverUrls(games);
+    }
 
     public void ResetLocalCache()
     {

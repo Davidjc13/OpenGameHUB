@@ -57,7 +57,7 @@ public partial class SteamApiKeyPromptViewModel : ViewModelBase
             IgdbClientId = current.IgdbClientId,
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
-            ShowGridCovers = current.ShowGridCovers,
+            CoverQualityMode = current.CoverQualityMode,
             DismissSteamApiKeyPrompt = true,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
