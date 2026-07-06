@@ -12,6 +12,16 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
 
+    private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (sender is not TextBox textBox || DataContext is not MainWindowViewModel viewModel)
+            return;
+
+        var text = textBox.Text ?? string.Empty;
+        if (viewModel.SearchText != text)
+            viewModel.SearchText = text;
+    }
+
     private void OnCardPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control { DataContext: GameItemViewModel game })

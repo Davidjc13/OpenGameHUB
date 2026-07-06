@@ -933,11 +933,7 @@ public partial class MainWindowViewModel : ViewModelBase
             filtered = filtered.Where(g => g.Source.IsInstalled);
 
         if (!string.IsNullOrWhiteSpace(query))
-        {
-            filtered = filtered.Where(g =>
-                TitleMatchesQuery(g.Title, query) ||
-                g.PlatformLabel.Contains(query, StringComparison.OrdinalIgnoreCase));
-        }
+            filtered = filtered.Where(g => GameSearchHelper.MatchesTitle(g.Title, query));
 
         filtered = (SelectedSortOption?.Option ?? SortOption.TitleAsc) switch
         {
@@ -1077,33 +1073,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static bool TitleMatchesQuery(string title, string query)
-    {
-        if (title.Contains(query, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        var compactTitle = CompactForSearch(title);
-        var compactQuery = CompactForSearch(query);
-        if (!string.IsNullOrEmpty(compactQuery)
-            && compactTitle.Contains(compactQuery, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var titleTokens = TokenizeForSearch(title);
-        var queryTokens = TokenizeForSearch(query);
-        return queryTokens.Length > 0
-               && queryTokens.All(queryToken =>
-                   titleTokens.Any(titleToken =>
-                       titleToken.Contains(queryToken, StringComparison.OrdinalIgnoreCase)
-                       || queryToken.Contains(titleToken, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private static string CompactForSearch(string value) =>
-        new string(value.Where(char.IsLetterOrDigit).ToArray());
-
-    private static string[] TokenizeForSearch(string value) =>
-        value.Split([' ', '-', '_', ':', '&'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 public sealed class PlatformFilterItem

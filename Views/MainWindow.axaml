@@ -80,8 +80,10 @@
         </Border>
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-            <TextBox PlaceholderText="{Binding Strings.SearchPlaceholder}"
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Name="SearchBox"
+                     PlaceholderText="{Binding Strings.SearchPlaceholder}"
+                     Text="{Binding SearchText, Mode=TwoWay}"
+                     TextChanged="OnSearchTextChanged"
                      CornerRadius="8"
                      Padding="12,10"
                      Background="#1A2030"
