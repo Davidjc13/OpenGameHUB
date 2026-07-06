@@ -446,9 +446,24 @@ GameLib covers Steam, Epic, GOG, Ubisoft, EA, Battle.net, Rockstar, and Riot **i
 Workflow `.github/workflows/build-installer.yml`:
 
 - **Build** — every push/PR: `dotnet build -c Release`
-- **Publish** — tags only (`alpha-*`, `beta-*`, `x.y.z`): Inno installer + GitHub Release
+- **Test** — after build passes: `dotnet test -c Release`
+- **Publish** — tags only (`alpha-*`, `beta-*`, `x.y.z`), after tests pass: Inno installer + GitHub Release
 
 See [app-updater.md](app-updater.md).
+
+---
+
+## Testing
+
+Unit tests live in `tests/OpenGameHUB.Tests/` (xUnit). They cover pure logic that should not regress: version comparison, library merge/dedup, entry filters, launch spec encoding, Riot argument parsing.
+
+```powershell
+dotnet test OpenGameHUB.sln -c Release
+```
+
+CI runs tests in a separate job after build succeeds. Add tests when you change `GameLibraryMerger`, `ReleaseVersionComparer`, `GameEntryFilter`, or provider parsing helpers.
+
+The main project exposes `internal` types to the test assembly via `InternalsVisibleTo` in `OpenGameHUB.csproj`.
 
 ---
 

@@ -16,6 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="OpenGameHUB.Tests" />
     <Folder Include="Domain\" />
     <Folder Include="Infrastructure\" />
     <Folder Include="Providers\" />
@@ -23,6 +24,8 @@
     <AvaloniaResource Include="Assets\**" />
     <Compile Remove="tools\**" />
     <None Include="tools\**" />
+    <Compile Remove="tests\**" />
+    <None Include="tests\**" />
   </ItemGroup>
 
   <ItemGroup Condition="Exists('third-party\legendary\legendary.exe')">

@@ -24,6 +24,7 @@ Transparent technical documentation: what each piece does, where it gets data fr
 | [app-updater.md](app-updater.md) | GitHub Releases update checks |
 | [windows-specific.md](windows-specific.md) | Registry, paths, Inno Setup installer |
 | [developer-mode.md](developer-mode.md) | Debug tools and reset |
+| [testing.md](testing.md) | Unit tests and running them locally / in CI |
 
 ## Project principles
 

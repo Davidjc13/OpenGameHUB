@@ -30,15 +30,44 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore OpenGameHUB.sln
+
       - name: Build
         shell: pwsh
-        run: |
-          dotnet restore OpenGameHUB.csproj
-          dotnet build OpenGameHUB.csproj -c Release
+        run: dotnet build OpenGameHUB.sln -c Release --no-restore
+
+  test:
+    name: Test
+    needs: build
+    runs-on: windows-2022
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore OpenGameHUB.sln
+
+      - name: Build
+        shell: pwsh
+        run: dotnet build OpenGameHUB.sln -c Release --no-restore
+
+      - name: Test
+        shell: pwsh
+        run: dotnet test OpenGameHUB.sln -c Release --no-build --verbosity normal
 
   publish:
     name: Publish
-    needs: build
+    needs: test
     if: github.ref_type == 'tag'
     runs-on: windows-2022
     timeout-minutes: 30
