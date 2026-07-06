@@ -427,6 +427,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
             ShowGridCovers = ShowGridCovers,
+            LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,

@@ -170,6 +170,14 @@ public sealed class GameLibraryService : IDisposable
         await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken, maxCovers);
     }
 
+    public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath) =>
+        _metadataService.TrySetCustomCover(game, sourceImagePath);
+
+    public Task<string?> TryResetCustomCoverAsync(
+        UnifiedGame game,
+        CancellationToken cancellationToken = default) =>
+        _metadataService.TryResetCustomCoverAsync(game, cancellationToken);
+
     private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
         CancellationToken cancellationToken)
     {

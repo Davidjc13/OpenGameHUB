@@ -53,15 +53,27 @@ public partial class GameItemViewModel : ViewModelBase
 
     public bool DisplayGridCover => ShowCoverInGrid && HasCover;
 
+    public bool DisplayListCover => ShowCoverInGrid && HasCover;
+
+    public bool HasCustomCover => Source.HasCustomCover;
+
     public bool IsInstalled => Source.IsInstalled;
 
     public double GridCoverOpacity => IsInstalled ? 1.0 : 0.75;
 
     public double GridPlaceholderOpacity => IsInstalled ? 0.28 : 0.14;
 
-    partial void OnHasCoverChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
+    partial void OnHasCoverChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DisplayGridCover));
+        OnPropertyChanged(nameof(DisplayListCover));
+    }
 
-    partial void OnShowCoverInGridChanged(bool value) => OnPropertyChanged(nameof(DisplayGridCover));
+    partial void OnShowCoverInGridChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DisplayGridCover));
+        OnPropertyChanged(nameof(DisplayListCover));
+    }
 
     public void ApplyLocalization()
     {
@@ -119,6 +131,19 @@ public partial class GameItemViewModel : ViewModelBase
         CoverImage?.Dispose();
         CoverImage = null;
         HasCover = false;
+    }
+
+    public void RefreshCoverState()
+    {
+        OnPropertyChanged(nameof(HasCustomCover));
+        OnPropertyChanged(nameof(DisplayGridCover));
+        OnPropertyChanged(nameof(DisplayListCover));
+    }
+
+    public async Task ApplyCoverFromPathAsync(string path)
+    {
+        await SetCoverFromPathAsync(path);
+        RefreshCoverState();
     }
 
     private async Task SetCoverFromPathAsync(string path)

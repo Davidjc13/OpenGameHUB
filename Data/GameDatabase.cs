@@ -20,6 +20,17 @@ public sealed class GameDatabase : IDisposable
         _connection = new SqliteConnection($"Data Source={dbPath}");
         _connection.Open();
         Initialize();
+        Migrate();
+    }
+
+    private void Migrate()
+    {
+        var columns = _connection.Query<TableColumnInfo>("PRAGMA table_info(games)");
+        if (columns.All(column => !string.Equals(column.name, "custom_cover", StringComparison.OrdinalIgnoreCase)))
+        {
+            _connection.Execute(
+                "ALTER TABLE games ADD COLUMN custom_cover INTEGER NOT NULL DEFAULT 0");
+        }
     }
 
     private void Initialize()
@@ -54,6 +65,7 @@ public sealed class GameDatabase : IDisposable
                 is_installed AS IsInstalled,
                 install_path AS InstallPath,
                 cover_path AS CoverPath,
+                custom_cover AS HasCustomCover,
                 playtime_minutes AS PlaytimeMinutes,
                 last_played AS LastPlayed,
                 is_favorite AS IsFavorite,
@@ -72,11 +84,11 @@ public sealed class GameDatabase : IDisposable
         const string sql = """
             INSERT INTO games (
                 id, platform, platform_game_id, title, is_installed, install_path,
-                cover_path, playtime_minutes, last_played, is_favorite, launch_kind,
+                cover_path, custom_cover, playtime_minutes, last_played, is_favorite, launch_kind,
                 launch_value, updated_at
             ) VALUES (
                 @Id, @Platform, @PlatformGameId, @Title, @IsInstalled, @InstallPath,
-                @CoverPath, @PlaytimeMinutes, @LastPlayed, @IsFavorite, @LaunchKind,
+                @CoverPath, @HasCustomCover, @PlaytimeMinutes, @LastPlayed, @IsFavorite, @LaunchKind,
                 @LaunchValue, @UpdatedAt
             )
             ON CONFLICT(id) DO UPDATE SET
@@ -86,6 +98,7 @@ public sealed class GameDatabase : IDisposable
                 is_installed = excluded.is_installed,
                 install_path = excluded.install_path,
                 cover_path = COALESCE(NULLIF(excluded.cover_path, ''), games.cover_path),
+                custom_cover = excluded.custom_cover,
                 playtime_minutes = excluded.playtime_minutes,
                 last_played = excluded.last_played,
                 launch_kind = excluded.launch_kind,
@@ -105,6 +118,7 @@ public sealed class GameDatabase : IDisposable
                 IsInstalled = game.IsInstalled ? 1 : 0,
                 game.InstallPath,
                 game.CoverPath,
+                HasCustomCover = game.HasCustomCover ? 1 : 0,
                 game.PlaytimeMinutes,
                 LastPlayed = game.LastPlayed?.ToString("O"),
                 IsFavorite = game.IsFavorite ? 1 : 0,
@@ -139,11 +153,18 @@ public sealed class GameDatabase : IDisposable
                 "SELECT id, cover_path FROM games")
             .ToDictionary(x => x.Id, x => x.CoverPath, StringComparer.Ordinal);
 
+        var existingCustomCovers = _connection.Query<(string Id, int HasCustomCover)>(
+                "SELECT id, custom_cover FROM games WHERE custom_cover = 1")
+            .ToDictionary(x => x.Id, x => x.HasCustomCover == 1, StringComparer.Ordinal);
+
         foreach (var game in list)
         {
             game.IsFavorite = favorites.TryGetValue(game.Id, out var fav) && fav
                 || favoriteKeys.Contains(FavoriteKey((int)game.Platform, game.PlatformGameId, game.InstallPath))
                 || favoriteTitles.Contains(MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant());
+
+            if (existingCustomCovers.TryGetValue(game.Id, out var hasCustomCover))
+                game.HasCustomCover = hasCustomCover;
 
             if (string.IsNullOrWhiteSpace(game.CoverPath)
                 && existingCovers.TryGetValue(game.Id, out var coverPath)
@@ -171,6 +192,18 @@ public sealed class GameDatabase : IDisposable
         _connection.Execute(
             "UPDATE games SET cover_path = @CoverPath WHERE id = @Id",
             new { Id = id, CoverPath = coverPath });
+    }
+
+    public void SetCustomCover(string id, bool hasCustomCover)
+    {
+        _connection.Execute(
+            "UPDATE games SET custom_cover = @HasCustomCover WHERE id = @Id",
+            new { Id = id, HasCustomCover = hasCustomCover ? 1 : 0 });
+    }
+
+    private sealed class TableColumnInfo
+    {
+        public string name { get; init; } = string.Empty;
     }
 
     public void UpdatePlaytime(string id, int playtimeMinutes, DateTime? lastPlayed)
@@ -217,6 +250,7 @@ public sealed class GameDatabase : IDisposable
         public int IsInstalled { get; init; }
         public string? InstallPath { get; init; }
         public string? CoverPath { get; init; }
+        public int HasCustomCover { get; init; }
         public int PlaytimeMinutes { get; init; }
         public string? LastPlayed { get; init; }
         public int IsFavorite { get; init; }
@@ -232,6 +266,7 @@ public sealed class GameDatabase : IDisposable
             IsInstalled = IsInstalled == 1,
             InstallPath = InstallPath,
             CoverPath = CoverPath,
+            HasCustomCover = HasCustomCover == 1,
             PlaytimeMinutes = PlaytimeMinutes,
             LastPlayed = LastPlayed is null ? null : DateTime.Parse(LastPlayed),
             IsFavorite = IsFavorite == 1,
