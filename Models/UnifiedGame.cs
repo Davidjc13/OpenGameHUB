@@ -9,6 +9,7 @@ public sealed class UnifiedGame
     public bool IsInstalled { get; set; } = true;
     public string? InstallPath { get; set; }
     public string? CoverPath { get; set; }
+    public bool HasCustomCover { get; set; }
     /// <summary>Transient cover URL from platform catalog (not persisted).</summary>
     public string? CatalogCoverUrl { get; set; }
     public int PlaytimeMinutes { get; set; }

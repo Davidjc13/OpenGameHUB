@@ -21,6 +21,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SelectGame => Loc.T("SelectGame");
     public string Play => Loc.T("Play");
     public string ToggleFavorite => Loc.T("ToggleFavorite");
+    public string ViewGrid => Loc.T("ViewGrid");
+    public string ViewList => Loc.T("ViewList");
+    public string ChangeCover => Loc.T("ChangeCover");
+    public string ResetCover => Loc.T("ResetCover");
     public string PreviousPage => Loc.T("PreviousPage");
     public string NextPage => Loc.T("NextPage");
     public string SettingsTitle => Loc.T("SettingsTitle");

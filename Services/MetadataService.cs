@@ -88,8 +88,57 @@ public sealed class MetadataService
         UnifiedGame game,
         CancellationToken cancellationToken = default)
     {
+        if (game.HasCustomCover && TryRegisterExistingCover(game))
+            return game.CoverPath;
+
         if (TryRegisterExistingCover(game))
             return game.CoverPath;
+
+        if (game.HasCustomCover)
+            return null;
+
+        var path = await DownloadCoverAsync(game, _settingsService.Current, cancellationToken);
+        if (path is null)
+            return null;
+
+        game.CoverPath = path;
+        _database.UpdateCoverPath(game.Id, path);
+        return path;
+    }
+
+    public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath)
+    {
+        var cachePath = CoverPathHelper.GetCachePath(game.Id);
+        if (!CoverImageProcessor.TryResizeToCacheFile(sourceImagePath, cachePath))
+            return false;
+
+        game.CoverPath = cachePath;
+        game.HasCustomCover = true;
+        _database.UpdateCoverPath(game.Id, cachePath);
+        _database.SetCustomCover(game.Id, true);
+        return true;
+    }
+
+    public async Task<string?> TryResetCustomCoverAsync(
+        UnifiedGame game,
+        CancellationToken cancellationToken = default)
+    {
+        game.HasCustomCover = false;
+        _database.SetCustomCover(game.Id, false);
+
+        var cachePath = CoverPathHelper.GetCachePath(game.Id);
+        try
+        {
+            if (File.Exists(cachePath))
+                File.Delete(cachePath);
+        }
+        catch
+        {
+            // optional
+        }
+
+        game.CoverPath = null;
+        _database.UpdateCoverPath(game.Id, string.Empty);
 
         var path = await DownloadCoverAsync(game, _settingsService.Current, cancellationToken);
         if (path is null)
@@ -200,7 +249,7 @@ public sealed class MetadataService
     }
 
     private static bool ShouldDownloadCover(UnifiedGame game) =>
-        !GameEntryFilter.IsExcluded(game);
+        !game.HasCustomCover && !GameEntryFilter.IsExcluded(game);
 
     private Task<bool> TryDownloadAsync(string url, string cachePath, CancellationToken cancellationToken) =>
         _safeImageDownloader.DownloadAsync(url, cachePath, cancellationToken);
