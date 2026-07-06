@@ -5,6 +5,7 @@ using OpenGameHUB.Models;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Services.LibraryProviders;
+using OpenGameHUB.Services.Rockstar;
 using OpenGameHUB.Services.Ubisoft;
 using OpenGameHUB.Services.Xbox;
 using GameLib;
@@ -44,6 +45,7 @@ public sealed class GameLibraryService : IDisposable
             new EaCloudLibraryProvider(),
             new RiotCloudLibraryProvider(),
             new GogCloudLibraryProvider(),
+            new RockstarCloudLibraryProvider(),
             _xboxCloudProvider
         ];
         _metadataService = new MetadataService(_database, _settingsService);
@@ -72,6 +74,9 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsGogCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Gog && p.IsAvailable());
+
+    public bool IsRockstarCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Rockstar && p.IsAvailable());
 
     public bool IsXboxCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.GamePass && p.IsAvailable());
@@ -289,7 +294,7 @@ public sealed class GameLibraryService : IDisposable
 
         var titleKey = MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant();
         return allGames.Any(other =>
-            other.Platform is Platform.Riot or Platform.Ubisoft or Platform.Ea or Platform.BattleNet
+            other.Platform is Platform.Riot or Platform.Ubisoft or Platform.Ea or Platform.BattleNet or Platform.Rockstar
             && MetadataSearchHelper.NormalizeTitle(other.Title).ToLowerInvariant() == titleKey);
     }
 
@@ -323,6 +328,8 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingRiotLibrary"));
                 else if (provider.Platform == Platform.Gog)
                     progress?.Report(Loc.T("SyncingGogLibrary"));
+                else if (provider.Platform == Platform.Rockstar)
+                    progress?.Report(Loc.T("SyncingRockstarLibrary"));
                 else if (provider.Platform == Platform.GamePass)
                     progress?.Report(Loc.T("SyncingXboxLibrary"));
 
@@ -370,7 +377,8 @@ public sealed class GameLibraryService : IDisposable
             || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("rockstar:catalog:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }
@@ -741,6 +749,7 @@ public sealed class GameLibraryService : IDisposable
         UbisoftCatalogReader.EnrichCatalogCoverUrls(games);
         XboxManifestReader.EnrichCatalogCoverUrls(games);
         EpicCatalogReader.EnrichCatalogCoverUrls(games);
+        RockstarCatalogReader.EnrichCatalogCoverUrls(games);
     }
 
     public void ResetLocalCache()

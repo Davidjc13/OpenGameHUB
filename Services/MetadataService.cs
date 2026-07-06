@@ -13,6 +13,7 @@ public sealed class MetadataService
     private readonly SteamStoreSearchClient _steamStoreSearchClient = new();
     private readonly WikipediaCoverClient _wikipediaCoverClient = new();
     private readonly RiotCoverClient _riotCoverClient = new();
+    private readonly RockstarCoverClient _rockstarCoverClient = new();
     private readonly EpicCoverClient _epicCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
@@ -244,6 +245,10 @@ public sealed class MetadataService
         else if (game.Platform == Platform.Riot)
         {
             urls.AddRange(await _riotCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.Rockstar)
+        {
+            urls.AddRange(await _rockstarCoverClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else
         {
