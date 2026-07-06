@@ -18,6 +18,8 @@ public static class AppUpdateService
     private const string ReleasesApiUrl = $"https://api.github.com/repos/{Repository}/releases?per_page=1";
     private const string InstallerAssetPrefix = "OpenGameHUB-Setup-";
 
+    public static readonly TimeSpan BackgroundCheckInterval = TimeSpan.FromHours(2);
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -125,6 +127,15 @@ public static class AppUpdateService
         return targetPath;
     }
 
+    public static async Task DownloadAndInstallAsync(
+        AppReleaseInfo release,
+        IProgress<double>? progress = null,
+        CancellationToken cancellationToken = default)
+    {
+        var installerPath = await DownloadInstallerAsync(release, progress, cancellationToken);
+        LaunchInstallerAndExit(installerPath);
+    }
+
     public static void LaunchInstallerAndExit(string installerPath)
     {
         if (!File.Exists(installerPath))
@@ -133,7 +144,7 @@ public static class AppUpdateService
         var psi = new ProcessStartInfo
         {
             FileName = installerPath,
-            Arguments = "/SILENT /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
+            Arguments = "/SILENT /CLOSEAPPLICATIONS",
             UseShellExecute = true
         };
 

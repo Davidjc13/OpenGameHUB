@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -8,6 +9,7 @@ using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Rockstar;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -22,6 +24,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _statusClearCts;
     private CancellationTokenSource? _refreshCts;
     private CancellationTokenSource? _coverCts;
+    private CancellationTokenSource? _appUpdateCheckCts;
+    private CancellationTokenSource? _appUpdateInstallCts;
+    private AppReleaseInfo? _pendingAppUpdate;
+    private string? _dismissedAppUpdateTag;
     private bool _steamApiPromptOffered;
     private bool _eaLibraryPromptOffered;
     private bool _legendaryPromptOffered;
@@ -29,6 +35,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _replayOnboardingAfterSettings;
     private bool _pendingDevRelaunch;
     private bool _pendingDevClearDatabase;
+    private bool _suppressCoverLoading = true;
 
     public MainWindowViewModel()
     {
@@ -43,12 +50,15 @@ public partial class MainWindowViewModel : ViewModelBase
         RebuildSortOptions();
         RebuildPlatformFilters();
 
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
+        CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
+        IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
 
+        AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
         StatusText = Loc.T("LoadingLibrary");
         LoadCachedGames();
         _ = RefreshLibraryCommand.ExecuteAsync(null);
-        _ = CheckForAppUpdateOnStartupAsync();
+        _ = CheckForAppUpdateAsync();
+        StartPeriodicAppUpdateChecks();
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
@@ -63,10 +73,30 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _statusText = string.Empty;
 
     [ObservableProperty]
+    private string _appVersionText = string.Empty;
+
+    [ObservableProperty]
     private string _gamesCountLabel = string.Empty;
 
     [ObservableProperty]
     private bool _isRefreshing;
+
+    [ObservableProperty]
+    private bool _isAppUpdateBannerVisible;
+
+    [ObservableProperty]
+    private string _appUpdateBannerTag = string.Empty;
+
+    [ObservableProperty]
+    private string _appUpdateBannerText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isAppUpdateInstalling;
+
+    [ObservableProperty]
+    private double _appUpdateProgress;
+
+    public bool CanInstallAppUpdate => _pendingAppUpdate is not null && !IsAppUpdateInstalling;
 
     [ObservableProperty]
     private GameItemViewModel? _selectedGame;
@@ -84,13 +114,34 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _showInstalledOnly;
 
     [ObservableProperty]
-    private bool _showGridCovers = true;
+    private CoverQualityMode _coverQualityMode = CoverQualityMode.Low;
+
+    [ObservableProperty]
+    private bool _isListView;
+
+    public bool IsGridView => !IsListView;
+
+    public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
+
+    private CoverQualityProfile CoverProfile => CoverQualitySettings.Get(CoverQualityMode);
+
+    private int PageSize => CoverProfile.PageSize;
+
+    public bool SelectedGameHasCustomCover => SelectedGame?.HasCustomCover == true;
 
     public bool IsEpicCloudAvailable => _libraryService.IsEpicCloudAvailable;
 
     public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
 
     public bool IsEaCloudAvailable => _libraryService.IsEaCloudAvailable;
+
+    public bool IsRiotCloudAvailable => _libraryService.IsRiotCloudAvailable;
+
+    public bool IsGogCloudAvailable => _libraryService.IsGogCloudAvailable;
+
+    public bool IsRockstarCloudAvailable => _libraryService.IsRockstarCloudAvailable;
+
+    public bool IsXboxCloudAvailable => _libraryService.IsXboxCloudAvailable;
 
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
@@ -120,23 +171,56 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
     partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
 
+    partial void OnCoverQualityModeChanged(CoverQualityMode value)
+    {
+        OnPropertyChanged(nameof(ShowDetailCover));
+        ReleaseAllGameCovers();
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+        ApplyCurrentPage();
+        ApplyVisibleCovers();
+    }
+
+    partial void OnIsListViewChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsGridView));
+        PersistLibraryViewMode();
+        ApplyCurrentPage();
+    }
+
     private GameItemViewModel? _previousSelectedGame;
 
     partial void OnSelectedGameChanged(GameItemViewModel? value)
     {
-        if (!ReferenceEquals(_previousSelectedGame, value))
-            _previousSelectedGame?.ReleaseCover();
+        if (!ReferenceEquals(_previousSelectedGame, value) && _previousSelectedGame is not null)
+        {
+            var profile = CoverProfile;
+            var keepForGrid = profile.ShowLibraryCovers && Games.Contains(_previousSelectedGame);
+            if (!keepForGrid)
+                _previousSelectedGame.ReleaseCover();
+        }
 
         _previousSelectedGame = value;
 
         foreach (var game in _allGames)
             game.IsSelected = ReferenceEquals(game, value);
 
-        if (value is not null && !value.HasCover)
-            _ = value.LoadCoverAsync();
+        var currentProfile = CoverProfile;
+        if (value is not null && currentProfile.ShowDetailCover)
+        {
+            _ = value.EnsureCoverAsync(
+                currentProfile.DetailDecodeWidth,
+                currentProfile.Interpolation);
+        }
+
+        OnPropertyChanged(nameof(ShowDetailCover));
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
+        OnPropertyChanged(nameof(SelectedGameHasCustomCover));
     }
 
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
@@ -152,7 +236,12 @@ public partial class MainWindowViewModel : ViewModelBase
         var token = _refreshCts.Token;
 
         CancelScheduledStatusClear();
-        await RunOnUiThreadAsync(() => IsRefreshing = true);
+        await RunOnUiThreadAsync(() =>
+        {
+            _suppressCoverLoading = true;
+            ReleaseAllGameCovers();
+            IsRefreshing = true;
+        });
 
         try
         {
@@ -165,7 +254,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
             await RunOnUiThreadAsync(() =>
             {
+                ReleaseAllGameCovers();
+                SelectedGame = null;
+                _previousSelectedGame = null;
+
                 _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                _suppressCoverLoading = false;
                 RebuildPlatformFilters();
                 ApplyFilter();
 
@@ -180,7 +274,11 @@ public partial class MainWindowViewModel : ViewModelBase
                     && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
                         ? Loc.T("EaCloudHint")
                         : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
+                var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
+                var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
+                var rockstarHint = IsRockstarCloudAvailable ? Loc.T("RockstarCloudHint") : string.Empty;
+                var xboxHint = IsXboxCloudAvailable ? Loc.T("XboxCloudHint") : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + rockstarHint + xboxHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
@@ -198,6 +296,12 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             await RunOnUiThreadAsync(() =>
             {
+                if (_suppressCoverLoading)
+                {
+                    _suppressCoverLoading = false;
+                    ApplyVisibleCovers();
+                }
+
                 IsRefreshing = false;
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
             });
@@ -209,6 +313,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void StartBackgroundCoverEnrichment()
     {
+        var maxCovers = CoverProfile.BackgroundMaxCovers;
+        if (maxCovers <= 0)
+            return;
+
         _coverCts?.Cancel();
         _coverCts?.Dispose();
         _coverCts = new CancellationTokenSource();
@@ -225,7 +333,7 @@ public partial class MainWindowViewModel : ViewModelBase
                             StatusText = message;
                     }));
 
-                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: 32);
+                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: maxCovers);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -240,34 +348,135 @@ public partial class MainWindowViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (!IsRefreshing)
+                    {
+                        ApplyVisibleCovers();
                         ScheduleStatusClear(TimeSpan.FromSeconds(2));
+                    }
                 });
             }
         }, token);
     }
 
-    private async Task CheckForAppUpdateOnStartupAsync()
+    private async Task CheckForAppUpdateAsync(CancellationToken cancellationToken = default)
     {
         if (AppUpdateService.IsDevBuild)
             return;
 
         try
         {
-            var release = await AppUpdateService.GetLatestReleaseAsync();
+            var release = await AppUpdateService.GetLatestReleaseAsync(cancellationToken);
             if (release is null || !AppUpdateService.IsNewer(release.TagName, AppUpdateService.CurrentVersion))
                 return;
 
+            _pendingAppUpdate = release;
+            var showBanner = !string.Equals(_dismissedAppUpdateTag, release.TagName, StringComparison.OrdinalIgnoreCase);
+
             await RunOnUiThreadAsync(() =>
             {
+                AppUpdateBannerTag = release.TagName;
+                UpdateAppUpdateBannerText();
+                IsAppUpdateBannerVisible = showBanner;
+                OnPropertyChanged(nameof(CanInstallAppUpdate));
                 StatusText = Loc.T("AppUpdateAvailableHint", release.TagName);
                 ScheduleStatusClear(TimeSpan.FromSeconds(12));
             });
+        }
+        catch (OperationCanceledException)
+        {
+            // optional background check
         }
         catch
         {
             // optional background check
         }
     }
+
+    private void StartPeriodicAppUpdateChecks()
+    {
+        if (AppUpdateService.IsDevBuild)
+            return;
+
+        _appUpdateCheckCts?.Cancel();
+        _appUpdateCheckCts = new CancellationTokenSource();
+        _ = RunPeriodicAppUpdateChecksAsync(_appUpdateCheckCts.Token);
+    }
+
+    private async Task RunPeriodicAppUpdateChecksAsync(CancellationToken cancellationToken)
+    {
+        using var timer = new PeriodicTimer(AppUpdateService.BackgroundCheckInterval);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+                await CheckForAppUpdateAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // app shutting down
+        }
+    }
+
+    [RelayCommand]
+    private void DismissAppUpdateBanner()
+    {
+        if (!string.IsNullOrWhiteSpace(AppUpdateBannerTag))
+            _dismissedAppUpdateTag = AppUpdateBannerTag;
+
+        IsAppUpdateBannerVisible = false;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanInstallAppUpdate))]
+    private async Task InstallAppUpdateAsync()
+    {
+        if (_pendingAppUpdate is null)
+            return;
+
+        _appUpdateInstallCts?.Cancel();
+        _appUpdateInstallCts = new CancellationTokenSource();
+        var cancellationToken = _appUpdateInstallCts.Token;
+
+        IsAppUpdateInstalling = true;
+        AppUpdateProgress = 0;
+        InstallAppUpdateCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanInstallAppUpdate));
+
+        try
+        {
+            var progress = new Progress<double>(value =>
+            {
+                AppUpdateProgress = value;
+                StatusText = Loc.T("AppUpdateDownloading", value);
+            });
+
+            StatusText = Loc.T("AppUpdateDownloading", 0);
+            await AppUpdateService.DownloadAndInstallAsync(
+                _pendingAppUpdate,
+                progress,
+                cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // optional
+        }
+        catch
+        {
+            StatusText = Loc.T("AppUpdateDownloadFailed", ex.Message);
+            IsAppUpdateInstalling = false;
+            AppUpdateProgress = 0;
+            InstallAppUpdateCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(CanInstallAppUpdate));
+        }
+    }
+
+    partial void OnIsAppUpdateInstallingChanged(bool value)
+    {
+        InstallAppUpdateCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanInstallAppUpdate));
+    }
+
+    private void UpdateAppUpdateBannerText() =>
+        AppUpdateBannerText = string.IsNullOrWhiteSpace(AppUpdateBannerTag)
+            ? string.Empty
+            : Loc.T("AppUpdateBannerMessage", AppUpdateBannerTag);
 
     private async Task OfferOnboardingPromptsAsync()
     {
@@ -492,6 +701,18 @@ public partial class MainWindowViewModel : ViewModelBase
             await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
+    private void PersistLibraryViewMode()
+    {
+        var current = _libraryService.Settings.Current;
+        var mode = IsListView ? LibraryViewMode.List : LibraryViewMode.Grid;
+        if (current.LibraryViewMode == mode)
+            return;
+
+        var updated = current.Clone();
+        updated.LibraryViewMode = mode;
+        _libraryService.Settings.Save(updated);
+    }
+
     private static Window GetMainWindow()
     {
         if (Avalonia.Application.Current?.ApplicationLifetime
@@ -502,7 +723,8 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void SelectGame(GameItemViewModel? game) => SelectedGame = game;
+    private void SelectGame(GameItemViewModel? game) =>
+        SelectedGame = ReferenceEquals(SelectedGame, game) ? null : game;
 
     [RelayCommand]
     private void LaunchSelectedGame()
@@ -524,6 +746,31 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 EpicLauncherClient.StartInstall(SelectedGame.Source.LaunchSpec.Value);
                 StatusText = Loc.T("EpicLauncherInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Riot)
+            {
+                _libraryService.LaunchGame(SelectedGame.Source);
+                StatusText = Loc.T("RiotClientInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Rockstar)
+            {
+                RockstarLauncherClient.StartInstall(SelectedGame.Source.PlatformGameId
+                    ?? throw new InvalidOperationException(Loc.T("NoLaunchMethod")));
+                StatusText = Loc.T("RockstarLauncherInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.GamePass)
+            {
+                _libraryService.LaunchGame(SelectedGame.Source);
+                StatusText = Loc.T("XboxInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;
             }
@@ -567,6 +814,104 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (CurrentPage < TotalPages)
             CurrentPage++;
+    }
+
+    [RelayCommand]
+    private void SetGridView()
+    {
+        if (!IsListView)
+            return;
+
+        IsListView = false;
+    }
+
+    [RelayCommand]
+    private void SetListView()
+    {
+        if (IsListView)
+            return;
+
+        IsListView = true;
+    }
+
+    [RelayCommand]
+    private async Task ChangeCustomCoverAsync()
+    {
+        if (SelectedGame is null)
+        {
+            StatusText = Loc.T("SelectGameForCover");
+            ScheduleStatusClear(TimeSpan.FromSeconds(4));
+            return;
+        }
+
+        try
+        {
+            var files = await GetMainWindow().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Loc.T("ChangeCoverDialogTitle"),
+                AllowMultiple = false,
+                FileTypeFilter = [FilePickerFileTypes.ImageAll]
+            });
+
+            if (files.Count == 0)
+                return;
+
+            var localPath = files[0].TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(localPath)
+                || !_libraryService.TrySetCustomCover(SelectedGame.Source, localPath))
+            {
+                StatusText = Loc.T("InvalidCoverImage");
+                ScheduleStatusClear(TimeSpan.FromSeconds(4));
+                return;
+            }
+
+            var profile = CoverProfile;
+            await SelectedGame.ApplyCoverFromPathAsync(
+                SelectedGame.Source.CoverPath!,
+                profile.DetailDecodeWidth,
+                profile.Interpolation);
+            ApplyVisibleCovers();
+            OnPropertyChanged(nameof(SelectedGameHasCustomCover));
+            StatusText = Loc.T("CoverUpdated", SelectedGame.Title);
+            ScheduleStatusClear(TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("CoverUpdateFailedDetail", ex.Message);
+            ScheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResetCustomCoverAsync()
+    {
+        if (SelectedGame is null || !SelectedGame.HasCustomCover)
+            return;
+
+        try
+        {
+            StatusText = Loc.T("ResettingCover", SelectedGame.Title);
+            SelectedGame.ReleaseCover();
+
+            var path = await _libraryService.TryResetCustomCoverAsync(SelectedGame.Source);
+            if (path is not null)
+            {
+                var profile = CoverProfile;
+                await SelectedGame.ApplyCoverFromPathAsync(path, profile.DetailDecodeWidth, profile.Interpolation);
+            }
+
+            ApplyVisibleCovers();
+            OnPropertyChanged(nameof(SelectedGameHasCustomCover));
+            StatusText = path is null
+                ? Loc.T("CoverResetNoReplacement", SelectedGame.Title)
+                : Loc.T("CoverReset", SelectedGame.Title);
+            ScheduleStatusClear(TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("CoverUpdateFailedDetail", ex.Message);
+            ScheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
     }
 
     [RelayCommand]
@@ -637,11 +982,7 @@ public partial class MainWindowViewModel : ViewModelBase
             filtered = filtered.Where(g => g.Source.IsInstalled);
 
         if (!string.IsNullOrWhiteSpace(query))
-        {
-            filtered = filtered.Where(g =>
-                TitleMatchesQuery(g.Title, query) ||
-                g.PlatformLabel.Contains(query, StringComparison.OrdinalIgnoreCase));
-        }
+            filtered = filtered.Where(g => GameSearchHelper.MatchesTitle(g.Title, query));
 
         filtered = (SelectedSortOption?.Option ?? SortOption.TitleAsc) switch
         {
@@ -678,12 +1019,35 @@ public partial class MainWindowViewModel : ViewModelBase
             ? Loc.T("ShowingGamesCount", 0)
             : Loc.T("ShowingGamesPage", Games.Count, _filteredGames.Count, CurrentPage, TotalPages);
 
-        ApplyGridCovers();
+        ApplyVisibleCovers();
     }
 
-    private void ApplyGridCovers()
+    private void ApplyVisibleCovers()
     {
+        if (_suppressCoverLoading)
+        {
+            foreach (var game in _allGames)
+                game.ShowCoverInGrid = false;
+            return;
+        }
+
+        var profile = CoverProfile;
         var pageGames = Games.ToHashSet();
+
+        if (!profile.ShowLibraryCovers)
+        {
+            foreach (var game in _allGames)
+            {
+                game.ShowCoverInGrid = false;
+                if (!ReferenceEquals(game, SelectedGame) || !profile.ShowDetailCover)
+                    game.ReleaseCover();
+            }
+
+            if (!profile.ShowDetailCover)
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
+
+            return;
+        }
 
         foreach (var game in _allGames)
         {
@@ -691,23 +1055,22 @@ public partial class MainWindowViewModel : ViewModelBase
                 continue;
 
             game.ShowCoverInGrid = false;
-            if (!ReferenceEquals(game, SelectedGame))
+            if (!ReferenceEquals(game, SelectedGame) || !profile.ShowDetailCover)
                 game.ReleaseCover();
         }
 
-        if (!ShowGridCovers)
-        {
-            foreach (var game in pageGames)
-                game.ShowCoverInGrid = false;
-            return;
-        }
-
+        var decodeWidth = IsListView ? profile.ListDecodeWidth : profile.GridDecodeWidth;
         foreach (var game in pageGames)
         {
             game.ShowCoverInGrid = true;
-            if (!game.HasCover)
-                _ = game.LoadCoverAsync();
+            _ = game.EnsureCoverAsync(decodeWidth, profile.Interpolation);
         }
+    }
+
+    private void ReleaseAllGameCovers()
+    {
+        foreach (var game in _allGames)
+            game.ReleaseCover();
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>
@@ -718,15 +1081,25 @@ public partial class MainWindowViewModel : ViewModelBase
         Strings.Refresh();
         RebuildSortOptions();
         RebuildPlatformFilters();
+        UpdateAppUpdateBannerText();
+        AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
 
         foreach (var game in _allGames)
             game.ApplyLocalization();
 
-        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
+        var previousQuality = CoverQualityMode;
+        CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
+        IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        OnPropertyChanged(nameof(ShowDetailCover));
+        if (previousQuality != CoverQualityMode)
+            ReleaseAllGameCovers();
+        OnPropertyChanged(nameof(IsGridView));
+        OnPropertyChanged(nameof(SelectedGameHasCustomCover));
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         ApplyFilter();
+        ApplyVisibleCovers();
     }
 
     private void ScheduleStatusClear(TimeSpan delay)
@@ -757,33 +1130,6 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
-    private static bool TitleMatchesQuery(string title, string query)
-    {
-        if (title.Contains(query, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        var compactTitle = CompactForSearch(title);
-        var compactQuery = CompactForSearch(query);
-        if (!string.IsNullOrEmpty(compactQuery)
-            && compactTitle.Contains(compactQuery, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var titleTokens = TokenizeForSearch(title);
-        var queryTokens = TokenizeForSearch(query);
-        return queryTokens.Length > 0
-               && queryTokens.All(queryToken =>
-                   titleTokens.Any(titleToken =>
-                       titleToken.Contains(queryToken, StringComparison.OrdinalIgnoreCase)
-                       || queryToken.Contains(titleToken, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private static string CompactForSearch(string value) =>
-        new string(value.Where(char.IsLetterOrDigit).ToArray());
-
-    private static string[] TokenizeForSearch(string value) =>
-        value.Split([' ', '-', '_', ':', '&'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 public sealed class PlatformFilterItem

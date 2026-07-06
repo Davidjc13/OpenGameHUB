@@ -65,6 +65,8 @@ public static class LegendaryClient
             "legendary");
     }
 
+    public static string GetMetadataDirectory() => Path.Combine(GetConfigDirectory(), "metadata");
+
     private static string UserDataPath => Path.Combine(GetConfigDirectory(), "user.json");
 
     private static bool TryReadAuthSnapshot(out string? accountId, out string? displayName)

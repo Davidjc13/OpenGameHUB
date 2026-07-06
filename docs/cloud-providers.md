@@ -34,11 +34,16 @@ _cloudProviders = [
     _steamCloudProvider,
     _epicCloudProvider,
     new UbisoftCloudLibraryProvider(),
-    new EaCloudLibraryProvider()
+    new EaCloudLibraryProvider(),
+    new RiotCloudLibraryProvider(),
+    new GogCloudLibraryProvider(),
+    _xboxCloudProvider
 ];
 ```
 
-Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA (each if `IsAvailable()`).
+Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA → Riot → GOG → Xbox (each if `IsAvailable()`).
+
+Xbox library titles are **pre-fetched** in `RefreshLibraryAsync` (`LoadLibraryAsync`) when the user is authenticated, similar to Steam's `SetOwnedGames`.
 
 Errors: empty `try/catch` per provider — **silent failure** so the full scan is not broken.
 
@@ -102,6 +107,55 @@ File: `Services/LibraryProviders/EaCloudLibraryProvider.cs`
 | **Install attempts** | EA Desktop, origin/link2ea protocols |
 
 Before reading catalog, `ScanAllGames` calls `EaCatalogReader.InvalidateCache()` to force re-read. See [ea-desktop.md](ea-desktop.md) for full EA flow.
+
+---
+
+## `RiotCloudLibraryProvider`
+
+File: `Services/LibraryProviders/RiotCloudLibraryProvider.cs`
+
+| | |
+|--|--|
+| **Available if** | `RiotClientServices.exe` found |
+| **Source** | `RiotCatalogReader.ReadLibraryEntries()` — known products + `%ProgramData%\Riot Games\Metadata\` |
+| **Filtering** | Skips installed products and duplicates matched by id, launch args, or title |
+| **LaunchSpec** | `launcher-args` → `RiotClientServices.exe` with `--launch-product` and `--skip-to-install` |
+| **Install attempts** | Install args, launch args, original `LaunchSpec` |
+
+Full design: [riot.md](riot.md).
+
+---
+
+## `GogCloudLibraryProvider`
+
+File: `Services/LibraryProviders/GogCloudLibraryProvider.cs`
+
+| | |
+|--|--|
+| **Available if** | GOG Galaxy installed and `galaxy-2.0.db` exists |
+| **Source** | `GogCatalogReader.ReadLibraryEntries()` — `LibraryReleases`, `GamePieces` type 407 |
+| **Installed scan** | `GogDesktopScanner` (separate from provider interface) |
+| **LaunchSpec** | `goggalaxy://openGameView/{releaseKey}` or `GalaxyClient.exe` args |
+| **Install attempts** | Protocol URL, then `GalaxyClient.exe /command=launch /gameId={id}` |
+
+**Note:** GameLib may report GOG with zero games; the Galaxy SQLite DB is the authoritative source for library size.
+
+---
+
+## `XboxCloudLibraryProvider`
+
+File: `Services/LibraryProviders/XboxCloudLibraryProvider.cs`
+
+| | |
+|--|--|
+| **Available if** | Microsoft account connected (`XboxTokenStore` has valid tokens) |
+| **Source** | `XboxAccountClient.GetPcLibraryEntriesAsync()` — Xbox title hub + optional playtime stats |
+| **Pre-load** | `LoadLibraryAsync()` in `RefreshLibraryAsync` before `ScanAllGames` |
+| **Filtering** | PC games only; skips PFN/title matches against installed `Platform.GamePass` entries |
+| **LaunchSpec** | `msxbox://game/?productId=…` or `ms-windows-store://pdp/?PFN=…` |
+| **Install attempts** | `XboxInstallClient` URI chain |
+
+Auth: Settings → connect Microsoft account. See [xbox.md](xbox.md).
 
 ---
 

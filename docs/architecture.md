@@ -43,9 +43,9 @@ Responsibilities:
 Main dependencies:
 
 - `LauncherManager` (GameLib) — installed launchers
-- `ICloudLibraryProvider` — Steam, Epic, Ubisoft, EA
-- Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `XboxGamePassScanner`
-- `MetadataService` — covers
+- `ICloudLibraryProvider` — Steam, Epic, Ubisoft, EA, Riot, GOG
+- Auxiliary scanners — `EpicManifestScanner`, `EaDesktopScanner`, `GogDesktopScanner`, `XboxGamePassScanner` (+ `XboxManifestReader`)
+- `MetadataService` — covers and custom covers
 - `SettingsService` — credentials and preferences
 
 ## Flow: refresh library
@@ -63,6 +63,7 @@ RefreshLibraryAsync
 ├─ ScanAllGames (in Task.Run, does not block UI)
 │   ├─ ScanInstalledGames → GameLib LauncherManager
 │   ├─ EaDesktopScanner
+│   ├─ GogDesktopScanner
 │   ├─ XboxGamePassScanner
 │   ├─ EpicManifestScanner (.item manifests)
 │   └─ For each available ICloudLibraryProvider:
@@ -98,7 +99,9 @@ MainWindowViewModel.LaunchSelectedGame
 ```
 
 See [ea-desktop.md](ea-desktop.md) for EA flow details.
-See [epic-and-legendary.md](epic-and-legendary.md) for Epic flow details. EA install/launch via protocols is documented in [ea-desktop.md](ea-desktop.md).
+See [epic-and-legendary.md](epic-and-legendary.md) for Epic flow details.
+See [riot.md](riot.md) for Riot Client catalog and install.
+See [metadata-and-covers.md](metadata-and-covers.md) for cover loading and custom covers.
 
 ## UI layers
 

@@ -1,5 +1,6 @@
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Epic;
 
 namespace OpenGameHUB.Services;
 
@@ -12,6 +13,8 @@ public sealed class MetadataService
     private readonly SteamStoreSearchClient _steamStoreSearchClient = new();
     private readonly WikipediaCoverClient _wikipediaCoverClient = new();
     private readonly RiotCoverClient _riotCoverClient = new();
+    private readonly RockstarCoverClient _rockstarCoverClient = new();
+    private readonly EpicCoverClient _epicCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
 
@@ -88,8 +91,57 @@ public sealed class MetadataService
         UnifiedGame game,
         CancellationToken cancellationToken = default)
     {
+        if (game.HasCustomCover && TryRegisterExistingCover(game))
+            return game.CoverPath;
+
         if (TryRegisterExistingCover(game))
             return game.CoverPath;
+
+        if (game.HasCustomCover)
+            return null;
+
+        var path = await DownloadCoverAsync(game, _settingsService.Current, cancellationToken);
+        if (path is null)
+            return null;
+
+        game.CoverPath = path;
+        _database.UpdateCoverPath(game.Id, path);
+        return path;
+    }
+
+    public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath)
+    {
+        var cachePath = CoverPathHelper.GetCachePath(game.Id);
+        if (!CoverImageProcessor.TryResizeToCacheFile(sourceImagePath, cachePath))
+            return false;
+
+        game.CoverPath = cachePath;
+        game.HasCustomCover = true;
+        _database.UpdateCoverPath(game.Id, cachePath);
+        _database.SetCustomCover(game.Id, true);
+        return true;
+    }
+
+    public async Task<string?> TryResetCustomCoverAsync(
+        UnifiedGame game,
+        CancellationToken cancellationToken = default)
+    {
+        game.HasCustomCover = false;
+        _database.SetCustomCover(game.Id, false);
+
+        var cachePath = CoverPathHelper.GetCachePath(game.Id);
+        try
+        {
+            if (File.Exists(cachePath))
+                File.Delete(cachePath);
+        }
+        catch
+        {
+            // optional
+        }
+
+        game.CoverPath = null;
+        _database.UpdateCoverPath(game.Id, string.Empty);
 
         var path = await DownloadCoverAsync(game, _settingsService.Current, cancellationToken);
         if (path is null)
@@ -126,6 +178,9 @@ public sealed class MetadataService
         if (localCover is not null && TryCopyValidatedImage(localCover, cachePath))
             return cachePath;
 
+        if (TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
+            return cachePath;
+
         foreach (var url in await ResolveCoverUrlsAsync(game, settings, cancellationToken))
         {
             if (await TryDownloadAsync(url, cachePath, cancellationToken))
@@ -133,6 +188,17 @@ public sealed class MetadataService
         }
 
         return null;
+    }
+
+    private static bool TryCopyCatalogCoverFile(string? catalogCoverUrl, string cachePath)
+    {
+        if (string.IsNullOrWhiteSpace(catalogCoverUrl)
+            || catalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return File.Exists(catalogCoverUrl) && TryCopyValidatedImage(catalogCoverUrl, cachePath);
     }
 
     private static bool TryCopyValidatedImage(string sourcePath, string destinationPath)
@@ -161,17 +227,28 @@ public sealed class MetadataService
     {
         var urls = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl))
+        if (!string.IsNullOrWhiteSpace(game.CatalogCoverUrl)
+            && game.CatalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        {
             urls.Add(game.CatalogCoverUrl);
+        }
 
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out _))
         {
             urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/library_600x900.jpg");
             urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{game.PlatformGameId}/header.jpg");
         }
+        else if (game.Platform == Platform.Epic)
+        {
+            urls.AddRange(await _epicCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
         else if (game.Platform == Platform.Riot)
         {
             urls.AddRange(await _riotCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.Rockstar)
+        {
+            urls.AddRange(await _rockstarCoverClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else
         {
@@ -200,7 +277,7 @@ public sealed class MetadataService
     }
 
     private static bool ShouldDownloadCover(UnifiedGame game) =>
-        !GameEntryFilter.IsExcluded(game);
+        !game.HasCustomCover && !GameEntryFilter.IsExcluded(game);
 
     private Task<bool> TryDownloadAsync(string url, string cachePath, CancellationToken cancellationToken) =>
         _safeImageDownloader.DownloadAsync(url, cachePath, cancellationToken);

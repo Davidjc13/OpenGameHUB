@@ -5,7 +5,9 @@ using OpenGameHUB.Models;
 using OpenGameHUB.Services.Ea;
 using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Services.LibraryProviders;
+using OpenGameHUB.Services.Rockstar;
 using OpenGameHUB.Services.Ubisoft;
+using OpenGameHUB.Services.Xbox;
 using GameLib;
 using GameLib.Core;
 using GameLib.Plugin.Steam.Model;
@@ -27,18 +29,24 @@ public sealed class GameLibraryService : IDisposable
     });
     private readonly SteamCloudLibraryProvider _steamCloudProvider;
     private readonly EpicCloudLibraryProvider _epicCloudProvider;
+    private readonly XboxCloudLibraryProvider _xboxCloudProvider;
     private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
 
     public GameLibraryService()
     {
         _steamCloudProvider = new SteamCloudLibraryProvider(_settingsService, _steamWebApiService);
         _epicCloudProvider = new EpicCloudLibraryProvider();
+        _xboxCloudProvider = new XboxCloudLibraryProvider();
         _cloudProviders =
         [
             _steamCloudProvider,
             _epicCloudProvider,
             new UbisoftCloudLibraryProvider(),
-            new EaCloudLibraryProvider()
+            new EaCloudLibraryProvider(),
+            new RiotCloudLibraryProvider(),
+            new GogCloudLibraryProvider(),
+            new RockstarCloudLibraryProvider(),
+            _xboxCloudProvider
         ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
@@ -61,6 +69,20 @@ public sealed class GameLibraryService : IDisposable
     public bool IsEaCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Ea && p.IsAvailable());
 
+    public bool IsRiotCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Riot && p.IsAvailable());
+
+    public bool IsGogCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Gog && p.IsAvailable());
+
+    public bool IsRockstarCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Rockstar && p.IsAvailable());
+
+    public bool IsXboxCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.GamePass && p.IsAvailable());
+
+    public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
+
     public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
 
     public bool ShouldOfferEaLibraryPrompt => EaCatalogReader.ShouldOfferLibraryPrompt();
@@ -74,6 +96,7 @@ public sealed class GameLibraryService : IDisposable
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {
         var games = _database.GetAllGames().ToList();
+        EnrichTransientCatalogCovers(games);
         _metadataService.ReconcileCachedCovers(games);
         return games;
     }
@@ -136,6 +159,21 @@ public sealed class GameLibraryService : IDisposable
             EpicAuthHelper.PersistFromLegendary(_settingsService);
         }
 
+        if (XboxAccountClient.IsAuthenticated())
+        {
+            progress?.Report(Loc.T("SyncingXboxLibrary"));
+            try
+            {
+                await _xboxCloudProvider.LoadLibraryAsync(cancellationToken);
+                var gamertag = await new XboxAccountClient().GetGamertagAsync(cancellationToken);
+                XboxAuthHelper.PersistProfile(_settingsService, gamertag);
+            }
+            catch
+            {
+                // optional cloud sync
+            }
+        }
+
         var games = await Task.Run(
             () => ScanAllGames(progress, cancellationToken),
             cancellationToken);
@@ -143,8 +181,7 @@ public sealed class GameLibraryService : IDisposable
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
-        SteamWebApiService.EnrichCatalogCoverUrls(stored);
-        UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
+        EnrichTransientCatalogCovers(stored);
 
         if (steamOwned.Count > 0)
         {
@@ -165,6 +202,14 @@ public sealed class GameLibraryService : IDisposable
         var stored = _database.GetAllGames();
         await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken, maxCovers);
     }
+
+    public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath) =>
+        _metadataService.TrySetCustomCover(game, sourceImagePath);
+
+    public Task<string?> TryResetCustomCoverAsync(
+        UnifiedGame game,
+        CancellationToken cancellationToken = default) =>
+        _metadataService.TryResetCustomCoverAsync(game, cancellationToken);
 
     private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
         CancellationToken cancellationToken)
@@ -249,7 +294,7 @@ public sealed class GameLibraryService : IDisposable
 
         var titleKey = MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant();
         return allGames.Any(other =>
-            other.Platform is Platform.Riot or Platform.Ubisoft or Platform.Ea or Platform.BattleNet
+            other.Platform is Platform.Riot or Platform.Ubisoft or Platform.Ea or Platform.BattleNet or Platform.Rockstar
             && MetadataSearchHelper.NormalizeTitle(other.Title).ToLowerInvariant() == titleKey);
     }
 
@@ -259,6 +304,7 @@ public sealed class GameLibraryService : IDisposable
     {
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
+        games.AddRange(GogDesktopScanner.Scan());
         games.AddRange(XboxGamePassScanner.Scan());
         games.AddRange(EpicManifestScanner.ScanInstalled());
 
@@ -278,6 +324,14 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingEaLibrary"));
                 else if (provider.Platform == Platform.Epic)
                     progress?.Report(Loc.T("SyncingEpicLibrary"));
+                else if (provider.Platform == Platform.Riot)
+                    progress?.Report(Loc.T("SyncingRiotLibrary"));
+                else if (provider.Platform == Platform.Gog)
+                    progress?.Report(Loc.T("SyncingGogLibrary"));
+                else if (provider.Platform == Platform.Rockstar)
+                    progress?.Report(Loc.T("SyncingRockstarLibrary"));
+                else if (provider.Platform == Platform.GamePass)
+                    progress?.Report(Loc.T("SyncingXboxLibrary"));
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
@@ -319,9 +373,12 @@ public sealed class GameLibraryService : IDisposable
 
         if (game.Id.StartsWith("ea:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("gog:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("rockstar:catalog:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }
@@ -685,6 +742,15 @@ public sealed class GameLibraryService : IDisposable
         "riot games" or "riot" => Platform.Riot,
         _ => Platform.Unknown
     };
+
+    private static void EnrichTransientCatalogCovers(IReadOnlyList<UnifiedGame> games)
+    {
+        SteamWebApiService.EnrichCatalogCoverUrls(games);
+        UbisoftCatalogReader.EnrichCatalogCoverUrls(games);
+        XboxManifestReader.EnrichCatalogCoverUrls(games);
+        EpicCatalogReader.EnrichCatalogCoverUrls(games);
+        RockstarCatalogReader.EnrichCatalogCoverUrls(games);
+    }
 
     public void ResetLocalCache()
     {

@@ -5,6 +5,7 @@ using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
 using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.Xbox;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -32,11 +33,13 @@ public partial class SettingsViewModel : ViewModelBase
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
-        ShowGridCovers = current.ShowGridCovers;
+        SelectedCoverQuality = current.CoverQualityMode;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
+        CoverQualityOptions = BuildCoverQualityOptions();
         RefreshSteamStatus();
         RefreshEpicStatus();
+        RefreshXboxStatus();
         AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
         _ = CheckForUpdatesAsync();
     }
@@ -65,6 +68,10 @@ public partial class SettingsViewModel : ViewModelBase
         LegendaryClient.HasStoredCredentials()
         || _settingsService.Current.HasEpicAuth;
 
+    public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
+
+    public bool CanConnectXbox => !IsXboxConnected;
+
     public bool CanConnectEpic => LegendaryClient.IsAvailable() && !IsEpicConnected;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
@@ -78,6 +85,9 @@ public partial class SettingsViewModel : ViewModelBase
     private string _epicStatusText = string.Empty;
 
     [ObservableProperty]
+    private string _xboxStatusText = string.Empty;
+
+    [ObservableProperty]
     private string _igdbClientId = string.Empty;
 
     [ObservableProperty]
@@ -87,7 +97,25 @@ public partial class SettingsViewModel : ViewModelBase
     private string _steamGridDbApiKey = string.Empty;
 
     [ObservableProperty]
-    private bool _showGridCovers = true;
+    private CoverQualityMode _selectedCoverQuality = CoverQualityMode.Low;
+
+    partial void OnSelectedCoverQualityChanged(CoverQualityMode value) =>
+        OnPropertyChanged(nameof(SelectedCoverQualityOption));
+
+    public CoverQualityOption? SelectedCoverQualityOption
+    {
+        get => CoverQualityOptions.FirstOrDefault(option => option.Mode == SelectedCoverQuality);
+        set
+        {
+            if (value is null || value.Mode == SelectedCoverQuality)
+                return;
+
+            SelectedCoverQuality = value.Mode;
+            OnPropertyChanged(nameof(SelectedCoverQualityOption));
+        }
+    }
+
+    public IReadOnlyList<CoverQualityOption> CoverQualityOptions { get; }
 
     [ObservableProperty]
     private string _selectedLanguage = "en";
@@ -152,17 +180,60 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientId = current.IgdbClientId,
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
-            ShowGridCovers = current.ShowGridCovers,
+            CoverQualityMode = current.CoverQualityMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
-            EpicDisplayName = current.EpicDisplayName
+            EpicDisplayName = current.EpicDisplayName,
+            XboxGamertag = current.XboxGamertag
         });
 
         RefreshSteamStatus();
         OnPropertyChanged(nameof(IsSteamApiConnected));
         StatusMessage = Loc.T("SteamApiDisconnected");
+    }
+
+    [RelayCommand]
+    private async Task ConnectXboxAsync()
+    {
+        try
+        {
+            StatusMessage = Loc.T("XboxAuthStarted");
+            await XboxAuthService.SignInAsync(_settingsService, GetOwnerWindow());
+            RefreshXboxStatus();
+            OnPropertyChanged(nameof(IsXboxConnected));
+            OnPropertyChanged(nameof(CanConnectXbox));
+            StatusMessage = Loc.T("XboxConnected");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Loc.T("XboxConnectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void DisconnectXbox()
+    {
+        XboxAuthHelper.Clear(_settingsService);
+        RefreshXboxStatus();
+        OnPropertyChanged(nameof(IsXboxConnected));
+        OnPropertyChanged(nameof(CanConnectXbox));
+        StatusMessage = Loc.T("XboxDisconnected");
+    }
+
+    private void RefreshXboxStatus()
+    {
+        if (!IsXboxConnected)
+        {
+            XboxStatusText = Loc.T("XboxNotConnectedStatus");
+            return;
+        }
+
+        var gamertag = _settingsService.Current.XboxGamertag;
+        XboxStatusText = string.IsNullOrWhiteSpace(gamertag)
+            ? Loc.T("XboxConnectedStatus")
+            : Loc.T("XboxConnectedStatusNamed", gamertag);
     }
 
     [RelayCommand]
@@ -328,13 +399,11 @@ public partial class SettingsViewModel : ViewModelBase
                 StatusMessage = Loc.T("AppUpdateDownloading", value);
             });
 
-            var installerPath = await AppUpdateService.DownloadInstallerAsync(
+            StatusMessage = Loc.T("AppUpdateInstalling");
+            await AppUpdateService.DownloadAndInstallAsync(
                 _pendingRelease,
                 progress,
                 cancellationToken);
-
-            StatusMessage = Loc.T("AppUpdateInstalling");
-            AppUpdateService.LaunchInstallerAndExit(installerPath);
         }
         catch (OperationCanceledException)
         {
@@ -426,12 +495,14 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientId = IgdbClientId.Trim(),
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
-            ShowGridCovers = ShowGridCovers,
+            CoverQualityMode = SelectedCoverQuality,
+            LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
-            EpicDisplayName = current.EpicDisplayName
+            EpicDisplayName = current.EpicDisplayName,
+            XboxGamertag = current.XboxGamertag
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);
@@ -441,6 +512,15 @@ public partial class SettingsViewModel : ViewModelBase
 
     [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();
+
+    private static IReadOnlyList<CoverQualityOption> BuildCoverQualityOptions() =>
+    [
+        new(CoverQualityMode.None, Loc.T("CoverQualityNone")),
+        new(CoverQualityMode.Low, Loc.T("CoverQualityLow")),
+        new(CoverQualityMode.High, Loc.T("CoverQualityHigh"))
+    ];
 }
 
 public sealed record LanguageOption(string Code, string Label);
+
+public sealed record CoverQualityOption(CoverQualityMode Mode, string Label);

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
+using OpenGameHUB.Services.Epic;
 
 namespace OpenGameHUB.Services.LibraryProviders;
 
@@ -46,6 +47,7 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
             var protocolUrl = entry.BuildInstallProtocolUrl()
                 ?? $"com.epicgames.launcher://apps/{entry.AppName}?action=install";
 
+            var coverUrl = EpicCatalogReader.GetCoverUrl(entry.AppName, entry.AppTitle);
             var game = new UnifiedGame
             {
                 Id = $"epic:legendary:{entry.AppName}",
@@ -53,6 +55,7 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
                 PlatformGameId = entry.AppName,
                 Title = entry.AppTitle,
                 IsInstalled = false,
+                CatalogCoverUrl = coverUrl,
                 LaunchSpec = LaunchSpec.Protocol(protocolUrl)
             };
 
