@@ -15,7 +15,8 @@ Transparent technical documentation: what each piece does, where it gets data fr
 | [cloud-providers.md](cloud-providers.md) | `ICloudLibraryProvider` pattern |
 | [epic-and-legendary.md](epic-and-legendary.md) | Auth, cloud library, installation |
 | [ea-desktop.md](ea-desktop.md) | Encrypted cache, logs, registry scan, onboarding |
-| [metadata-and-covers.md](metadata-and-covers.md) | Cover pipeline and optional APIs |
+| [metadata-and-covers.md](metadata-and-covers.md) | Cover pipeline, custom covers, grid/list, memory |
+| [riot.md](riot.md) | Riot Client catalog, install, covers |
 | [ui-and-viewmodels.md](ui-and-viewmodels.md) | Avalonia, MVVM, windows and onboarding |
 | [storage-and-settings.md](storage-and-settings.md) | Disk paths, `settings.json` |
 | [app-updater.md](app-updater.md) | GitHub Releases update checks |
@@ -38,8 +39,8 @@ Program.cs → App.axaml.cs → MainWindowViewModel
                     ├── GameDatabase (SQLite)
                     ├── GameLib LauncherManager (installed)
                     ├── Scanners (Epic manifests, EA, Xbox…)
-                    ├── ICloudLibraryProvider × 4 (cloud)
-                    └── MetadataService (covers)
+                    ├── ICloudLibraryProvider × 6 (cloud)
+                    └── MetadataService (covers, custom covers)
 ```
 
 ## Runtime data

@@ -15,6 +15,7 @@ File: `Models/UnifiedGame.cs`
 | `IsInstalled` | bool | Whether there is an install path / GameLib marks it installed |
 | `InstallPath` | string? | Folder or main executable |
 | `CoverPath` | string? | Path to cover in local cache (persisted) |
+| `HasCustomCover` | bool | User-uploaded cover; blocks auto-download overwrite |
 | `CatalogCoverUrl` | string? | Temporary catalog URL (not stored in DB) |
 | `PlaytimeMinutes` | int | Mainly Steam (API) |
 | `LastPlayed` | DateTime? | Last session (Steam API) |
@@ -62,6 +63,7 @@ Persisted in `settings.json` by `SettingsService`.
 | `IgdbClientId`, `IgdbClientSecret` | IGDB covers |
 | `SteamGridDbApiKey` | Alternative covers |
 | `ShowGridCovers` | Grid covers vs detail panel only |
+| `LibraryViewMode` | `Grid` or `List` library layout |
 | `DismissSteamApiKeyPrompt` | Do not show Steam prompt again |
 | `DismissEaLibraryPrompt` | Do not show EA prompt again |
 | `DismissLegendaryPrompt` | Do not show Epic prompt again |
@@ -82,6 +84,7 @@ Table `games`:
 | `is_installed` | INTEGER | 0/1 |
 | `install_path` | TEXT | |
 | `cover_path` | TEXT | Path in `%LocalAppData%\OpenGameHUB\covers\` |
+| `custom_cover` | INTEGER | 0/1 — user chose a custom image |
 | `playtime_minutes` | INTEGER | |
 | `last_played` | TEXT | ISO 8601 |
 | `is_favorite` | INTEGER | 0/1 |
@@ -113,5 +116,8 @@ Defined in scanners and providers when creating `UnifiedGame`:
 | Epic cloud | `epic:legendary:{appName}` |
 | Ubisoft cloud | `ubisoft:{uplayId}` |
 | EA cloud | `ea:catalog:{softwareId}@{slug}` |
+| Riot cloud | `riot:catalog:{productId}@{patchline}` |
+| GOG cloud | `gog:catalog:{gogId}@{releaseKey}` |
+| GOG installed (scanner) | `gog:path:{sha256-prefix}` |
 
 Changing these formats is a **breaking change** for users with an existing DB.

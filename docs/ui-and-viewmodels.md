@@ -12,8 +12,8 @@
 
 | File | Responsibility |
 |------|----------------|
-| `MainWindow.axaml` | Paginated grid, filters, status bar |
-| `MainWindowViewModel.cs` | Library, search, sort, launch, open settings |
+| `MainWindow.axaml` | Paginated grid or list, filters, status bar, cover actions |
+| `MainWindowViewModel.cs` | Library, search, sort, launch, covers, view mode |
 
 ### Key flows in `MainWindowViewModel`
 
@@ -21,6 +21,8 @@
 |---------|--------|
 | `RefreshLibraryCommand` | `GameLibraryService.RefreshLibraryAsync` + update UI |
 | `LaunchSelectedGame` | Epic protocol case or `LaunchGame` |
+| `ChangeCustomCoverAsync` / `ResetCustomCoverAsync` | User cover override (detail panel) |
+| `SetGridView` / `SetListView` | Toggle `LibraryViewMode` (persisted) |
 | `OpenSettingsAsync` | Modal `SettingsWindow`; handles dev relaunch / clear DB |
 | `ToggleFavorite` | `GameLibraryService.ToggleFavorite` |
 
@@ -38,7 +40,17 @@ Each prompt has "Continue" and "Don't remind me again" → flags in `AppSettings
 
 ### Pagination
 
-`PageSize = 24` — avoids creating thousands of `GameItemViewModel` with covers at once.
+`PageSize = 24` — avoids creating thousands of `GameItemViewModel` with covers at once. See [metadata-and-covers.md](metadata-and-covers.md) for `ApplyVisibleCovers` and memory behavior.
+
+### Library layout
+
+Toolbar toggle switches between **grid** (card tiles) and **list** (horizontal rows with thumbnail). Stored in `AppSettings.LibraryViewMode`.
+
+### Covers in the UI
+
+- `ShowGridCovers` (Settings) — when off, only the selected game's cover may load
+- Custom cover buttons in the detail panel when a game is selected
+- `GameItemViewModel.ReleaseCover()` disposes bitmaps when rows leave the current page
 
 ## Settings
 
@@ -52,7 +64,7 @@ Sections:
 - Language
 - Steam Web API (opens `SteamSetupWindow`)
 - Epic (connect/disconnect async)
-- Display (`ShowGridCovers`)
+- Display (`ShowGridCovers`, library view mode)
 - Covers (IGDB, SteamGridDB)
 - Updates (`AppUpdateService`)
 - Developer (`DevModeService`, if enabled)
