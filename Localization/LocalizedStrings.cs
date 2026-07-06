@@ -76,6 +76,13 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string EpicLibrarySection => Loc.T("EpicLibrarySection");
     public string EpicConnectAccount => Loc.T("EpicConnectAccount");
     public string EpicDisconnectAccount => Loc.T("EpicDisconnectAccount");
+    public string XboxLibrarySection => Loc.T("XboxLibrarySection");
+    public string XboxConnectAccount => Loc.T("XboxConnectAccount");
+    public string XboxDisconnectAccount => Loc.T("XboxDisconnectAccount");
+    public string XboxPasteAuthTitle => Loc.T("XboxPasteAuthTitle");
+    public string XboxPasteAuthIntro => Loc.T("XboxPasteAuthIntro");
+    public string XboxPasteAuthPlaceholder => Loc.T("XboxPasteAuthPlaceholder");
+    public string XboxPasteAuthConfirm => Loc.T("XboxPasteAuthConfirm");
     public string DevModeSection => Loc.T("DevModeSection");
     public string DevModeHelp => Loc.T("DevModeHelp");
     public string DevResetConnections => Loc.T("DevResetConnections");

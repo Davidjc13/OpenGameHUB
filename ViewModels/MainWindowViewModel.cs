@@ -106,6 +106,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsGogCloudAvailable => _libraryService.IsGogCloudAvailable;
 
+    public bool IsXboxCloudAvailable => _libraryService.IsXboxCloudAvailable;
+
     public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
 
     public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
@@ -134,6 +136,8 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
     partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
 
+    partial void OnShowGridCoversChanged(bool value) => ApplyVisibleCovers();
+
     partial void OnIsListViewChanged(bool value)
     {
         OnPropertyChanged(nameof(IsGridView));
@@ -158,7 +162,7 @@ public partial class MainWindowViewModel : ViewModelBase
             game.IsSelected = ReferenceEquals(game, value);
 
         if (value is not null && !value.HasCover)
-            _ = value.LoadCoverAsync();
+            _ = value.LoadCoverAsync(decodeWidth: CoverImageLoader.DetailWidth);
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
@@ -178,7 +182,12 @@ public partial class MainWindowViewModel : ViewModelBase
         var token = _refreshCts.Token;
 
         CancelScheduledStatusClear();
-        await RunOnUiThreadAsync(() => IsRefreshing = true);
+        await RunOnUiThreadAsync(() =>
+        {
+            _suppressCoverLoading = true;
+            ReleaseAllGameCovers();
+            IsRefreshing = true;
+        });
 
         try
         {
@@ -213,7 +222,8 @@ public partial class MainWindowViewModel : ViewModelBase
                         : string.Empty;
                 var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
                 var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
-                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + epicHint;
+                var xboxHint = IsXboxCloudAvailable ? Loc.T("XboxCloudHint") : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + xboxHint + epicHint;
             });
 
             StartBackgroundCoverEnrichment();
@@ -279,7 +289,10 @@ public partial class MainWindowViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (!IsRefreshing)
+                    {
+                        ApplyVisibleCovers();
                         ScheduleStatusClear(TimeSpan.FromSeconds(2));
+                    }
                 });
             }
         }, token);
@@ -584,6 +597,14 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _libraryService.LaunchGame(SelectedGame.Source);
                 StatusText = Loc.T("RiotClientInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.GamePass)
+            {
+                _libraryService.LaunchGame(SelectedGame.Source);
+                StatusText = Loc.T("XboxInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;
             }

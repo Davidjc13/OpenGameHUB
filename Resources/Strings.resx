@@ -112,6 +112,8 @@
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Syncing EA library...</value></data>
   <data name="SyncingRiotLibrary" xml:space="preserve"><value>Syncing Riot library...</value></data>
   <data name="SyncingGogLibrary" xml:space="preserve"><value>Syncing GOG library...</value></data>
+  <data name="SyncingXboxLibrary" xml:space="preserve"><value>Syncing Xbox library...</value></data>
+  <data name="XboxCloudHint" xml:space="preserve"><value> · Xbox library via Microsoft account</value></data>
   <data name="GogCloudHint" xml:space="preserve"><value> · GOG library via GOG Galaxy</value></data>
   <data name="GogDatabaseMissing" xml:space="preserve"><value>GOG Galaxy library database not found. Open GOG Galaxy and sign in at least once.</value></data>
   <data name="RiotCloudHint" xml:space="preserve"><value> · Riot library via Riot Client</value></data>
@@ -228,6 +230,23 @@
   <data name="EpicLibrarySection" xml:space="preserve"><value>Epic library</value></data>
   <data name="EpicConnectAccount" xml:space="preserve"><value>Connect Epic account</value></data>
   <data name="EpicDisconnectAccount" xml:space="preserve"><value>Disconnect Epic account</value></data>
+  <data name="XboxLibrarySection" xml:space="preserve"><value>Xbox / Game Pass library</value></data>
+  <data name="XboxConnectAccount" xml:space="preserve"><value>Connect Microsoft account</value></data>
+  <data name="XboxDisconnectAccount" xml:space="preserve"><value>Disconnect Microsoft account</value></data>
+  <data name="XboxNotConnectedStatus" xml:space="preserve"><value>Not connected. Link your Microsoft account to list PC Game Pass and owned Xbox PC games, including titles not installed on this PC.</value></data>
+  <data name="XboxConnectedStatus" xml:space="preserve"><value>Microsoft account connected. Refresh your library to sync Xbox / Game Pass titles.</value></data>
+  <data name="XboxConnectedStatusNamed" xml:space="preserve"><value>Connected as {0}. Refresh your library to sync Xbox / Game Pass titles.</value></data>
+  <data name="XboxAuthStarted" xml:space="preserve"><value>Microsoft sign-in opened. Complete it to sync your Xbox library.</value></data>
+  <data name="XboxConnected" xml:space="preserve"><value>Microsoft account connected. Refresh your library.</value></data>
+  <data name="XboxDisconnected" xml:space="preserve"><value>Microsoft account disconnected.</value></data>
+  <data name="XboxConnectFailed" xml:space="preserve"><value>Could not connect Microsoft account: {0}</value></data>
+  <data name="XboxAuthCancelled" xml:space="preserve"><value>Microsoft sign-in was cancelled.</value></data>
+  <data name="XboxNotAuthenticated" xml:space="preserve"><value>Microsoft account is not connected.</value></data>
+  <data name="XboxInstallStarted" xml:space="preserve"><value>Opened Xbox / Microsoft Store to install {0}. Refresh your library when it finishes.</value></data>
+  <data name="XboxPasteAuthTitle" xml:space="preserve"><value>Complete Microsoft sign-in</value></data>
+  <data name="XboxPasteAuthIntro" xml:space="preserve"><value>After signing in, copy the full URL from your browser address bar (it contains code=) and paste it below.</value></data>
+  <data name="XboxPasteAuthPlaceholder" xml:space="preserve"><value>https://login.live.com/oauth20_desktop.srf?code=...</value></data>
+  <data name="XboxPasteAuthConfirm" xml:space="preserve"><value>Confirm</value></data>
   <data name="EpicConnectedStatus" xml:space="preserve"><value>Epic account connected. Cloud library sync is enabled.</value></data>
   <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Epic account connected ({0}). Cloud library sync is enabled.</value></data>
   <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Epic account not connected. Connect to list owned games that are not installed.</value></data>
