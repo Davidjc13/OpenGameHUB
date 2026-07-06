@@ -72,6 +72,18 @@
   <data name="Play" xml:space="preserve"><value>Play</value></data>
   <data name="Install" xml:space="preserve"><value>Install</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Toggle favorite</value></data>
+  <data name="ViewGrid" xml:space="preserve"><value>Grid</value></data>
+  <data name="ViewList" xml:space="preserve"><value>List</value></data>
+  <data name="ChangeCover" xml:space="preserve"><value>Change cover</value></data>
+  <data name="ResetCover" xml:space="preserve"><value>Reset cover</value></data>
+  <data name="ChangeCoverDialogTitle" xml:space="preserve"><value>Choose a cover image</value></data>
+  <data name="SelectGameForCover" xml:space="preserve"><value>Select a game first to change its cover.</value></data>
+  <data name="CoverUpdated" xml:space="preserve"><value>Cover updated for {0}.</value></data>
+  <data name="CoverReset" xml:space="preserve"><value>Cover reset for {0}.</value></data>
+  <data name="CoverResetNoReplacement" xml:space="preserve"><value>Custom cover removed for {0}. No automatic cover was found.</value></data>
+  <data name="ResettingCover" xml:space="preserve"><value>Resetting cover for {0}...</value></data>
+  <data name="InvalidCoverImage" xml:space="preserve"><value>That file is not a supported cover image.</value></data>
+  <data name="CoverUpdateFailedDetail" xml:space="preserve"><value>Could not update cover: {0}</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Showing {0} games</value></data>
   <data name="ShowingGamesPage" xml:space="preserve"><value>{0} of {1} · page {2}/{3}</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
@@ -98,6 +110,13 @@
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Syncing Ubisoft library...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>Ubisoft Connect library cache not found. Open Ubisoft Connect and sign in at least once.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Syncing EA library...</value></data>
+  <data name="SyncingRiotLibrary" xml:space="preserve"><value>Syncing Riot library...</value></data>
+  <data name="SyncingGogLibrary" xml:space="preserve"><value>Syncing GOG library...</value></data>
+  <data name="GogCloudHint" xml:space="preserve"><value> · GOG library via GOG Galaxy</value></data>
+  <data name="GogDatabaseMissing" xml:space="preserve"><value>GOG Galaxy library database not found. Open GOG Galaxy and sign in at least once.</value></data>
+  <data name="RiotCloudHint" xml:space="preserve"><value> · Riot library via Riot Client</value></data>
+  <data name="RiotClientInstallStarted" xml:space="preserve"><value>Riot Client opened to install {0}. Refresh your library when it finishes.</value></data>
+  <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client is not installed.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparing Epic library tools...</value></data>
   <data name="DownloadingLegendary" xml:space="preserve"><value>Downloading Epic library helper...</value></data>
   <data name="SyncingEpicLibrary" xml:space="preserve"><value>Syncing Epic library...</value></data>

@@ -72,6 +72,18 @@
   <data name="Play" xml:space="preserve"><value>Jugar</value></data>
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
+  <data name="ViewGrid" xml:space="preserve"><value>Parrilla</value></data>
+  <data name="ViewList" xml:space="preserve"><value>Lista</value></data>
+  <data name="ChangeCover" xml:space="preserve"><value>Cambiar portada</value></data>
+  <data name="ResetCover" xml:space="preserve"><value>Restaurar portada</value></data>
+  <data name="ChangeCoverDialogTitle" xml:space="preserve"><value>Elegir imagen de portada</value></data>
+  <data name="SelectGameForCover" xml:space="preserve"><value>Selecciona un juego para cambiar su portada.</value></data>
+  <data name="CoverUpdated" xml:space="preserve"><value>Portada actualizada para {0}.</value></data>
+  <data name="CoverReset" xml:space="preserve"><value>Portada restaurada para {0}.</value></data>
+  <data name="CoverResetNoReplacement" xml:space="preserve"><value>Portada personalizada eliminada para {0}. No se encontró portada automática.</value></data>
+  <data name="ResettingCover" xml:space="preserve"><value>Restaurando portada de {0}...</value></data>
+  <data name="InvalidCoverImage" xml:space="preserve"><value>Ese archivo no es una imagen de portada válida.</value></data>
+  <data name="CoverUpdateFailedDetail" xml:space="preserve"><value>No se pudo actualizar la portada: {0}</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
   <data name="ShowingGamesPage" xml:space="preserve"><value>{0} de {1} · página {2}/{3}</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
@@ -98,6 +110,13 @@
   <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
   <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
   <data name="SyncingEaLibrary" xml:space="preserve"><value>Sincronizando biblioteca de EA...</value></data>
+  <data name="SyncingRiotLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Riot...</value></data>
+  <data name="SyncingGogLibrary" xml:space="preserve"><value>Sincronizando biblioteca de GOG...</value></data>
+  <data name="GogCloudHint" xml:space="preserve"><value> · Biblioteca GOG vía GOG Galaxy</value></data>
+  <data name="GogDatabaseMissing" xml:space="preserve"><value>No se encontró la base de datos de GOG Galaxy. Abre GOG Galaxy e inicia sesión al menos una vez.</value></data>
+  <data name="RiotCloudHint" xml:space="preserve"><value> · Biblioteca Riot vía Riot Client</value></data>
+  <data name="RiotClientInstallStarted" xml:space="preserve"><value>Riot Client abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
+  <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client no está instalado.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
   <data name="DownloadingLegendary" xml:space="preserve"><value>Descargando ayudante de biblioteca Epic...</value></data>
   <data name="SyncingEpicLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Epic...</value></data>
