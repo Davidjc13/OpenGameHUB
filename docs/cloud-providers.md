@@ -36,11 +36,14 @@ _cloudProviders = [
     new UbisoftCloudLibraryProvider(),
     new EaCloudLibraryProvider(),
     new RiotCloudLibraryProvider(),
-    new GogCloudLibraryProvider()
+    new GogCloudLibraryProvider(),
+    _xboxCloudProvider
 ];
 ```
 
-Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA → Riot → GOG (each if `IsAvailable()`).
+Iteration order in `ScanAllGames`: Steam → Epic → Ubisoft → EA → Riot → GOG → Xbox (each if `IsAvailable()`).
+
+Xbox library titles are **pre-fetched** in `RefreshLibraryAsync` (`LoadLibraryAsync`) when the user is authenticated, similar to Steam's `SetOwnedGames`.
 
 Errors: empty `try/catch` per provider — **silent failure** so the full scan is not broken.
 
@@ -136,6 +139,23 @@ File: `Services/LibraryProviders/GogCloudLibraryProvider.cs`
 | **Install attempts** | Protocol URL, then `GalaxyClient.exe /command=launch /gameId={id}` |
 
 **Note:** GameLib may report GOG with zero games; the Galaxy SQLite DB is the authoritative source for library size.
+
+---
+
+## `XboxCloudLibraryProvider`
+
+File: `Services/LibraryProviders/XboxCloudLibraryProvider.cs`
+
+| | |
+|--|--|
+| **Available if** | Microsoft account connected (`XboxTokenStore` has valid tokens) |
+| **Source** | `XboxAccountClient.GetPcLibraryEntriesAsync()` — Xbox title hub + optional playtime stats |
+| **Pre-load** | `LoadLibraryAsync()` in `RefreshLibraryAsync` before `ScanAllGames` |
+| **Filtering** | PC games only; skips PFN/title matches against installed `Platform.GamePass` entries |
+| **LaunchSpec** | `msxbox://game/?productId=…` or `ms-windows-store://pdp/?PFN=…` |
+| **Install attempts** | `XboxInstallClient` URI chain |
+
+Auth: Settings → connect Microsoft account. See [xbox.md](xbox.md).
 
 ---
 

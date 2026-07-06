@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services.Ea;
+using OpenGameHUB.Services.Xbox;
 
 namespace OpenGameHUB.Services;
 
@@ -34,12 +35,14 @@ internal static class DevModeService
             DismissEaLibraryPrompt = false,
             DismissLegendaryPrompt = false,
             EpicAccountId = string.Empty,
-            EpicDisplayName = string.Empty
+            EpicDisplayName = string.Empty,
+            XboxGamertag = string.Empty
         };
 
     public static void ResetPlatformConnections()
     {
         TryDisconnectEpicWithTimeout(TimeSpan.FromSeconds(8));
+        XboxAccountClient.SignOut();
         EaCatalogReader.InvalidateCache();
         LegendaryClient.InvalidateExecutableCache();
     }
