@@ -4,7 +4,7 @@
 #endif
 #define MyAppPublisher "OpenGameHUB"
 #define MyAppExeName "OpenGameHUB.exe"
-#define MyAppUrl "https://github.com/OpenGameHUB/OpenGameHUB"
+#define MyAppUrl "https://github.com/Davidjc13/OpenGameHUB"
 
 [Setup]
 AppId={{A7B3C4D5-E6F7-4890-ABCD-EF1234567890}

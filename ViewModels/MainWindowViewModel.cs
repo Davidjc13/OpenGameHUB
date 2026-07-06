@@ -6,15 +6,29 @@ using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Models;
 using OpenGameHUB.Services;
+using OpenGameHUB.Services.Ea;
+using OpenGameHUB.Services.Epic;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private const int PageSize = 24;
+
     private readonly GameLibraryService _libraryService = new();
     private List<GameItemViewModel> _allGames = [];
+    private List<GameItemViewModel> _filteredGames = [];
     private CancellationTokenSource? _statusClearCts;
+    private CancellationTokenSource? _refreshCts;
+    private CancellationTokenSource? _coverCts;
+    private bool _steamApiPromptOffered;
+    private bool _eaLibraryPromptOffered;
+    private bool _legendaryPromptOffered;
+    private int _modalDepth;
+    private bool _replayOnboardingAfterSettings;
+    private bool _pendingDevRelaunch;
+    private bool _pendingDevClearDatabase;
 
     public MainWindowViewModel()
     {
@@ -29,9 +43,12 @@ public partial class MainWindowViewModel : ViewModelBase
         RebuildSortOptions();
         RebuildPlatformFilters();
 
+        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
+
         StatusText = Loc.T("LoadingLibrary");
         LoadCachedGames();
         _ = RefreshLibraryCommand.ExecuteAsync(null);
+        _ = CheckForAppUpdateOnStartupAsync();
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
@@ -66,7 +83,36 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showInstalledOnly;
 
-    public bool IsLegendaryAvailable => _libraryService.IsLegendaryAvailable;
+    [ObservableProperty]
+    private bool _showGridCovers = true;
+
+    public bool IsEpicCloudAvailable => _libraryService.IsEpicCloudAvailable;
+
+    public bool IsUbisoftCloudAvailable => _libraryService.IsUbisoftCloudAvailable;
+
+    public bool IsEaCloudAvailable => _libraryService.IsEaCloudAvailable;
+
+    public bool IsSteamCloudAvailable => _libraryService.IsSteamCloudAvailable;
+
+    public bool IsSteamApiConfigured => _libraryService.IsSteamApiConfigured;
+
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredGames.Count / (double)PageSize));
+
+    public bool CanGoPrevious => CurrentPage > 1;
+
+    public bool CanGoNext => CurrentPage < TotalPages;
+
+    [ObservableProperty]
+    private int _currentPage = 1;
+
+    partial void OnCurrentPageChanged(int value)
+    {
+        ApplyCurrentPage();
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
     partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
@@ -74,10 +120,20 @@ public partial class MainWindowViewModel : ViewModelBase
     partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
     partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
 
+    private GameItemViewModel? _previousSelectedGame;
+
     partial void OnSelectedGameChanged(GameItemViewModel? value)
     {
+        if (!ReferenceEquals(_previousSelectedGame, value))
+            _previousSelectedGame?.ReleaseCover();
+
+        _previousSelectedGame = value;
+
         foreach (var game in _allGames)
             game.IsSelected = ReferenceEquals(game, value);
+
+        if (value is not null && !value.HasCover)
+            _ = value.LoadCoverAsync();
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
@@ -90,40 +146,350 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshLibraryAsync()
     {
-        if (IsRefreshing)
+        _refreshCts?.Cancel();
+        _refreshCts?.Dispose();
+        _refreshCts = new CancellationTokenSource();
+        var token = _refreshCts.Token;
+
+        CancelScheduledStatusClear();
+        await RunOnUiThreadAsync(() => IsRefreshing = true);
+
+        try
+        {
+            var progress = new Progress<string>(message =>
+                Dispatcher.UIThread.Post(() => StatusText = message));
+
+            await RunOnUiThreadAsync(() => StatusText = Loc.T("ScanningLaunchers"));
+            var games = await _libraryService.RefreshLibraryAsync(progress, token).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+
+            await RunOnUiThreadAsync(() =>
+            {
+                _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                RebuildPlatformFilters();
+                ApplyFilter();
+
+                var epicHint = IsEpicCloudAvailable ? Loc.T("EpicCloudHint") : string.Empty;
+                var steamHint = IsSteamCloudAvailable
+                    ? IsSteamApiConfigured
+                        ? Loc.T("SteamCloudHint")
+                        : Loc.T("SteamLocalLibraryHint")
+                    : string.Empty;
+                var ubisoftHint = IsUbisoftCloudAvailable ? Loc.T("UbisoftCloudHint") : string.Empty;
+                var eaHint = IsEaCloudAvailable
+                    && _libraryService.EaLibraryCacheStatus == EaLibraryCacheStatus.Available
+                        ? Loc.T("EaCloudHint")
+                        : string.Empty;
+                StatusText = Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + epicHint;
+            });
+
+            StartBackgroundCoverEnrichment();
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            await RunOnUiThreadAsync(() => StatusText = string.Empty);
+        }
+        catch (Exception ex)
+        {
+            await RunOnUiThreadAsync(() =>
+                StatusText = Loc.T("ScanError", ex.Message));
+        }
+        finally
+        {
+            await RunOnUiThreadAsync(() =>
+            {
+                IsRefreshing = false;
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+            });
+        }
+
+        if (_modalDepth == 0)
+            await OfferOnboardingPromptsAsync();
+    }
+
+    private void StartBackgroundCoverEnrichment()
+    {
+        _coverCts?.Cancel();
+        _coverCts?.Dispose();
+        _coverCts = new CancellationTokenSource();
+        var token = _coverCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var progress = new Progress<string>(message =>
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (!IsRefreshing)
+                            StatusText = message;
+                    }));
+
+                await _libraryService.EnrichCoversAsync(progress, token, maxCovers: 32);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                // A newer refresh started.
+            }
+            catch
+            {
+                // Cover downloads are optional.
+            }
+            finally
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (!IsRefreshing)
+                        ScheduleStatusClear(TimeSpan.FromSeconds(2));
+                });
+            }
+        }, token);
+    }
+
+    private async Task CheckForAppUpdateOnStartupAsync()
+    {
+        if (AppUpdateService.IsDevBuild)
             return;
 
         try
         {
-            CancelScheduledStatusClear();
-            IsRefreshing = true;
-            var progress = new Progress<string>(message => StatusText = message);
-            StatusText = Loc.T("ScanningLaunchers");
-            var games = await _libraryService.RefreshLibraryAsync(progress);
-            _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
-            RebuildPlatformFilters();
-            ApplyFilter();
+            var release = await AppUpdateService.GetLatestReleaseAsync();
+            if (release is null || !AppUpdateService.IsNewer(release.TagName, AppUpdateService.CurrentVersion))
+                return;
 
-            var legendaryHint = IsLegendaryAvailable ? Loc.T("EpicCloudHint") : string.Empty;
-            StatusText = Loc.T("GamesInLibrary", _allGames.Count) + legendaryHint;
+            await RunOnUiThreadAsync(() =>
+            {
+                StatusText = Loc.T("AppUpdateAvailableHint", release.TagName);
+                ScheduleStatusClear(TimeSpan.FromSeconds(12));
+            });
         }
-        catch (Exception ex)
+        catch
         {
-            StatusText = Loc.T("ScanError", ex.Message);
+            // optional background check
+        }
+    }
+
+    private async Task OfferOnboardingPromptsAsync()
+    {
+        await RunOnUiThreadAsync(async () =>
+        {
+            try
+            {
+                await OfferSteamApiKeyPromptIfNeededAsync();
+                await OfferEaLibraryPromptIfNeededAsync();
+                await OfferLegendaryPromptIfNeededAsync();
+            }
+            catch
+            {
+                // optional setup prompts must not close the app
+            }
+        });
+    }
+
+    private static async Task RunOnUiThreadAsync(Action action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            action();
+        else
+            await Dispatcher.UIThread.InvokeAsync(action);
+    }
+
+    private static async Task RunOnUiThreadAsync(Func<Task> action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            await action();
+        else
+            await Dispatcher.UIThread.InvokeAsync(action);
+    }
+
+    private async Task ShowDialogAsync(Window window)
+    {
+        _modalDepth++;
+        try
+        {
+            await window.ShowDialog(GetMainWindow());
         }
         finally
         {
-            IsRefreshing = false;
-            ScheduleStatusClear(TimeSpan.Zero);
+            _modalDepth--;
         }
+    }
+
+    private void ResetDevSession()
+    {
+        _steamApiPromptOffered = false;
+        _eaLibraryPromptOffered = false;
+        _legendaryPromptOffered = false;
+        _replayOnboardingAfterSettings = true;
+    }
+
+    private void ScheduleDevRelaunch() => _pendingDevRelaunch = true;
+
+    private void ClearDevLocalDatabase()
+    {
+        _libraryService.ResetLocalCache();
+        _pendingDevClearDatabase = true;
     }
 
     [RelayCommand]
     private async Task OpenSettingsAsync()
     {
-        var window = new SettingsWindow(new SettingsViewModel(_libraryService.Settings));
-        await window.ShowDialog(GetMainWindow());
-        ApplyLocalization();
+        try
+        {
+            var wasEpicConnected = _libraryService.IsEpicConnected;
+            await ShowDialogAsync(new SettingsWindow(new SettingsViewModel(
+                _libraryService.Settings,
+                ResetDevSession,
+                ScheduleDevRelaunch,
+                ClearDevLocalDatabase)));
+            ApplyLocalization();
+
+            if (_pendingDevRelaunch)
+            {
+                _pendingDevRelaunch = false;
+                _libraryService.Dispose();
+                DevModeService.ClearLocalLibraryCache();
+                DevModeService.RelaunchApp();
+                return;
+            }
+
+            if (_pendingDevClearDatabase)
+            {
+                _pendingDevClearDatabase = false;
+                await RefreshLibraryCommand.ExecuteAsync(null);
+            }
+            else if (_replayOnboardingAfterSettings)
+            {
+                _replayOnboardingAfterSettings = false;
+                await RefreshLibraryCommand.ExecuteAsync(null);
+            }
+            else if (wasEpicConnected != _libraryService.IsEpicConnected)
+            {
+                await RefreshLibraryCommand.ExecuteAsync(null);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = Loc.T("ScanError", ex.Message);
+            ScheduleStatusClear(TimeSpan.FromSeconds(8));
+        }
+    }
+
+    private async Task OfferEaLibraryPromptIfNeededAsync()
+    {
+        if (_eaLibraryPromptOffered
+            || !_libraryService.ShouldOfferEaLibraryPrompt
+            || _libraryService.Settings.Current.DismissEaLibraryPrompt)
+        {
+            return;
+        }
+
+        _eaLibraryPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new EaLibraryPromptViewModel(
+            _libraryService.Settings,
+            _libraryService.EaLibraryCacheStatus);
+        var window = new EaLibraryPromptWindow(viewModel);
+        await ShowDialogAsync(window);
+
+        if (viewModel.Choice == EaLibraryPromptChoice.OpenEaApp)
+            await LaunchEaAndRefreshLibraryAsync();
+    }
+
+    private async Task LaunchEaAndRefreshLibraryAsync()
+    {
+        EaCatalogReader.InvalidateCache();
+        var baselineStatus = EaCatalogReader.GetCacheStatus();
+        var baselineLogCount = EaCatalogReader.GetLogLibraryEntryCount();
+
+        EaDesktopSyncHelper.LaunchEaDesktop();
+        CancelScheduledStatusClear();
+        StatusText = Loc.T("WaitingEaAppLaunch");
+
+        if (await EaDesktopSyncHelper.WaitForEaDesktopProcessAsync(TimeSpan.FromSeconds(45)))
+        {
+            var progress = new Progress<string>(message => StatusText = message);
+            await EaDesktopSyncHelper.WaitForLibraryUpdateAsync(
+                baselineStatus,
+                baselineLogCount,
+                progress);
+        }
+
+        await RefreshLibraryCommand.ExecuteAsync(null);
+    }
+
+    private async Task OfferLegendaryPromptIfNeededAsync()
+    {
+        if (_legendaryPromptOffered
+            || !_libraryService.ShouldOfferLegendaryPrompt)
+        {
+            return;
+        }
+
+        _legendaryPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new LegendaryPromptViewModel(_libraryService.Settings);
+        var window = new LegendaryPromptWindow(viewModel);
+        await ShowDialogAsync(window);
+
+        if (viewModel.Choice == LegendaryPromptChoice.ConnectEpic)
+        {
+            try
+            {
+                LegendaryClient.RunAuth();
+            }
+            catch
+            {
+                // optional
+            }
+        }
+        else if (viewModel.Choice == LegendaryPromptChoice.OpenGuide)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/derrod/legendary",
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                // optional
+            }
+        }
+    }
+
+    private async Task OfferSteamApiKeyPromptIfNeededAsync()
+    {
+        if (_steamApiPromptOffered
+            || IsSteamApiConfigured
+            || !SteamLocalAccountReader.IsSteamInstalled
+            || _libraryService.Settings.Current.DismissSteamApiKeyPrompt)
+        {
+            return;
+        }
+
+        _steamApiPromptOffered = true;
+        await Task.Delay(350);
+
+        var viewModel = new SteamApiKeyPromptViewModel(_libraryService.Settings);
+        var window = new SteamApiKeyPromptWindow(viewModel);
+        await ShowDialogAsync(window);
+
+        if (viewModel.Choice == SteamApiKeyPromptChoice.Configure)
+            await OpenSteamSetupAsync();
+    }
+
+    private async Task OpenSteamSetupAsync()
+    {
+        var window = new SteamSetupWindow(new SteamSetupViewModel(_libraryService.Settings));
+        await ShowDialogAsync(window);
+
+        if (_libraryService.Settings.Current.IsSteamApiConfigured)
+            await RefreshLibraryCommand.ExecuteAsync(null);
     }
 
     private static Window GetMainWindow()
@@ -150,6 +516,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
         try
         {
+            if (!SelectedGame.Source.IsInstalled
+                && SelectedGame.Platform == Platform.Epic
+                && SelectedGame.Source.LaunchSpec.Kind == "protocol"
+                && !string.IsNullOrWhiteSpace(SelectedGame.Source.LaunchSpec.Value)
+                && LegendaryClient.IsEpicLauncherInstalled())
+            {
+                EpicLauncherClient.StartInstall(SelectedGame.Source.LaunchSpec.Value);
+                StatusText = Loc.T("EpicLauncherInstallStarted", SelectedGame.Title);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
             _libraryService.LaunchGame(SelectedGame.Source);
             StatusText = SelectedGame.Source.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
@@ -161,9 +539,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         finally
         {
-            ScheduleStatusClear(TimeSpan.Zero);
+            if (SelectedGame is null || SelectedGame.Source.IsInstalled)
+                ScheduleStatusClear(TimeSpan.Zero);
         }
     }
+
 
     [RelayCommand]
     private void LaunchGame(GameItemViewModel? game)
@@ -172,7 +552,21 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         SelectedGame = game;
-        LaunchSelectedGame();
+        LaunchSelectedGameCommand.Execute(null);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoPrevious))]
+    private void PreviousPage()
+    {
+        if (CurrentPage > 1)
+            CurrentPage--;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanGoNext))]
+    private void NextPage()
+    {
+        if (CurrentPage < TotalPages)
+            CurrentPage++;
     }
 
     [RelayCommand]
@@ -245,7 +639,7 @@ public partial class MainWindowViewModel : ViewModelBase
         if (!string.IsNullOrWhiteSpace(query))
         {
             filtered = filtered.Where(g =>
-                g.Title.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                TitleMatchesQuery(g.Title, query) ||
                 g.PlatformLabel.Contains(query, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -258,15 +652,62 @@ public partial class MainWindowViewModel : ViewModelBase
             _ => filtered.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
         };
 
-        var selected = SelectedGame;
-        Games.Clear();
-        foreach (var game in filtered)
-            Games.Add(game);
+        _filteredGames = filtered.ToList();
+        CurrentPage = 1;
+        ApplyCurrentPage();
 
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+
+        var selected = SelectedGame;
         if (selected is not null && !Games.Contains(selected))
             SelectedGame = null;
+    }
 
-        GamesCountLabel = Loc.T("ShowingGamesCount", Games.Count);
+    private void ApplyCurrentPage()
+    {
+        Games.Clear();
+        var start = (CurrentPage - 1) * PageSize;
+        foreach (var game in _filteredGames.Skip(start).Take(PageSize))
+            Games.Add(game);
+
+        GamesCountLabel = _filteredGames.Count == 0
+            ? Loc.T("ShowingGamesCount", 0)
+            : Loc.T("ShowingGamesPage", Games.Count, _filteredGames.Count, CurrentPage, TotalPages);
+
+        ApplyGridCovers();
+    }
+
+    private void ApplyGridCovers()
+    {
+        var pageGames = Games.ToHashSet();
+
+        foreach (var game in _allGames)
+        {
+            if (pageGames.Contains(game))
+                continue;
+
+            game.ShowCoverInGrid = false;
+            if (!ReferenceEquals(game, SelectedGame))
+                game.ReleaseCover();
+        }
+
+        if (!ShowGridCovers)
+        {
+            foreach (var game in pageGames)
+                game.ShowCoverInGrid = false;
+            return;
+        }
+
+        foreach (var game in pageGames)
+        {
+            game.ShowCoverInGrid = true;
+            if (!game.HasCover)
+                _ = game.LoadCoverAsync();
+        }
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e) =>
@@ -280,6 +721,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         foreach (var game in _allGames)
             game.ApplyLocalization();
+
+        ShowGridCovers = _libraryService.Settings.Current.ShowGridCovers;
 
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
@@ -313,6 +756,34 @@ public partial class MainWindowViewModel : ViewModelBase
             // A new status message was scheduled before clearing.
         }
     }
+
+    private static bool TitleMatchesQuery(string title, string query)
+    {
+        if (title.Contains(query, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var compactTitle = CompactForSearch(title);
+        var compactQuery = CompactForSearch(query);
+        if (!string.IsNullOrEmpty(compactQuery)
+            && compactTitle.Contains(compactQuery, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var titleTokens = TokenizeForSearch(title);
+        var queryTokens = TokenizeForSearch(query);
+        return queryTokens.Length > 0
+               && queryTokens.All(queryToken =>
+                   titleTokens.Any(titleToken =>
+                       titleToken.Contains(queryToken, StringComparison.OrdinalIgnoreCase)
+                       || queryToken.Contains(titleToken, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static string CompactForSearch(string value) =>
+        new string(value.Where(char.IsLetterOrDigit).ToArray());
+
+    private static string[] TokenizeForSearch(string value) =>
+        value.Split([' ', '-', '_', ':', '&'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
 public sealed class PlatformFilterItem

@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
   <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} de {1} · página {2}/{3}</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Plataforma</value></data>
@@ -82,16 +85,71 @@
   <data name="LoadingLibrary" xml:space="preserve"><value>Cargando biblioteca...</value></data>
   <data name="ScanningLaunchers" xml:space="preserve"><value>Escaneando launchers instalados...</value></data>
   <data name="SyncingSteamLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Steam...</value></data>
+  <data name="SyncingSteamLocalLibrary" xml:space="preserve"><value>Leyendo biblioteca local de Steam...</value></data>
+  <data name="SteamLocalLibraryHint" xml:space="preserve"><value> · Biblioteca de Steam (local, automática)</value></data>
+  <data name="SteamLocalLibraryStatus" xml:space="preserve"><value>Automática · biblioteca local de Steam. Conecta API key para la biblioteca completa.</value></data>
   <data name="SyncingSteamPlaytime" xml:space="preserve"><value>Sincronizando tiempo de juego de Steam...</value></data>
   <data name="DownloadingCovers" xml:space="preserve"><value>Descargando portadas...</value></data>
   <data name="DownloadingCoversProgress" xml:space="preserve"><value>Descargando portadas ({0}/{1})...</value></data>
   <data name="GamesInLibrary" xml:space="preserve"><value>{0} juegos en biblioteca</value></data>
-  <data name="EpicCloudHint" xml:space="preserve"><value> · Epic en la nube vía legendary</value></data>
+  <data name="EpicCloudHint" xml:space="preserve"><value> · Biblioteca Epic en la nube</value></data>
+  <data name="SteamCloudHint" xml:space="preserve"><value> · Biblioteca Steam vía Web API</value></data>
+  <data name="UbisoftCloudHint" xml:space="preserve"><value> · Biblioteca Ubisoft vía Ubisoft Connect</value></data>
+  <data name="SyncingUbisoftLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Ubisoft...</value></data>
+  <data name="UbisoftCacheMissing" xml:space="preserve"><value>No se encontró la caché de Ubisoft Connect. Abre Ubisoft Connect e inicia sesión al menos una vez.</value></data>
+  <data name="SyncingEaLibrary" xml:space="preserve"><value>Sincronizando biblioteca de EA...</value></data>
+  <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>
+  <data name="DownloadingLegendary" xml:space="preserve"><value>Descargando ayudante de biblioteca Epic...</value></data>
+  <data name="SyncingEpicLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Epic...</value></data>
+  <data name="LegendaryPromptTitle" xml:space="preserve"><value>Conecta tu biblioteca Epic</value></data>
+  <data name="LegendaryPromptIntro" xml:space="preserve"><value>OpenGameHUB gestiona automáticamente el ayudante de biblioteca Epic (sin Python). Inicia sesión una vez para listar tus juegos de Epic e instalarlos desde aquí.</value></data>
+  <data name="LegendaryPromptAuthTitle" xml:space="preserve"><value>Inicio de sesión único</value></data>
+  <data name="LegendaryPromptAuth" xml:space="preserve"><value>Pulsa el botón para abrir el inicio de sesión de Epic. Cuando lo completes, actualiza la biblioteca aquí.</value></data>
+  <data name="LegendaryPromptConnectEpic" xml:space="preserve"><value>Conectar cuenta Epic</value></data>
+  <data name="LegendaryPromptContinue" xml:space="preserve"><value>Más tarde</value></data>
+  <data name="LegendaryPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
+  <data name="EaCloudHint" xml:space="preserve"><value> · Biblioteca EA vía EA app</value></data>
+  <data name="EaCloudLogHint" xml:space="preserve"><value> · Biblioteca EA vía logs de EA app</value></data>
+  <data name="EaCacheMissing" xml:space="preserve"><value>No se encontró la caché de la EA app. Abre la EA app e inicia sesión al menos una vez.</value></data>
+  <data name="EaCacheDecryptFailed" xml:space="preserve"><value>No se pudo leer la caché de la EA app. Abre la EA app, inicia sesión e inténtalo de nuevo. Si el problema continúa, repara la EA app desde Ajustes de Windows.</value></data>
+  <data name="EaAppNotInstalled" xml:space="preserve"><value>La EA app no está instalada en este PC.</value></data>
+  <data name="WaitingEaAppLaunch" xml:space="preserve"><value>Esperando a que se abra la EA app...</value></data>
+  <data name="WaitingEaLibrarySync" xml:space="preserve"><value>Esperando a que la EA app sincronice la biblioteca...</value></data>
+  <data name="EaLibraryPromptTitle" xml:space="preserve"><value>No se pudo leer la caché de EA</value></data>
+  <data name="EaLibraryPromptIntro" xml:space="preserve"><value>La EA app guarda tus juegos en una caché local cifrada ligada al hardware de este PC. OpenGameHUB no pudo descifrarla, así que tus juegos EA no instalados pueden faltar o estar incompletos.</value></data>
+  <data name="EaLibraryPromptWhyTitle" xml:space="preserve"><value>Cómo solucionarlo</value></data>
+  <data name="EaLibraryPromptWhy" xml:space="preserve"><value>Abre la EA app, inicia sesión y espera a que sincronice tu biblioteca. Eso suele reescribir la caché con la clave correcta para este PC. Si sigue fallando, repara la EA app en Ajustes de Windows → Aplicaciones.</value></data>
+  <data name="EaLibraryPromptFallbackTitle" xml:space="preserve"><value>Qué podemos hacer ahora</value></data>
+  <data name="EaLibraryPromptFallback" xml:space="preserve"><value>Hemos encontrado juegos en los logs recientes de la EA app en este PC. La lista puede estar incompleta o desactualizada hasta que se pueda leer la caché de nuevo.</value></data>
+  <data name="EaLibraryPromptRepairTitle" xml:space="preserve"><value>Si continúas ahora</value></data>
+  <data name="EaLibraryPromptRepair" xml:space="preserve"><value>Solo aparecerán tus juegos EA instalados hasta que la EA app sincronice correctamente. Abre la EA app primero y luego actualiza la biblioteca aquí.</value></data>
+  <data name="EaLibraryPromptOpenEaApp" xml:space="preserve"><value>Abrir EA app</value></data>
+  <data name="EaLibraryPromptContinue" xml:space="preserve"><value>Continuar igualmente</value></data>
+  <data name="EaLibraryPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
   <data name="ScanError" xml:space="preserve"><value>Error al escanear: {0}</value></data>
   <data name="MainWindowUnavailable" xml:space="preserve"><value>Ventana principal no disponible.</value></data>
   <data name="SelectGameFirst" xml:space="preserve"><value>Selecciona un juego primero.</value></data>
   <data name="LaunchingGame" xml:space="preserve"><value>Lanzando {0}...</value></data>
   <data name="StartingInstallLaunch" xml:space="preserve"><value>Iniciando instalación/lanzamiento de {0}...</value></data>
+  <data name="EpicLauncherInstallStarted" xml:space="preserve"><value>Epic Games Launcher abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
+  <data name="EpicLauncherInstallIntro" xml:space="preserve"><value>Abriendo Epic Games Launcher. Completa la instalación allí para poder gestionar y desinstalar el juego con normalidad.</value></data>
+  <data name="EpicLauncherInstallWaiting" xml:space="preserve"><value>Esperando a que Epic Games Launcher termine de instalar...</value></data>
+  <data name="EpicLauncherInstallDetected" xml:space="preserve"><value>Juego instalado desde Epic Games Launcher.</value></data>
+  <data name="EpicLauncherInstallBackground" xml:space="preserve"><value>La instalación continúa en Epic Games Launcher. Refresca la biblioteca cuando termine.</value></data>
+  <data name="EpicInstallUrlMissing" xml:space="preserve"><value>No se puede instalar este juego de Epic porque faltan sus identificadores de la tienda.</value></data>
+  <data name="EpicInstallLaunchFailed" xml:space="preserve"><value>No se pudo abrir Epic Games Launcher.</value></data>
+  <data name="EpicInstallProgressTitle" xml:space="preserve"><value>Instalando juego de Epic</value></data>
+  <data name="EpicInstallPreparing" xml:space="preserve"><value>Preparando descarga...</value></data>
+  <data name="EpicInstallProgress" xml:space="preserve"><value>Descargando... {0}%</value></data>
+  <data name="EpicInstallFinishing" xml:space="preserve"><value>Finalizando instalación...</value></data>
+  <data name="EpicInstallComplete" xml:space="preserve"><value>Instalación completada. Sincronizado con Epic Games Launcher.</value></data>
+  <data name="EpicInstallSyncingEpic" xml:space="preserve"><value>Sincronizando con Epic Games Launcher...</value></data>
+  <data name="EpicInstallNotVerified" xml:space="preserve"><value>Legendary terminó pero no se encontró "{0}" en la lista de juegos instalados.</value></data>
+  <data name="EpicInstallFailed" xml:space="preserve"><value>Error en la instalación: {0}</value></data>
+  <data name="EpicInstallFailedExitCode" xml:space="preserve"><value>Legendary terminó con código {0}.</value></data>
+  <data name="EpicInstallCancelled" xml:space="preserve"><value>Instalación cancelada.</value></data>
+  <data name="EpicInstallCancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="EpicInstallClose" xml:space="preserve"><value>Cerrar</value></data>
   <data name="LaunchFailed" xml:space="preserve"><value>No se pudo lanzar: {0}</value></data>
   <data name="AddedToFavorites" xml:space="preserve"><value>Añadido a favoritos: {0}</value></data>
   <data name="RemovedFromFavorites" xml:space="preserve"><value>Quitado de favoritos: {0}</value></data>
@@ -111,7 +169,81 @@
   <data name="LanguageSpanish" xml:space="preserve"><value>Español</value></data>
   <data name="SteamWebApi" xml:space="preserve"><value>Steam Web API</value></data>
   <data name="SteamApiHelp" xml:space="preserve"><value>Obtén tu clave en steamcommunity.com/dev/apikey y tu SteamID64 en steamid.io</value></data>
+  <data name="SteamSetupButton" xml:space="preserve"><value>Configurar biblioteca de Steam...</value></data>
+  <data name="SteamSetupTitle" xml:space="preserve"><value>Configurar biblioteca de Steam</value></data>
+  <data name="SteamSetupDescription" xml:space="preserve"><value>Opcional: conecta tu biblioteca completa de Steam vía Web API. Ya leemos tu biblioteca local automáticamente — esto añade juegos que tienes pero Steam nunca sincronizó en este PC.</value></data>
+  <data name="SteamSetupStepAccount" xml:space="preserve"><value>1. Tu cuenta de Steam</value></data>
+  <data name="SteamSetupStepAccountHelp" xml:space="preserve"><value>Detectada desde tu instalación local de Steam. Inicia sesión en el cliente de Steam si falla la detección.</value></data>
+  <data name="SteamSetupDetectAccount" xml:space="preserve"><value>Detectar cuenta</value></data>
+  <data name="SteamSetupDetectedAccount" xml:space="preserve"><value>{0} · {1}</value></data>
+  <data name="SteamSetupAccountDetected" xml:space="preserve"><value>Cuenta detectada.</value></data>
+  <data name="SteamSetupApiKeyReady" xml:space="preserve"><value>Cuenta detectada. Lee las instrucciones del paso 2 y abre la página de API key cuando estés listo.</value></data>
+  <data name="SteamSetupAccountNotFound" xml:space="preserve"><value>No se pudo leer tu cuenta de Steam. Abre Steam, inicia sesión e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupSteamNotInstalled" xml:space="preserve"><value>Steam no está instalado en este PC.</value></data>
+  <data name="SteamSetupStepApiKey" xml:space="preserve"><value>2. Steam Web API key</value></data>
+  <data name="SteamSetupStepApiKeyHelp" xml:space="preserve"><value>Pulsa el botón, inicia sesión en Steam y crea una clave. Puedes usar cualquier dominio (p. ej. localhost). Luego pega la clave aquí.</value></data>
+  <data name="SteamSetupOpenApiKeyPage" xml:space="preserve"><value>Abrir página de API key de Steam</value></data>
+  <data name="SteamSetupApiKeyInstructions" xml:space="preserve"><value>Pega la API key que copiaste de Steam y pulsa Probar y guardar.</value></data>
+  <data name="SteamSetupTestAndSave" xml:space="preserve"><value>Probar y guardar</value></data>
+  <data name="SteamSetupTesting" xml:space="preserve"><value>Probando conexión...</value></data>
+  <data name="SteamSetupSuccess" xml:space="preserve"><value>Conectado. Se encontraron {0} juegos en tu biblioteca de Steam.</value></data>
+  <data name="SteamSetupMissingFields" xml:space="preserve"><value>Introduce tu API key de Steam y asegúrate de que se detectó tu cuenta.</value></data>
+  <data name="SteamSetupInvalidSteamId" xml:space="preserve"><value>El Steam ID no parece válido.</value></data>
+  <data name="SteamSetupInvalidApiKey" xml:space="preserve"><value>API key inválida. Comprueba la clave e inténtalo de nuevo.</value></data>
+  <data name="SteamSetupConnectionFailed" xml:space="preserve"><value>No se pudo conectar con Steam. Comprueba tu conexión e inténtalo de nuevo.</value></data>
+  <data name="SteamConfiguredStatus" xml:space="preserve"><value>Conectado · SteamID {0}</value></data>
+  <data name="SteamNotConfigured" xml:space="preserve"><value>Sin conectar. Configura Steam para ver tu biblioteca completa.</value></data>
+  <data name="SteamNotConfiguredInstalled" xml:space="preserve"><value>Steam detectado pero la biblioteca aún no está vinculada.</value></data>
+  <data name="SteamSetupPrompt" xml:space="preserve"><value> · Configura Steam en Ajustes</value></data>
+  <data name="SteamApiKeyPromptTitle" xml:space="preserve"><value>API key de Steam no configurada</value></data>
+  <data name="SteamApiKeyPromptIntro" xml:space="preserve"><value>Steam está instalado, pero aún no has vinculado una Web API key. Puedes configurarla ahora o continuar con la biblioteca local automática.</value></data>
+  <data name="SteamApiKeyPromptWhyTitle" xml:space="preserve"><value>¿Para qué sirve la API key?</value></data>
+  <data name="SteamApiKeyPromptWhy" xml:space="preserve"><value>Permite a OpenGameHUB listar tu biblioteca completa de Steam, incluidos juegos no instalados que nunca abriste en este PC, y sincronizar el tiempo de juego de tu cuenta.</value></data>
+  <data name="SteamApiKeyPromptWithoutTitle" xml:space="preserve"><value>Si continúas sin ella</value></data>
+  <data name="SteamApiKeyPromptWithout" xml:space="preserve"><value>Seguiremos leyendo tu biblioteca local de Steam automáticamente: juegos que Steam ha sincronizado en este PC, con tiempo de juego cuando esté disponible. Puede que falten juegos que posees pero nunca descargaste o jugaste aquí.</value></data>
+  <data name="SteamApiKeyPromptConfigure" xml:space="preserve"><value>Configurar API key</value></data>
+  <data name="SteamApiKeyPromptContinue" xml:space="preserve"><value>Continuar sin API key</value></data>
+  <data name="SteamApiKeyPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
+  <data name="SteamDisconnectApi" xml:space="preserve"><value>Quitar API key</value></data>
+  <data name="SteamApiDisconnected" xml:space="preserve"><value>API key de Steam eliminada. Se usará la biblioteca local en el próximo escaneo.</value></data>
+  <data name="EpicLibrarySection" xml:space="preserve"><value>Biblioteca Epic</value></data>
+  <data name="EpicConnectAccount" xml:space="preserve"><value>Conectar cuenta Epic</value></data>
+  <data name="EpicDisconnectAccount" xml:space="preserve"><value>Desconectar cuenta Epic</value></data>
+  <data name="EpicConnectedStatus" xml:space="preserve"><value>Cuenta Epic conectada. La sincronización en la nube está activa.</value></data>
+  <data name="EpicConnectedStatusNamed" xml:space="preserve"><value>Cuenta Epic conectada ({0}). La sincronización en la nube está activa.</value></data>
+  <data name="EpicNotConnectedStatus" xml:space="preserve"><value>Cuenta Epic no conectada. Conéctala para listar juegos que aún no están instalados.</value></data>
+  <data name="EpicAuthStarted" xml:space="preserve"><value>Inicio de sesión de Epic abierto. Cuando lo completes, actualiza la biblioteca.</value></data>
+  <data name="EpicDisconnecting" xml:space="preserve"><value>Desconectando cuenta Epic...</value></data>
+  <data name="EpicDisconnected" xml:space="preserve"><value>Cuenta Epic desconectada. Actualiza la biblioteca para quitar juegos Epic solo en la nube.</value></data>
+  <data name="EpicConnectFailed" xml:space="preserve"><value>No se pudo iniciar el inicio de sesión de Epic: {0}</value></data>
+  <data name="EpicDisconnectFailed" xml:space="preserve"><value>No se pudo desconectar la cuenta Epic: {0}</value></data>
+  <data name="EpicLauncherNotInstalled" xml:space="preserve"><value>Epic Games Launcher no está instalado en este PC.</value></data>
+  <data name="EpicHelperUnavailable" xml:space="preserve"><value>No se pudo preparar el ayudante de biblioteca Epic. Comprueba tu conexión e inténtalo de nuevo.</value></data>
+  <data name="DevModeSection" xml:space="preserve"><value>Desarrollador</value></data>
+  <data name="DevModeHelp" xml:space="preserve"><value>Restablece conexiones de plataformas y avisos de onboarding para pruebas. Relanzar también borra la caché local de biblioteca.</value></data>
+  <data name="DevResetConnections" xml:space="preserve"><value>Restablecer conexiones</value></data>
+  <data name="DevResetAndRelaunch" xml:space="preserve"><value>Restablecer y relanzar</value></data>
+  <data name="DevResetConnectionsDone" xml:space="preserve"><value>Conexiones restablecidas. Actualiza la biblioteca para volver a ver los avisos.</value></data>
+  <data name="DevClearLocalDatabase" xml:space="preserve"><value>Borrar base de datos local</value></data>
+  <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Base de datos local borrada. La biblioteca se actualizará al cerrar ajustes.</value></data>
+  <data name="AppUpdateSection" xml:space="preserve"><value>Actualizaciones</value></data>
+  <data name="AppCurrentVersion" xml:space="preserve"><value>Versión actual: {0}</value></data>
+  <data name="AppCheckForUpdates" xml:space="preserve"><value>Buscar actualizaciones</value></data>
+  <data name="AppInstallUpdate" xml:space="preserve"><value>Descargar e instalar</value></data>
+  <data name="AppUpdateAvailable" xml:space="preserve"><value>Actualización disponible: {0}</value></data>
+  <data name="AppUpdateUpToDate" xml:space="preserve"><value>Ya tienes la última versión ({0}).</value></data>
+  <data name="AppUpdateCheckFailed" xml:space="preserve"><value>No se pudo comprobar actualizaciones.</value></data>
+  <data name="AppUpdateCheckFailedDetail" xml:space="preserve"><value>No se pudo comprobar actualizaciones: {0}</value></data>
+  <data name="AppUpdateDownloading" xml:space="preserve"><value>Descargando actualización ({0:F0}%)...</value></data>
+  <data name="AppUpdateDownloadFailed" xml:space="preserve"><value>No se pudo descargar la actualización: {0}</value></data>
+  <data name="AppUpdateInstalling" xml:space="preserve"><value>Iniciando instalador. OpenGameHUB se cerrará.</value></data>
+  <data name="AppUpdateLaunchFailed" xml:space="preserve"><value>No se pudo iniciar el instalador.</value></data>
+  <data name="AppUpdateInstallerMissing" xml:space="preserve"><value>No se encontró el instalador: {0}</value></data>
+  <data name="AppUpdateAvailableHint" xml:space="preserve"><value>Actualización {0} disponible. Abre Ajustes para instalar.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
+  <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
+  <data name="ShowGridCovers" xml:space="preserve"><value>Mostrar portadas en la rejilla de juegos</value></data>
+  <data name="ShowGridCoversHelp" xml:space="preserve"><value>Desactívalo para ahorrar memoria. Las portadas siguen viéndose en el panel de detalles al seleccionar un juego.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
@@ -129,4 +261,5 @@
   <data name="ProcessStartFailed" xml:space="preserve"><value>No se pudo iniciar el proceso para {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>No se pudo ejecutar legendary.</value></data>
   <data name="LegendaryFailed" xml:space="preserve"><value>legendary falló con código {0}</value></data>
+  <data name="LegendaryTimedOut" xml:space="preserve"><value>legendary tardó demasiado en responder</value></data>
 </root>

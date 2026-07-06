@@ -16,7 +16,7 @@
         <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
     </Window.Resources>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="24">
+    <Grid RowDefinitions="Auto,Auto,*" Margin="24">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
             <StackPanel Spacing="6">
                 <TextBlock Text="OpenGameHUB"
@@ -123,8 +123,9 @@
                         Padding="16"
                         BorderBrush="#2B3448"
                         BorderThickness="1">
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl ItemsSource="{Binding Games}">
+                    <Grid RowDefinitions="*,Auto">
+                        <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Games}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel Orientation="Horizontal"/>
@@ -146,16 +147,21 @@
                                                     ClipToBounds="True"
                                                     Background="#141A28">
                                                 <Panel>
-                                                    <Image Source="{Binding CoverImage}"
-                                                           Stretch="UniformToFill"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"
-                                                           IsVisible="{Binding HasCover}"/>
-                                                    <Border IsVisible="{Binding !HasCover}"
+                                                    <Panel IsVisible="{Binding DisplayGridCover}">
+                                                        <Image Source="{Binding CoverImage}"
+                                                               Stretch="UniformToFill"
+                                                               HorizontalAlignment="Center"
+                                                               VerticalAlignment="Center"
+                                                               Opacity="{Binding GridCoverOpacity}"/>
+                                                        <Border Background="#66484848"
+                                                                IsVisible="{Binding !IsInstalled}"
+                                                                IsHitTestVisible="False"/>
+                                                    </Panel>
+                                                    <Border IsVisible="{Binding !DisplayGridCover}"
                                                             Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                                                            Opacity="0.28"/>
+                                                            Opacity="{Binding GridPlaceholderOpacity}"/>
                                                     <TextBlock Text="{Binding Title}"
-                                                               IsVisible="{Binding !HasCover}"
+                                                               IsVisible="{Binding !DisplayGridCover}"
                                                                Margin="14"
                                                                VerticalAlignment="Center"
                                                                HorizontalAlignment="Center"
@@ -204,7 +210,21 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </ScrollViewer>
+                        </ScrollViewer>
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    Spacing="12"
+                                    Margin="0,12,0,0">
+                            <Button Content="{Binding Strings.PreviousPage}"
+                                    Command="{Binding PreviousPageCommand}"/>
+                            <TextBlock VerticalAlignment="Center"
+                                       Foreground="#9AA6BF"
+                                       Text="{Binding GamesCountLabel}"/>
+                            <Button Content="{Binding Strings.NextPage}"
+                                    Command="{Binding NextPageCommand}"/>
+                        </StackPanel>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Column="1"
@@ -229,7 +249,8 @@
                             <Image Source="{Binding SelectedGame.CoverImage}"
                                    Stretch="UniformToFill"
                                    HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"/>
+                                   VerticalAlignment="Center"
+                                   IsVisible="{Binding SelectedGame.HasCover}"/>
                         </Border>
 
                         <TextBlock Text="{Binding SelectedGameTitle}"
@@ -255,11 +276,5 @@
                 </Border>
             </Grid>
         </Grid>
-
-        <TextBlock Grid.Row="3"
-                   Margin="0,12,0,0"
-                   Foreground="#6E7A93"
-                   FontSize="12"
-                   Text="{Binding GamesCountLabel}"/>
     </Grid>
 </Window>

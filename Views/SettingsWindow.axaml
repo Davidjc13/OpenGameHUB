@@ -5,76 +5,167 @@
         x:DataType="vm:SettingsViewModel"
         Title="{Binding Strings.SettingsWindowTitle}"
         Width="520"
-        Height="560"
-        MinHeight="520"
+        Height="700"
+        MinWidth="480"
+        MinHeight="620"
         WindowStartupLocation="CenterOwner"
         Background="#10131A">
 
-    <ScrollViewer Margin="24">
-        <StackPanel Spacing="16">
-            <TextBlock Text="{Binding Strings.SettingsTitle}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Foreground="#F4F7FF"/>
-            <TextBlock Text="{Binding Strings.SettingsDescription}"
-                       Foreground="#9AA6BF"
-                       TextWrapping="Wrap"/>
+    <Grid Margin="24"
+          RowDefinitions="*,Auto">
+        <ScrollViewer Grid.Row="0"
+                      Classes="dialogScroll"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding Strings.SettingsTitle}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="#F4F7FF"/>
+                    <TextBlock Text="{Binding Strings.SettingsDescription}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
 
-            <TextBlock Text="{Binding Strings.Language}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <ComboBox ItemsSource="{Binding LanguageOptions}"
-                      SelectedItem="{Binding SelectedLanguageOption}"
-                      HorizontalAlignment="Stretch">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:LanguageOption">
-                        <TextBlock Text="{Binding Label}"/>
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+                    <TextBlock Text="{Binding Strings.Language}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding LanguageOptions}"
+                              SelectedItem="{Binding SelectedLanguageOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LanguageOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-            <TextBlock Text="{Binding Strings.SteamWebApi}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <TextBlock Text="{Binding Strings.SteamApiHelp}"
-                       Foreground="#7E8AA3"
-                       FontSize="12"
-                       TextWrapping="Wrap"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamApiKeyPlaceholder}"
-                     Text="{Binding SteamApiKey}"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamIdPlaceholder}"
-                     Text="{Binding SteamId}"/>
+                    <TextBlock Text="{Binding Strings.SteamWebApi}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding SteamStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="{Binding Strings.SteamSetupButton}"
+                                Command="{Binding OpenSteamSetupCommand}"/>
+                        <Button Content="{Binding Strings.SteamDisconnectApi}"
+                                Command="{Binding ClearSteamApiCommand}"
+                                IsVisible="{Binding IsSteamApiConnected}"/>
+                    </StackPanel>
 
-            <TextBlock Text="{Binding Strings.CoverArtSection}"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
-                       Margin="0,8,0,0"/>
-            <TextBlock Text="{Binding Strings.CoverArtHelp}"
-                       Foreground="#7E8AA3"
-                       FontSize="12"
-                       TextWrapping="Wrap"/>
-            <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
-                     Text="{Binding IgdbClientId}"/>
-            <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
-                     Text="{Binding IgdbClientSecret}"/>
-            <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
-                     Text="{Binding SteamGridDbApiKey}"/>
+                    <TextBlock Text="{Binding Strings.EpicLibrarySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <TextBlock Text="{Binding EpicStatusText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding IsEpicSectionVisible}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10"
+                                IsVisible="{Binding IsEpicSectionVisible}">
+                        <Button Content="{Binding Strings.EpicConnectAccount}"
+                                Command="{Binding ConnectEpicCommand}"
+                                IsEnabled="{Binding CanConnectEpic}"/>
+                        <Button Content="{Binding Strings.EpicDisconnectAccount}"
+                                Command="{Binding DisconnectEpicCommand}"
+                                IsVisible="{Binding IsEpicConnected}"/>
+                    </StackPanel>
 
-            <TextBlock Text="{Binding StatusMessage}"
-                       Foreground="#9AA6BF"/>
+                    <TextBlock Text="{Binding Strings.DisplaySection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <CheckBox Content="{Binding Strings.ShowGridCovers}"
+                              IsChecked="{Binding ShowGridCovers}"
+                              Foreground="#C5CEE0"/>
+                    <TextBlock Text="{Binding Strings.ShowGridCoversHelp}"
+                               Foreground="#7E8AA3"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
 
-            <StackPanel Orientation="Horizontal"
-                        Spacing="10"
-                        HorizontalAlignment="Right"
-                        Margin="0,12,0,0">
-                <Button Content="{Binding Strings.Cancel}"
-                        Command="{Binding CancelCommand}"/>
-                <Button Classes="primary"
-                        Content="{Binding Strings.Save}"
-                        Command="{Binding SaveCommand}"/>
+                    <TextBlock Text="{Binding Strings.CoverArtSection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding Strings.CoverArtHelp}"
+                               Foreground="#7E8AA3"
+                               FontSize="12"
+                               TextWrapping="Wrap"/>
+                    <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
+                             Text="{Binding IgdbClientId}"/>
+                    <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
+                             Text="{Binding IgdbClientSecret}"/>
+                    <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
+                             Text="{Binding SteamGridDbApiKey}"/>
+
+                    <TextBlock Text="{Binding Strings.AppUpdateSection}"
+                               FontWeight="SemiBold"
+                               Foreground="#D7DFF1"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding AppVersionText}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button Content="{Binding Strings.AppCheckForUpdates}"
+                                Command="{Binding CheckForUpdatesCommand}"
+                                IsEnabled="{Binding !IsUpdateBusy}"/>
+                        <Button Classes="primary"
+                                Content="{Binding Strings.AppInstallUpdate}"
+                                Command="{Binding InstallUpdateCommand}"
+                                IsVisible="{Binding IsUpdateAvailable}"/>
+                    </StackPanel>
+                    <ProgressBar Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding UpdateProgress}"
+                                 IsIndeterminate="{Binding ShowIndeterminateUpdateProgress}"
+                                 IsVisible="{Binding IsUpdateBusy}"
+                                 Height="4"/>
+
+                    <Border Background="#1A1218"
+                            CornerRadius="10"
+                            Padding="14"
+                            BorderBrush="#5C3040"
+                            BorderThickness="1"
+                            IsVisible="{Binding IsDevModeEnabled}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{Binding Strings.DevModeSection}"
+                                       FontWeight="SemiBold"
+                                       Foreground="#F2B8C6"/>
+                            <TextBlock Text="{Binding Strings.DevModeHelp}"
+                                       Foreground="#9AA6BF"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Content="{Binding Strings.DevResetConnections}"
+                                        Command="{Binding DevResetConnectionsCommand}"/>
+                                <Button Content="{Binding Strings.DevResetAndRelaunch}"
+                                        Command="{Binding DevResetAndRelaunchCommand}"/>
+                                <Button Content="{Binding Strings.DevClearLocalDatabase}"
+                                        Command="{Binding DevClearLocalDatabaseCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="#9AA6BF"
+                               TextWrapping="Wrap"/>
             </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button Content="{Binding Strings.Cancel}"
+                    Command="{Binding CancelCommand}"/>
+            <Button Classes="primary"
+                    Content="{Binding Strings.Save}"
+                    Command="{Binding SaveCommand}"/>
         </StackPanel>
-    </ScrollViewer>
+    </Grid>
 </Window>

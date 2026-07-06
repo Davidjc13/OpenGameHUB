@@ -1,6 +1,11 @@
 using System.Diagnostics;
+using Microsoft.Win32;
 using OpenGameHUB.Data;
 using OpenGameHUB.Models;
+using OpenGameHUB.Services.Ea;
+using OpenGameHUB.Services.Epic;
+using OpenGameHUB.Services.LibraryProviders;
+using OpenGameHUB.Services.Ubisoft;
 using GameLib;
 using GameLib.Core;
 using GameLib.Plugin.Steam.Model;
@@ -9,9 +14,10 @@ namespace OpenGameHUB.Services;
 
 public sealed class GameLibraryService : IDisposable
 {
-    private readonly GameDatabase _database = new();
-    private readonly MetadataService _metadataService;
+    private GameDatabase _database = new();
+    private MetadataService _metadataService;
     private readonly SteamWebApiService _steamWebApiService = new();
+    private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SettingsService _settingsService = new();
     private readonly LauncherManager _launcherManager = new(new LauncherOptions
     {
@@ -19,13 +25,49 @@ public sealed class GameLibraryService : IDisposable
         LoadLocalCatalogData = true,
         SearchExecutables = true
     });
+    private readonly SteamCloudLibraryProvider _steamCloudProvider;
+    private readonly EpicCloudLibraryProvider _epicCloudProvider;
+    private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
 
     public GameLibraryService()
     {
+        _steamCloudProvider = new SteamCloudLibraryProvider(_settingsService, _steamWebApiService);
+        _epicCloudProvider = new EpicCloudLibraryProvider();
+        _cloudProviders =
+        [
+            _steamCloudProvider,
+            _epicCloudProvider,
+            new UbisoftCloudLibraryProvider(),
+            new EaCloudLibraryProvider()
+        ];
         _metadataService = new MetadataService(_database, _settingsService);
     }
 
-    public bool IsLegendaryAvailable => LegendaryClient.IsAvailable();
+    public bool IsEpicCloudAvailable => _epicCloudProvider.IsAvailable();
+
+    public bool IsEpicConnected =>
+        LegendaryClient.HasStoredCredentials()
+        || _settingsService.Current.HasEpicAuth;
+
+    public bool ShouldOfferLegendaryPrompt =>
+        LegendaryClient.IsEpicLauncherInstalled()
+        && LegendaryClient.IsAvailable()
+        && !IsEpicConnected
+        && !_settingsService.Current.DismissLegendaryPrompt;
+
+    public bool IsUbisoftCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Ubisoft && p.IsAvailable());
+
+    public bool IsEaCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.Ea && p.IsAvailable());
+
+    public EaLibraryCacheStatus EaLibraryCacheStatus => EaCatalogReader.GetCacheStatus();
+
+    public bool ShouldOfferEaLibraryPrompt => EaCatalogReader.ShouldOfferLibraryPrompt();
+
+    public bool IsSteamCloudAvailable => _steamCloudProvider.IsAvailable();
+
+    public bool IsSteamApiConfigured => _settingsService.Current.IsSteamApiConfigured;
 
     public SettingsService Settings => _settingsService;
 
@@ -40,47 +82,111 @@ public sealed class GameLibraryService : IDisposable
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default)
     {
-        var games = await Task.Run(() => ScanAllGames(cancellationToken), cancellationToken);
+        IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry> steamOwned = [];
 
         if (_settingsService.Current.IsSteamApiConfigured)
         {
             progress?.Report(Loc.T("SyncingSteamLibrary"));
             try
             {
-                var owned = await _steamWebApiService.GetOwnedGamesAsync(
+                steamOwned = await _steamWebApiService.GetOwnedGamesAsync(
                     _settingsService.Current.SteamApiKey,
                     _settingsService.Current.SteamId,
                     cancellationToken);
-                games = DeduplicateGames(games
-                    .Concat(_steamWebApiService.GetUninstalledOwnedGames(owned, games))
-                    .ToList())
-                    .ToList();
+                _steamCloudProvider.SetOwnedGames(steamOwned);
             }
             catch
             {
-                // Steam API cloud library is optional.
+                _steamCloudProvider.ClearOwnedGames();
             }
         }
+        else if (SteamLocalAccountReader.IsSteamInstalled)
+        {
+            progress?.Report(Loc.T("SyncingSteamLocalLibrary"));
+            try
+            {
+                steamOwned = await LoadLocalSteamLibraryAsync(cancellationToken);
+                _steamCloudProvider.SetOwnedGames(steamOwned);
+            }
+            catch
+            {
+                _steamCloudProvider.ClearOwnedGames();
+            }
+        }
+        else
+        {
+            _steamCloudProvider.ClearOwnedGames();
+        }
+
+        if (LegendaryClient.IsEpicLauncherInstalled())
+        {
+            progress?.Report(Loc.T("PreparingEpicLibrary"));
+            using var downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            downloadCts.CancelAfter(TimeSpan.FromSeconds(90));
+            try
+            {
+                await LegendaryBootstrap.EnsureInstalledAsync(progress, downloadCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                // Epic helper download timed out; continue without cloud Epic.
+            }
+
+            LegendaryClient.InvalidateExecutableCache();
+            EpicAuthHelper.PersistFromLegendary(_settingsService);
+        }
+
+        var games = await Task.Run(
+            () => ScanAllGames(progress, cancellationToken),
+            cancellationToken);
 
         _database.SyncScannedGames(games);
 
         var stored = _database.GetAllGames();
+        SteamWebApiService.EnrichCatalogCoverUrls(stored);
+        UbisoftCatalogReader.EnrichCatalogCoverUrls(stored);
 
-        if (_settingsService.Current.IsSteamApiConfigured)
+        if (steamOwned.Count > 0)
         {
             progress?.Report(Loc.T("SyncingSteamPlaytime"));
-            await _steamWebApiService.EnrichPlaytimeAsync(
-                stored,
-                _settingsService.Current.SteamApiKey,
-                _settingsService.Current.SteamId,
-                cancellationToken);
+            _steamWebApiService.EnrichPlaytimeFromOwned(stored, steamOwned);
             _database.PersistPlaytimes(stored);
         }
 
-        progress?.Report(Loc.T("DownloadingCovers"));
         _metadataService.ReconcileCachedCovers(stored);
-        await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken);
         return _database.GetAllGames();
+    }
+
+    public async Task EnrichCoversAsync(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default,
+        int maxCovers = 32)
+    {
+        var stored = _database.GetAllGames();
+        await _metadataService.EnrichCoversAsync(stored, progress, cancellationToken, maxCovers);
+    }
+
+    private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
+        CancellationToken cancellationToken)
+    {
+        var localApps = await Task.Run(SteamLocalLibraryReader.ReadOwnedApps, cancellationToken);
+        if (localApps.Count == 0)
+            return [];
+
+        var names = await _steamStoreClient.GetAppNamesAsync(
+            localApps.Select(app => app.AppId),
+            cancellationToken);
+
+        return localApps
+            .Select(app => new SteamWebApiService.SteamOwnedGameEntry(
+                app.AppId,
+                names.TryGetValue(app.AppId, out var name)
+                    ? name
+                    : $"Steam App {app.AppId}",
+                app.PlaytimeMinutes,
+                app.LastPlayed))
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.Name))
+            .ToList();
     }
 
     public void LaunchGame(UnifiedGame game)
@@ -147,23 +253,37 @@ public sealed class GameLibraryService : IDisposable
             && MetadataSearchHelper.NormalizeTitle(other.Title).ToLowerInvariant() == titleKey);
     }
 
-    private List<UnifiedGame> ScanAllGames(CancellationToken cancellationToken)
+    private List<UnifiedGame> ScanAllGames(
+        IProgress<string>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var games = ScanInstalledGames(cancellationToken).ToList();
         games.AddRange(EaDesktopScanner.Scan());
         games.AddRange(XboxGamePassScanner.Scan());
+        games.AddRange(EpicManifestScanner.ScanInstalled());
 
-        if (LegendaryClient.IsAvailable())
+        foreach (var provider in _cloudProviders)
         {
+            if (!provider.IsAvailable())
+                continue;
+
             try
             {
-                var cloudEpic = LegendaryClient.GetCloudOnlyGamesAsync(games, cancellationToken)
-                    .GetAwaiter().GetResult();
-                games.AddRange(cloudEpic);
+                if (provider.Platform == Platform.Ea)
+                    EaCatalogReader.InvalidateCache();
+
+                if (provider.Platform == Platform.Ubisoft)
+                    progress?.Report(Loc.T("SyncingUbisoftLibrary"));
+                else if (provider.Platform == Platform.Ea)
+                    progress?.Report(Loc.T("SyncingEaLibrary"));
+                else if (provider.Platform == Platform.Epic)
+                    progress?.Report(Loc.T("SyncingEpicLibrary"));
+
+                games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
             catch
             {
-                // legendary is optional
+                // cloud library providers are optional
             }
         }
 
@@ -185,10 +305,28 @@ public sealed class GameLibraryService : IDisposable
 
         return pathMerged
             .Concat(withoutPath)
-            .GroupBy(g => NormalizeTitleKey(g.Title), StringComparer.OrdinalIgnoreCase)
+            .GroupBy(GetDedupKey, StringComparer.OrdinalIgnoreCase)
             .Select(PickPreferredDuplicate)
             .OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    private static string GetDedupKey(UnifiedGame game)
+    {
+        var installPath = NormalizeInstallPath(game.InstallPath);
+        if (!string.IsNullOrEmpty(installPath))
+            return installPath;
+
+        if (game.Id.StartsWith("ea:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase))
+        {
+            return game.Id.ToLowerInvariant();
+        }
+
+        return NormalizeTitleKey(game.Title);
     }
 
     private static UnifiedGame PickPreferredDuplicate(IEnumerable<UnifiedGame> group) =>
@@ -333,9 +471,17 @@ public sealed class GameLibraryService : IDisposable
         throw new InvalidOperationException(Loc.T("CannotDetermineLaunch", game.Name));
     }
 
-    private static List<Action> BuildLaunchAttempts(UnifiedGame game)
+    private List<Action> BuildLaunchAttempts(UnifiedGame game)
     {
         var attempts = new List<Action>();
+
+        if (!game.IsInstalled)
+        {
+            foreach (var provider in _cloudProviders.Where(p => p.Platform == game.Platform))
+            {
+                attempts.AddRange(provider.GetInstallLaunchAttempts(game));
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(game.LaunchSpec.Kind) &&
             !string.IsNullOrWhiteSpace(game.LaunchSpec.Value))
@@ -357,11 +503,8 @@ public sealed class GameLibraryService : IDisposable
         if (game.Platform == Platform.Steam &&
             int.TryParse(game.PlatformGameId, out var appId))
         {
-            if (!game.IsInstalled)
-                attempts.Insert(0, () => StartProtocol($"steam://install/{appId}"));
-
-            var steamExe = @"C:\Program Files (x86)\Steam\steam.exe";
-            if (File.Exists(steamExe))
+            var steamExe = FindSteamExecutable();
+            if (steamExe is not null)
                 attempts.Add(() => StartProcess(steamExe, $"-applaunch {appId}", Path.GetDirectoryName(steamExe)));
         }
 
@@ -415,26 +558,26 @@ public sealed class GameLibraryService : IDisposable
             throw new FileNotFoundException(Loc.T("LauncherNotFound", launcher));
 
         var arguments = value[(separator + 1)..];
-        StartProcess(launcher, arguments, workingDirectory ?? Path.GetDirectoryName(launcher), useShellExecute: false);
+        var hideWindow = LegendaryClient.IsLegendaryExecutable(launcher);
+        StartProcess(
+            launcher,
+            arguments,
+            workingDirectory ?? Path.GetDirectoryName(launcher),
+            useShellExecute: false,
+            hideWindow: hideWindow);
     }
 
     private static void StartProtocol(string url)
     {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
+        StartProcess(url, null, null, useShellExecute: true);
     }
 
     private static void StartProcess(
         string fileName,
         string? arguments,
         string? workingDirectory,
-        bool useShellExecute = true)
+        bool useShellExecute = true,
+        bool hideWindow = false)
     {
         if (!useShellExecute && !File.Exists(fileName))
             throw new FileNotFoundException(Loc.T("ExecutableNotFound", fileName));
@@ -446,6 +589,12 @@ public sealed class GameLibraryService : IDisposable
             WorkingDirectory = workingDirectory ?? string.Empty,
             UseShellExecute = useShellExecute
         };
+
+        if (!useShellExecute && hideWindow)
+        {
+            psi.CreateNoWindow = true;
+            psi.WindowStyle = ProcessWindowStyle.Hidden;
+        }
 
         if (string.IsNullOrWhiteSpace(workingDirectory))
             psi.WorkingDirectory = string.Empty;
@@ -502,6 +651,28 @@ public sealed class GameLibraryService : IDisposable
                || name is "unitycrashhandler64.exe" or "unitycrashhandler32.exe";
     }
 
+    private static string? FindSteamExecutable()
+    {
+        const string defaultPath = @"C:\Program Files (x86)\Steam\steam.exe";
+        if (File.Exists(defaultPath))
+            return defaultPath;
+
+        foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
+        {
+            using var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, view);
+            using var steamKey = baseKey.OpenSubKey(@"Software\Valve\Steam");
+            var steamPath = steamKey?.GetValue("SteamPath") as string;
+            if (string.IsNullOrWhiteSpace(steamPath))
+                continue;
+
+            var candidate = Path.Combine(steamPath.Replace('/', Path.DirectorySeparatorChar), "steam.exe");
+            if (File.Exists(candidate))
+                return candidate;
+        }
+
+        return null;
+    }
+
     private static Platform MapPlatform(string launcherName) => launcherName.ToLowerInvariant() switch
     {
         "steam" => Platform.Steam,
@@ -514,6 +685,14 @@ public sealed class GameLibraryService : IDisposable
         "riot games" or "riot" => Platform.Riot,
         _ => Platform.Unknown
     };
+
+    public void ResetLocalCache()
+    {
+        _database.Dispose();
+        DevModeService.ClearLocalLibraryCache();
+        _database = new GameDatabase();
+        _metadataService = new MetadataService(_database, _settingsService);
+    }
 
     public void Dispose() => _database.Dispose();
 }
