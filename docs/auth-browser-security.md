@@ -1,6 +1,6 @@
 # Auth browser security model
 
-OpenGameHUB uses an embedded **WebView2** window only for **OAuth login** with external platforms (Microsoft/Xbox, Epic). The browser exists to let the user sign in on the provider’s pages; the app never reads usernames or passwords and never injects script into those pages.
+OpenGameHUB uses an embedded **WebView2** window for **account setup** with external platforms (Microsoft/Xbox, Epic, Steam). The browser exists to let the user sign in on the provider’s pages; the app never reads usernames or passwords and never injects script into those pages.
 
 This document explains **what we defend against**, **how each control is implemented**, and **whether it matches common secure practice** for desktop launchers.
 
@@ -56,6 +56,7 @@ sequenceDiagram
 | ---------------- | ------------------------------------ | ------------------------------------------------------------------ |
 | Xbox / Microsoft | `XboxAuthService.SignInAsync`        | `XboxAuthCaptureStrategy`                                          |
 | Epic             | `SettingsViewModel.ConnectEpicAsync` | `EpicAuthCaptureStrategy` → `LegendaryClient.RunAuthWithCodeAsync` |
+| Steam            | `SteamSetupViewModel.SignInWithBrowserAsync` | `SteamAuthCaptureStrategy` → `TestAndSaveAsync`              |
 
 
 **Core files**
@@ -75,8 +76,9 @@ sequenceDiagram
 
 - **Xbox:** system browser + manual paste (`XboxPasteAuthWindow`) — same code extraction, worse UX, user must not paste URLs into untrusted places.
 - **Epic:** `legendary auth` opens its own browser flow.
+- **Steam:** system browser via “Open API key page” when WebView2 is missing.
 
-**Steam** is intentionally **not** handled in the embedded browser. There is no standard OAuth callback for “create API key”; setup stays manual (open page, paste key). See [storage-and-settings.md](storage-and-settings.md).
+**Steam** uses the embedded browser when WebView2 is available: login + API key registration happen on `steamcommunity.com`, and the app reads the Steam ID and API key from **HTML responses** (not JavaScript injection). Manual paste remains as fallback. See [storage-and-settings.md](storage-and-settings.md).
 
 ---
 
@@ -113,10 +115,13 @@ sequenceDiagram
 **Current allowlists**
 
 
-| Provider | Hosts                                                                                                 |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| Xbox     | `login.live.com`, `login.microsoftonline.com`, `account.live.com`, `signup.live.com`, `microsoft.com` |
-| Epic     | `legendary.gl`, `epicgames.com`, `unrealengine.com`                                                   |
+| Provider | Hosts                                                          |
+| -------- | -------------------------------------------------------------- |
+| Xbox     | `login.live.com`, `login.microsoftonline.com`, `account.live.com`, `signup.live.com` |
+| Epic     | `legendary.gl`, `epicgames.com`, `unrealengine.com`            |
+| Steam    | `steamcommunity.com`, `steampowered.com`                         |
+
+The broad `microsoft.com` entry was removed: login navigations stay within the four Live/Entra hosts above, and static resources (`*.msauth.net`, `*.msftauth.net` CDNs) are fetched as sub-resources, not top-level/frame navigations, so `NavigationStarting` never blocks them.
 
 
 
@@ -165,13 +170,11 @@ sequenceDiagram
 
 | Provider | Capture point                                             | What is extracted                                                  |
 | -------- | --------------------------------------------------------- | ------------------------------------------------------------------ |
-| Xbox     | Navigation to `login.live.com/oauth20_desktop.srf?code=…` | Query param `code` (`XboxAuthService.TryExtractAuthorizationCode`) |
+| Xbox     | Navigation to `login.live.com/oauth20_desktop.srf?code=…` | Query param `code` after `state` match (`XboxAuthService.TryExtractAuthorizationCode`) |
 | Epic     | Response to URL containing `/id/api/redirect`             | JSON field `authorizationCode` only                                |
+| Steam    | HTML response from `steamcommunity.com` pages             | `g_steamID` script variable + API key on `/dev/apikey` (`SteamAuthCaptureStrategy`) |
 
-
-After capture, the dialog closes immediately; token exchange runs **outside** the WebView (`XboxAccountClient.CompleteLoginAsync`, `legendary auth --code`).
-
-**Not in scope:** Steam API keys, cookies, refresh tokens from the WebView, or form fields.
+After capture, the dialog closes immediately (or stays open for Steam until both Steam ID and API key are present); token exchange / validation runs **outside** the WebView (`XboxAccountClient.CompleteLoginAsync`, `legendary auth --code`, `SteamWebApiService.TestConnectionAsync`).
 
 ---
 
@@ -251,6 +254,21 @@ Script dialogs remain enabled so legitimate IdP pages that use `alert`/`confirm`
 
 
 
+### 10. PKCE + `state` on the Xbox flow
+
+**Risk:** Without a CSRF binding, a fabricated `?code=` redirect could inject an attacker-controlled authorization code; without PKCE, a leaked code (e.g. via logs or an intercepting redirect handler) could be replayed by another client.
+
+**Implementation** (`XboxAccountClient`, `XboxAuthService`, `XboxAuthCaptureStrategy`)
+
+- `CreateOAuthSession()` generates a random `state` and a PKCE `code_verifier`, and appends `code_challenge` + `code_challenge_method=S256` and `state` to the authorize URL.
+- The captured redirect is rejected unless its `state` matches the one we generated (`XboxAuthService.IsMatchingState`), both in the embedded WebView and in the paste fallback.
+- Token exchange sends the matching `code_verifier` (`CompleteLoginAsync(code, codeVerifier)`), so an intercepted code is useless without the verifier that never left the app.
+- The `code_verifier` is held only in memory for the duration of one login and never persisted or logged.
+
+---
+
+
+
 ## Is this “secure practice” overall?
 
 **For a Windows game launcher: yes, this is a reasonable and common baseline**, aligned with how many apps implement “Sign in with …” using WebView2 or system browser:
@@ -271,26 +289,33 @@ It is **not** a substitute for a full security audit or formal threat model sign
 
 
 
-### Known gaps and hardening opportunities
+### Closed gaps (previously flagged, now mitigated)
 
 
-| Gap                                                 | Severity   | Notes                                                                                                                                              |
-| --------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No** `state` **/ PKCE in our Xbox authorize URL** | Medium     | Microsoft desktop flow often omits PKCE; adding `state` would improve CSRF binding for custom redirect handlers. Evaluate against Live OAuth docs. |
-| **Broad allowlist entries** (`microsoft.com`)       | Low–medium | Prefer minimal host sets per provider documentation.                                                                                               |
-| **Epic tokens in legendary** `user.json`            | Medium     | Outside our DPAPI layer; users with malware on the same account can read user files. Same as any legendary user.                                   |
-| **Response body capture (Epic)**                    | Low        | Mitigated by path filter `/id/api/redirect`; still depends on TLS and correct host allowlist.                                                      |
-| **Fallback: paste URL (Xbox)**                      | Low (UX)   | User could paste a malicious URL; we only parse `code=` with a strict regex on expected host patterns when pasted manually.                        |
-| **No certificate pinning** on token HTTP            | Low        | Standard for desktop; relies on OS TLS stack.                                                                                                      |
-| **Client id visible in binary**                     | Accepted   | Expected for public clients; do **not** add secrets to “compensate.”                                                                               |
-| **WebView2 runtime trust**                          | Accepted   | We depend on Microsoft’s Evergreen runtime updates.                                                                                                |
+| Item                                     | Fix                                                                                                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No** `state` **/ PKCE (Xbox)**         | `CreateOAuthSession()` now emits PKCE (`S256`) + random `state`; the redirect is rejected on `state` mismatch and the code is exchanged with `code_verifier`.  |
+| **Broad allowlist entry** `microsoft.com`| Removed; Xbox allowlist scoped to the four Live/Entra login hosts (see [allowlist](#2-domain-allowlist)).                                                       |
+| **Fallback: paste URL (Xbox)**           | Pasted URL is now validated to be a `login.live.com` redirect **and** carry the matching `state` before the `code` is accepted (`IsExpectedRedirect`).          |
+
+
+### Remaining gaps and accepted risks
+
+
+| Gap                                      | Severity | Notes                                                                                                                                            |
+| ---------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Epic tokens in legendary** `user.json` | Medium   | Outside our DPAPI layer; managed by the legendary CLI. Residual risk inherited from the tool — same as any legendary user.                       |
+| **Response body capture (Epic)**         | Low      | Mitigated by path filter `/id/api/redirect` and the host allowlist; still depends on TLS. No PKCE hook exposed by the legendary web flow.        |
+| **No certificate pinning** on token HTTP | Low      | Standard for desktop; relies on the OS TLS stack and system trust store.                                                                         |
+| **Client id visible in binary**          | Accepted | Expected for public clients; do **not** add secrets to “compensate.”                                                                            |
+| **WebView2 runtime trust**               | Accepted | We depend on Microsoft’s Evergreen runtime updates.                                                                                             |
 
 
 
 
 ### Steam
 
-Steam library setup **deliberately** does not use the auth browser: API keys are user-issued secrets, not OAuth codes. That avoids DOM scraping and reduces WebView exposure. Trade-off: more manual steps for the user.
+Steam has no OAuth callback for API keys. The embedded browser navigates to `steamcommunity.com/dev/apikey` after login; the app extracts the **Steam ID** (`g_steamID` in page HTML) and **API key** (32-char hex on the key page) from **HTTP response bodies** only—no `ExecuteScriptAsync`. The browser stays open until both values are captured, then `SteamWebApiService` validates them outside the WebView. If WebView2 is unavailable, the user can still open the page in the system browser and paste the key manually.
 
 ---
 
