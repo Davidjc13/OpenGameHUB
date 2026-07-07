@@ -14,6 +14,7 @@ internal static class XboxAuthService
         if (string.IsNullOrWhiteSpace(authorizationCode))
             throw new InvalidOperationException(Loc.T("XboxAuthCancelled"));
 
+        // Exchange the code over HTTP; tokens are persisted via DPAPI in XboxTokenStore.
         var client = new XboxAccountClient();
         await client.CompleteLoginAsync(authorizationCode);
         var gamertag = await client.GetGamertagAsync();
