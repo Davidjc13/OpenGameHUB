@@ -47,6 +47,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
 
         _host = host;
         host.UserDataFolder = _profilePath;
+        host.AllowedHosts = _strategy.AllowedHosts;
         host.NavigationStarting += OnNavigationStarting;
         host.SourceChanged += OnSourceChanged;
         host.NavigationCompleted += OnNavigationCompleted;
@@ -125,18 +126,10 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
                 url).ConfigureAwait(true);
 
             if (captured is null)
-            {
-                if (!string.IsNullOrWhiteSpace(_strategy.WaitingStatusKey))
-                    StatusMessage = Loc.T(_strategy.WaitingStatusKey);
                 return;
-            }
 
             if (captured is SteamBrowserCaptureResult steam && !steam.IsComplete)
-            {
-                if (!string.IsNullOrWhiteSpace(_strategy.WaitingStatusKey))
-                    StatusMessage = Loc.T(_strategy.WaitingStatusKey);
                 return;
-            }
 
             CompleteCapture(captured);
         }

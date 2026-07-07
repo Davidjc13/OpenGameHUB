@@ -8,7 +8,7 @@ internal interface IAuthCaptureStrategy
 
     string IntroKey { get; }
 
-    string? WaitingStatusKey { get; }
+    IReadOnlyList<string> AllowedHosts { get; }
 
     object? TryCaptureFromNavigation(string url);
 

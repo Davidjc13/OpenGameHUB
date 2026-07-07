@@ -118,7 +118,15 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             _webView.Settings.AreDevToolsEnabled = false;
 
             _webView.NavigationStarting += (_, e) =>
+            {
+                if (!TryGetHost(e.Uri, out var host) || !AuthHostPolicy.IsHostAllowed(host, AllowedHosts))
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
                 NavigationStarting?.Invoke(this, e.Uri);
+            };
             _webView.SourceChanged += (_, _) =>
                 SourceChanged?.Invoke(this, _webView.Source);
             _webView.NavigationCompleted += (_, e) =>
@@ -159,6 +167,16 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             DestroyWindow(_hostHwnd);
             _hostHwnd = IntPtr.Zero;
         }
+    }
+
+    private static bool TryGetHost(string url, out string host)
+    {
+        host = string.Empty;
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            return false;
+
+        host = uri.Host;
+        return !string.IsNullOrWhiteSpace(host);
     }
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]

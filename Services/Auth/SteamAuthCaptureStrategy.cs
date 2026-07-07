@@ -4,6 +4,12 @@ namespace OpenGameHUB.Services.Auth;
 
 internal sealed class SteamAuthCaptureStrategy : IAuthCaptureStrategy
 {
+    private static readonly string[] Hosts =
+    [
+        "steampowered.com",
+        "steamcommunity.com"
+    ];
+
     public const string LoginUrl =
         "https://steamcommunity.com/login/home/?goto=dev%2Fapikey";
 
@@ -41,7 +47,7 @@ internal sealed class SteamAuthCaptureStrategy : IAuthCaptureStrategy
 
     public string IntroKey => "EmbeddedBrowserSteamIntro";
 
-    public string? WaitingStatusKey => "EmbeddedBrowserSteamWaitingForKey";
+    public IReadOnlyList<string> AllowedHosts => Hosts;
 
     public object? TryCaptureFromNavigation(string url) => null;
 

@@ -7,6 +7,13 @@ internal sealed class EpicAuthCaptureStrategy : IAuthCaptureStrategy
 {
     public const string LoginUrl = "https://legendary.gl/epiclogin";
 
+    private static readonly string[] Hosts =
+    [
+        "legendary.gl",
+        "epicgames.com",
+        "unrealengine.com"
+    ];
+
     private static readonly Regex AuthorizationCodeRegex =
         new(@"""authorizationCode""\s*:\s*""([^""]+)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -16,7 +23,7 @@ internal sealed class EpicAuthCaptureStrategy : IAuthCaptureStrategy
 
     public string IntroKey => "EmbeddedBrowserEpicIntro";
 
-    public string? WaitingStatusKey => null;
+    public IReadOnlyList<string> AllowedHosts => Hosts;
 
     public object? TryCaptureFromNavigation(string url) => null;
 

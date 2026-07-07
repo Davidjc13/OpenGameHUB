@@ -1,18 +1,25 @@
-using System.Text.Json;
-using System.Text.RegularExpressions;
 using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.Services.Auth;
 
 internal sealed class XboxAuthCaptureStrategy : IAuthCaptureStrategy
 {
+    private static readonly string[] Hosts =
+    [
+        "login.live.com",
+        "login.microsoftonline.com",
+        "account.live.com",
+        "signup.live.com",
+        "microsoft.com"
+    ];
+
     public string StartUrl => XboxAccountClient.BuildAuthorizeUrl();
 
     public string WindowTitleKey => "EmbeddedBrowserXboxTitle";
 
     public string IntroKey => "EmbeddedBrowserXboxIntro";
 
-    public string? WaitingStatusKey => null;
+    public IReadOnlyList<string> AllowedHosts => Hosts;
 
     public object? TryCaptureFromNavigation(string url)
     {
