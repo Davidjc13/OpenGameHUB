@@ -17,16 +17,24 @@ internal static class EmbeddedBrowserService
         if (!IsAvailable)
             return null;
 
-        var viewModel = new EmbeddedBrowserViewModel(strategy);
-        var window = new EmbeddedBrowserWindow(viewModel);
-        await window.ShowDialog(owner).ConfigureAwait(true);
+        var profilePath = WebView2AuthProfile.CreateSessionFolder();
+        try
+        {
+            var viewModel = new EmbeddedBrowserViewModel(strategy, profilePath);
+            var window = new EmbeddedBrowserWindow(viewModel);
+            await window.ShowDialog(owner).ConfigureAwait(true);
 
-        if (viewModel.Result is null)
-            return null;
+            if (viewModel.Result is null)
+                return null;
 
-        if (viewModel.Result is T typed)
-            return typed;
+            if (viewModel.Result is T typed)
+                return typed;
 
-        return convert?.Invoke(viewModel.Result);
+            return convert?.Invoke(viewModel.Result);
+        }
+        finally
+        {
+            WebView2AuthProfile.DeleteSessionFolder(profilePath);
+        }
     }
 }

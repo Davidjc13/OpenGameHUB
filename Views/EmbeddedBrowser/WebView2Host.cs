@@ -23,6 +23,10 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     public event EventHandler<string>? SourceChanged;
     public event EventHandler<CoreWebView2NavigationCompletedEventArgs>? NavigationCompleted;
 
+    public string? UserDataFolder { get; set; }
+
+    public IReadOnlyList<string> AllowedHosts { get; set; } = [];
+
     public bool IsReady => _webView is not null;
 
     public string? CurrentSource => _webView?.Source;
@@ -98,9 +102,12 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     {
         try
         {
+            var userDataFolder = UserDataFolder
+                ?? throw new InvalidOperationException("WebView2 auth profile path is required.");
+
             var environment = await CoreWebView2Environment.CreateAsync(
                 browserExecutableFolder: null,
-                userDataFolder: WebView2Runtime.GetUserDataFolder()).ConfigureAwait(true);
+                userDataFolder: userDataFolder).ConfigureAwait(true);
 
             var controller = await environment.CreateCoreWebView2ControllerAsync(_hostHwnd).ConfigureAwait(true);
             _controller = controller;

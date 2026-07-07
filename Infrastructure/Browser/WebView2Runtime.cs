@@ -16,14 +16,4 @@ internal static class WebView2Runtime
             return false;
         }
     }
-
-    public static string GetUserDataFolder()
-    {
-        var root = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "OpenGameHUB",
-            "WebView2");
-        Directory.CreateDirectory(root);
-        return root;
-    }
 }

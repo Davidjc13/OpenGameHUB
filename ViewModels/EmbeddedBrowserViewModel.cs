@@ -10,12 +10,14 @@ namespace OpenGameHUB.ViewModels;
 internal partial class EmbeddedBrowserViewModel : ViewModelBase
 {
     private readonly IAuthCaptureStrategy _strategy;
+    private readonly string _profilePath;
     private WebView2Host? _host;
     private bool _captureCompleted;
 
-    public EmbeddedBrowserViewModel(IAuthCaptureStrategy strategy)
+    public EmbeddedBrowserViewModel(IAuthCaptureStrategy strategy, string profilePath)
     {
         _strategy = strategy;
+        _profilePath = profilePath;
         Strings = new LocalizedStrings();
         WindowTitle = Loc.T(strategy.WindowTitleKey);
         IntroText = Loc.T(strategy.IntroKey);
@@ -44,6 +46,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
             return;
 
         _host = host;
+        host.UserDataFolder = _profilePath;
         host.NavigationStarting += OnNavigationStarting;
         host.SourceChanged += OnSourceChanged;
         host.NavigationCompleted += OnNavigationCompleted;
