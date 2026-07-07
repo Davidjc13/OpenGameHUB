@@ -9,11 +9,14 @@ internal sealed class XboxAuthCaptureStrategy : IAuthCaptureStrategy
         "login.live.com",
         "login.microsoftonline.com",
         "account.live.com",
-        "signup.live.com",
-        "microsoft.com"
+        "signup.live.com"
     ];
 
-    public string StartUrl => XboxAccountClient.BuildAuthorizeUrl();
+    private readonly XboxOAuthSession _session;
+
+    public XboxAuthCaptureStrategy(XboxOAuthSession session) => _session = session;
+
+    public string StartUrl => _session.AuthorizeUrl;
 
     public string WindowTitleKey => "EmbeddedBrowserXboxTitle";
 
@@ -24,6 +27,10 @@ internal sealed class XboxAuthCaptureStrategy : IAuthCaptureStrategy
     public object? TryCaptureFromNavigation(string url)
     {
         if (!url.Contains("oauth20_desktop.srf", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        // Reject the redirect unless the returned state matches our request (CSRF binding).
+        if (!XboxAuthService.IsMatchingState(url, _session.State))
             return null;
 
         return XboxAuthService.TryExtractAuthorizationCode(url);

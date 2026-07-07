@@ -1,6 +1,7 @@
 namespace OpenGameHUB.Services.Auth;
 
-// Capture strategies must return only OAuth callback data, never usernames or passwords.
+// Capture strategies must return only provider callback data (OAuth codes, API keys, etc.),
+// never usernames or passwords.
 internal interface IAuthCaptureStrategy
 {
     string StartUrl { get; }

@@ -135,6 +135,12 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
         if (_captureCompleted)
             return;
 
+        if (captured is SteamBrowserCaptureResult steam && !steam.IsComplete)
+        {
+            StatusMessage = Loc.T("EmbeddedBrowserSteamWaitingForKey");
+            return;
+        }
+
         _captureCompleted = true;
         Result = captured;
         StatusMessage = Loc.T("EmbeddedBrowserCaptured");

@@ -1,9 +1,10 @@
 using System.Diagnostics;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Localization;
+using OpenGameHUB.Services.Auth;
 
 namespace OpenGameHUB.ViewModels;
 
@@ -11,6 +12,7 @@ public partial class SteamSetupViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
     private readonly SteamWebApiService _steamWebApiService = new();
+    private Window? _ownerWindow;
 
     public SteamSetupViewModel(SettingsService settingsService)
     {
@@ -24,6 +26,8 @@ public partial class SteamSetupViewModel : ViewModelBase
     public LocalizedStrings Strings { get; }
 
     public bool IsSteamInstalled => SteamLocalAccountReader.IsSteamInstalled;
+
+    public bool CanUseEmbeddedBrowser => EmbeddedBrowserService.IsAvailable;
 
     [ObservableProperty]
     private string _steamApiKey = string.Empty;
@@ -44,6 +48,8 @@ public partial class SteamSetupViewModel : ViewModelBase
     private bool _hasDetectedAccount;
 
     public event Action? RequestClose;
+
+    public void SetOwnerWindow(Window ownerWindow) => _ownerWindow = ownerWindow;
 
     [RelayCommand]
     private Task DetectSteamAccount()
@@ -72,13 +78,70 @@ public partial class SteamSetupViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task SignInWithBrowserAsync()
+    {
+        if (_ownerWindow is null)
+        {
+            StatusMessage = Loc.T("EmbeddedBrowserInitFailed", "owner window");
+            return;
+        }
+
+        if (!EmbeddedBrowserService.IsAvailable)
+        {
+            StatusMessage = Loc.T("EmbeddedBrowserRuntimeMissing");
+            OpenApiKeyPage();
+            return;
+        }
+
+        IsBusy = true;
+        StatusMessage = Loc.T("EmbeddedBrowserLoading");
+
+        try
+        {
+            var captured = await EmbeddedBrowserService.ShowCaptureAsync<SteamBrowserCaptureResult>(
+                new SteamAuthCaptureStrategy(),
+                _ownerWindow);
+
+            if (captured is null)
+            {
+                StatusMessage = Loc.T("SteamSetupBrowserCancelled");
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(captured.SteamId))
+            {
+                SteamId = captured.SteamId;
+                HasDetectedAccount = true;
+                DetectedAccountLabel = Loc.T("SteamSetupDetectedAccount", captured.SteamId, captured.SteamId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(captured.ApiKey))
+                SteamApiKey = captured.ApiKey;
+
+            if (captured.IsComplete)
+            {
+                StatusMessage = Loc.T("SteamSetupBrowserCaptured");
+                await TestAndSaveAsync();
+                return;
+            }
+
+            StatusMessage = Loc.T("EmbeddedBrowserSteamWaitingForKey");
+        }
+        finally
+        {
+            IsBusy = false;
+            TestAndSaveCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    [RelayCommand]
     private void OpenApiKeyPage()
     {
         try
         {
             Process.Start(new ProcessStartInfo
             {
-                FileName = "https://steamcommunity.com/dev/apikey",
+                FileName = SteamAuthCaptureStrategy.LoginUrl,
                 UseShellExecute = true
             });
         }
@@ -87,7 +150,7 @@ public partial class SteamSetupViewModel : ViewModelBase
             Process.Start(new ProcessStartInfo
             {
                 FileName = "cmd.exe",
-                Arguments = "/c start \"\" \"https://steamcommunity.com/dev/apikey\"",
+                Arguments = $"/c start \"\" \"{SteamAuthCaptureStrategy.LoginUrl}\"",
                 UseShellExecute = false
             });
         }

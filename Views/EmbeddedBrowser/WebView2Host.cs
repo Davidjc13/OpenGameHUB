@@ -16,13 +16,26 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     private IntPtr _hostHwnd;
     private CoreWebView2Controller? _controller;
     private CoreWebView2? _webView;
-    private TaskCompletionSource<bool>? _initTcs;
+    private readonly TaskCompletionSource<bool> _initTcs =
+        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private bool _initStarted;
+    private string? _userDataFolder;
     private bool _disposed;
 
     public event EventHandler<string>? NavigationStarting;
     public event EventHandler<CoreWebView2WebResourceResponseReceivedEventArgs>? AuthResponseReceived;
 
-    public string? UserDataFolder { get; set; }
+    // Setting the profile is one of the two preconditions to start WebView2; the other is the
+    // native host window. Whichever arrives last kicks off initialization, so order is irrelevant.
+    public string? UserDataFolder
+    {
+        get => _userDataFolder;
+        set
+        {
+            _userDataFolder = value;
+            TryStartInitialization();
+        }
+    }
 
     public IReadOnlyList<string> AllowedHosts { get; set; } = [];
 
@@ -35,7 +48,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
         if (_webView is not null)
             return;
 
-        _initTcs ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        TryStartInitialization();
 
         using var registration = cancellationToken.Register(() => _initTcs.TrySetCanceled(cancellationToken));
         await _initTcs.Task.ConfigureAwait(true);
@@ -50,8 +63,20 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
         _hostHwnd = CreateHostWindow(parent.Handle);
-        _ = InitializeAsync();
+        TryStartInitialization();
         return new PlatformHandle(_hostHwnd, "HWND");
+    }
+
+    private void TryStartInitialization()
+    {
+        if (_initStarted || _disposed)
+            return;
+
+        if (_hostHwnd == IntPtr.Zero || string.IsNullOrWhiteSpace(_userDataFolder))
+            return;
+
+        _initStarted = true;
+        _ = InitializeAsync();
     }
 
     protected override void DestroyNativeControlCore(IPlatformHandle control) => Dispose();
@@ -95,7 +120,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     {
         try
         {
-            var userDataFolder = UserDataFolder
+            var userDataFolder = _userDataFolder
                 ?? throw new InvalidOperationException("WebView2 auth profile path is required.");
 
             var environment = await CoreWebView2Environment.CreateAsync(
@@ -139,11 +164,11 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             _webView.DownloadStarting += (_, e) => e.Cancel = true;
 
             UpdateBounds();
-            _initTcs?.TrySetResult(true);
+            _initTcs.TrySetResult(true);
         }
         catch (Exception ex)
         {
-            _initTcs?.TrySetException(ex);
+            _initTcs.TrySetException(ex);
         }
     }
 
@@ -164,6 +189,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             return;
 
         _disposed = true;
+        _initTcs.TrySetCanceled();
         _controller?.Close();
         _controller = null;
         _webView = null;
