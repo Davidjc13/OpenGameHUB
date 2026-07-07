@@ -6,10 +6,15 @@ internal static class EpicLauncherClient
 {
     private static readonly string[] ProcessNames = ["EpicGamesLauncher"];
 
-    private static readonly TimeSpan ColdStartProcessTimeout = TimeSpan.FromSeconds(60);
-    private static readonly TimeSpan ColdStartInitialDelay = TimeSpan.FromSeconds(4);
-    private static readonly TimeSpan ColdStartRetryDelay = TimeSpan.FromSeconds(4);
-    private const int ColdStartProtocolAttempts = 4;
+    private static readonly TimeSpan ColdStartWindowTimeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan ReadySettleDelay = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan ConfirmationTimeoutPerAttempt = TimeSpan.FromSeconds(6);
+    private static readonly TimeSpan ConfirmationPollInterval = TimeSpan.FromMilliseconds(500);
+
+    // At most two sends, and the second only fires when the log did not confirm the first.
+    // This keeps a single visible install prompt in the common case while still recovering
+    // from a deep link that Epic dropped during cold start.
+    private const int MaxProtocolAttempts = 2;
 
     public static bool IsEpicLauncherRunning() => TryGetLauncherProcess() is not null;
 
@@ -23,81 +28,72 @@ internal static class EpicLauncherClient
         if (string.IsNullOrWhiteSpace(protocolUrl))
             throw new InvalidOperationException(Loc.T("EpicInstallUrlMissing"));
 
-        if (IsEpicLauncherRunning())
+        var alreadyRunning = IsEpicLauncherRunning();
+        if (!alreadyRunning)
+        {
+            var launcherExe = LegendaryClient.FindEpicLauncherExecutable()
+                ?? throw new InvalidOperationException(Loc.T("EpicLauncherNotInstalled"));
+
+            // Start the launcher itself (without the deep link, which Epic ignores while
+            // it is still booting) and wait until its UI is actually responsive.
+            StartLauncher(launcherExe);
+            await WaitForEpicLauncherReadyAsync(ColdStartWindowTimeout, cancellationToken);
+            await Task.Delay(ReadySettleDelay, cancellationToken);
+        }
+
+        await SendInstallRequestAsync(protocolUrl, singleShot: alreadyRunning, cancellationToken);
+    }
+
+    private static async Task SendInstallRequestAsync(
+        string protocolUrl,
+        bool singleShot,
+        CancellationToken cancellationToken)
+    {
+        var logWatcher = new EpicLogWatcher(ExtractAppName(protocolUrl));
+
+        // If Epic was already running we know its protocol handler is live, so one send is
+        // enough. If we cannot read Epic's log we cannot tell whether a resend is needed, so
+        // we also send just once to avoid opening the install prompt more than once.
+        if (singleShot || !logWatcher.IsAvailable)
         {
             StartProtocol(protocolUrl);
             return;
         }
 
-        await StartInstallColdAsync(protocolUrl, cancellationToken);
-    }
-
-    private static async Task StartInstallColdAsync(
-        string protocolUrl,
-        CancellationToken cancellationToken)
-    {
-        var launcherExe = LegendaryClient.FindEpicLauncherExecutable()
-            ?? throw new InvalidOperationException(Loc.T("EpicLauncherNotInstalled"));
-
-        // Start the launcher itself (without the deep link, which Epic ignores while
-        // it is still booting) and wait until its UI is actually up.
-        StartLauncher(launcherExe);
-        await WaitForEpicLauncherWindowAsync(ColdStartProcessTimeout, cancellationToken);
-
-        // Give Epic's protocol handler time to register, then send the install deep link
-        // a few times: a single early send is frequently dropped during cold start.
-        await Task.Delay(ColdStartInitialDelay, cancellationToken);
-
-        for (var attempt = 0; attempt < ColdStartProtocolAttempts; attempt++)
+        for (var attempt = 0; attempt < MaxProtocolAttempts; attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             StartProtocol(protocolUrl);
 
-            if (attempt < ColdStartProtocolAttempts - 1)
-                await Task.Delay(ColdStartRetryDelay, cancellationToken);
+            if (await logWatcher.WaitForInstallRequestAsync(
+                    ConfirmationTimeoutPerAttempt,
+                    ConfirmationPollInterval,
+                    cancellationToken))
+            {
+                return;
+            }
         }
     }
 
-    public static async Task<bool> WaitForEpicLauncherProcessAsync(
+    private static async Task<bool> WaitForEpicLauncherReadyAsync(
         TimeSpan timeout,
-        CancellationToken cancellationToken = default)
-    {
-        if (IsEpicLauncherRunning())
-            return true;
-
-        var deadline = DateTime.UtcNow + timeout;
-        while (DateTime.UtcNow < deadline)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (IsEpicLauncherRunning())
-                return true;
-
-            await Task.Delay(500, cancellationToken);
-        }
-
-        return IsEpicLauncherRunning();
-    }
-
-    private static async Task<bool> WaitForEpicLauncherWindowAsync(
-        TimeSpan timeout,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var deadline = DateTime.UtcNow + timeout;
         while (DateTime.UtcNow < deadline)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (HasLauncherWindow())
+            if (IsLauncherReady())
                 return true;
 
             await Task.Delay(500, cancellationToken);
         }
 
-        return HasLauncherWindow();
+        return IsLauncherReady();
     }
 
-    private static bool HasLauncherWindow()
+    private static bool IsLauncherReady()
     {
         var process = TryGetLauncherProcess();
         if (process is null)
@@ -106,7 +102,19 @@ internal static class EpicLauncherClient
         try
         {
             process.Refresh();
-            return process.MainWindowHandle != IntPtr.Zero;
+            if (process.MainWindowHandle == IntPtr.Zero)
+                return false;
+
+            try
+            {
+                process.WaitForInputIdle(1000);
+            }
+            catch
+            {
+                // WaitForInputIdle is best-effort; a visible main window is still a good signal.
+            }
+
+            return true;
         }
         catch
         {
@@ -128,7 +136,6 @@ internal static class EpicLauncherClient
                 if (processes.Length == 0)
                     continue;
 
-                // Return the first one, dispose the rest.
                 for (var i = 1; i < processes.Length; i++)
                     processes[i].Dispose();
 
@@ -141,6 +148,27 @@ internal static class EpicLauncherClient
         }
 
         return null;
+    }
+
+    private static string? ExtractAppName(string protocolUrl)
+    {
+        // com.epicgames.launcher://apps/{namespace}%3A{catalog}%3A{appName}?action=install
+        var appsIndex = protocolUrl.IndexOf("apps/", StringComparison.OrdinalIgnoreCase);
+        if (appsIndex < 0)
+            return null;
+
+        var rest = protocolUrl[(appsIndex + "apps/".Length)..];
+
+        var queryIndex = rest.IndexOf('?');
+        if (queryIndex >= 0)
+            rest = rest[..queryIndex];
+
+        rest = Uri.UnescapeDataString(rest);
+
+        var parts = rest.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var appName = parts.Length > 0 ? parts[^1] : rest;
+
+        return string.IsNullOrWhiteSpace(appName) ? null : appName;
     }
 
     private static void StartLauncher(string launcherExe)
@@ -166,5 +194,95 @@ internal static class EpicLauncherClient
 
         // ShellExecute hands protocol URIs to the launcher and often returns null on success.
         Process.Start(psi);
+    }
+
+    /// <summary>
+    /// Watches Epic's launcher log for a reference to the requested app, which appears once
+    /// the launcher accepts the install deep link. Used to stop resending the protocol.
+    /// </summary>
+    private sealed class EpicLogWatcher
+    {
+        private readonly string? _logPath;
+        private readonly string? _token;
+        private long _position;
+
+        public EpicLogWatcher(string? token)
+        {
+            _token = token;
+
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var candidate = Path.Combine(
+                localAppData,
+                "EpicGamesLauncher",
+                "Saved",
+                "Logs",
+                "EpicGamesLauncher.log");
+
+            if (File.Exists(candidate))
+            {
+                _logPath = candidate;
+                try
+                {
+                    _position = new FileInfo(candidate).Length;
+                }
+                catch
+                {
+                    _position = 0;
+                }
+            }
+        }
+
+        public bool IsAvailable => _logPath is not null && !string.IsNullOrWhiteSpace(_token);
+
+        public async Task<bool> WaitForInstallRequestAsync(
+            TimeSpan timeout,
+            TimeSpan pollInterval,
+            CancellationToken cancellationToken)
+        {
+            if (!IsAvailable)
+                return false;
+
+            var deadline = DateTime.UtcNow + timeout;
+            while (DateTime.UtcNow < deadline)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (HasNewMatch())
+                    return true;
+
+                await Task.Delay(pollInterval, cancellationToken);
+            }
+
+            return HasNewMatch();
+        }
+
+        private bool HasNewMatch()
+        {
+            try
+            {
+                using var stream = new FileStream(
+                    _logPath!,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite);
+
+                if (stream.Length < _position)
+                    _position = 0; // log rotated
+
+                if (stream.Length == _position)
+                    return false;
+
+                stream.Seek(_position, SeekOrigin.Begin);
+                using var reader = new StreamReader(stream);
+                var text = reader.ReadToEnd();
+                _position = stream.Length;
+
+                return text.Contains(_token!, StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
