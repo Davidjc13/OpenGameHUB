@@ -107,6 +107,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             _webView = controller.CoreWebView2;
 
             // Auth browser must never call AddHostObjectToScript; pages cannot reach .NET.
+            // Login-only surface: no devtools, downloads, pop-ups, or accelerator keys.
             _webView.Settings.AreDefaultScriptDialogsEnabled = true;
             _webView.Settings.IsStatusBarEnabled = false;
             _webView.Settings.AreDevToolsEnabled = false;
