@@ -20,8 +20,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     private bool _disposed;
 
     public event EventHandler<string>? NavigationStarting;
-    public event EventHandler<string>? SourceChanged;
-    public event EventHandler<CoreWebView2NavigationCompletedEventArgs>? NavigationCompleted;
+    public event EventHandler<CoreWebView2WebResourceResponseReceivedEventArgs>? AuthResponseReceived;
 
     public string? UserDataFolder { get; set; }
 
@@ -46,12 +45,6 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     {
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
         _webView!.Navigate(url);
-    }
-
-    public async Task<string?> ExecuteScriptAsync(string script, CancellationToken cancellationToken = default)
-    {
-        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
-        return await _webView!.ExecuteScriptAsync(script).ConfigureAwait(true);
     }
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
@@ -113,9 +106,14 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             _controller = controller;
             _webView = controller.CoreWebView2;
 
+            // Auth browser must never call AddHostObjectToScript; pages cannot reach .NET.
             _webView.Settings.AreDefaultScriptDialogsEnabled = true;
             _webView.Settings.IsStatusBarEnabled = false;
             _webView.Settings.AreDevToolsEnabled = false;
+            _webView.Settings.AreDefaultContextMenusEnabled = false;
+            _webView.Settings.AreBrowserAcceleratorKeysEnabled = false;
+            _webView.Settings.IsBuiltInErrorPageEnabled = false;
+            _webView.Settings.IsZoomControlEnabled = false;
 
             _webView.NavigationStarting += (_, e) =>
             {
@@ -127,10 +125,17 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
 
                 NavigationStarting?.Invoke(this, e.Uri);
             };
-            _webView.SourceChanged += (_, _) =>
-                SourceChanged?.Invoke(this, _webView.Source);
-            _webView.NavigationCompleted += (_, e) =>
-                NavigationCompleted?.Invoke(this, e);
+
+            _webView.WebResourceResponseReceived += (_, e) =>
+            {
+                if (!TryGetHost(e.Request.Uri, out var host) || !AuthHostPolicy.IsHostAllowed(host, AllowedHosts))
+                    return;
+
+                AuthResponseReceived?.Invoke(this, e);
+            };
+
+            _webView.NewWindowRequested += (_, e) => e.Handled = true;
+            _webView.DownloadStarting += (_, e) => e.Cancel = true;
 
             UpdateBounds();
             _initTcs?.TrySetResult(true);
