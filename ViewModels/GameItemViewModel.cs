@@ -84,11 +84,21 @@ public partial class GameItemViewModel : ViewModelBase
             ? Source.InstallPath ?? Loc.T("UnknownPath")
             : Loc.T("NotInstalled");
         InstallStatus = Source.IsInstalled ? Loc.T("Installed") : Loc.T("InLibrary");
-        ActionLabel = Source.IsInstalled ? Loc.T("Play") : Loc.T("Install");
+        ActionLabel = ResolveActionLabel();
         PlaytimeLabel = BuildPlaytimeLabel();
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(GridCoverOpacity));
         OnPropertyChanged(nameof(GridPlaceholderOpacity));
+    }
+
+    private string ResolveActionLabel()
+    {
+        if (Source.IsInstalled)
+            return Loc.T("Play");
+
+        return Platform == Platform.Ea
+            ? Loc.T("EaHowToInstall")
+            : Loc.T("Install");
     }
 
     private string BuildPlaytimeLabel()

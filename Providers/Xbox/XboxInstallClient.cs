@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace OpenGameHUB.Providers.Xbox;
 
 /// <summary>
@@ -6,7 +8,59 @@ namespace OpenGameHUB.Providers.Xbox;
 /// </summary>
 internal static class XboxInstallClient
 {
+    private static readonly HttpClient HttpClient = new()
+    {
+        Timeout = TimeSpan.FromSeconds(10)
+    };
+
     public static bool IsXboxAppInstalled() => FindXboxAppExecutable() is not null;
+
+    /// <summary>
+    /// Resolves the current Store product id (e.g. 9MWR1NC6VQ6L) from a package family name.
+    /// The title-history ids are legacy numeric ids the Xbox app rejects, so we look up the
+    /// real big-id via the public display catalog. Returns null on any failure.
+    /// </summary>
+    public static async Task<string?> ResolveStoreProductIdAsync(
+        string? packageFamilyName,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(packageFamilyName))
+            return null;
+
+        try
+        {
+            var (market, language) = XboxCatalogMarket.Resolve();
+            var url =
+                "https://displaycatalog.mp.microsoft.com/v7.0/products/lookup?" +
+                $"market={Uri.EscapeDataString(market)}&languages={Uri.EscapeDataString(language)}" +
+                $"&alternateId=PackageFamilyName&value={Uri.EscapeDataString(packageFamilyName.Trim())}";
+
+            using var response = await HttpClient.GetAsync(url, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var document = await JsonDocument.ParseAsync(
+                stream, cancellationToken: cancellationToken);
+
+            if (!document.RootElement.TryGetProperty("Products", out var products)
+                || products.ValueKind != JsonValueKind.Array
+                || products.GetArrayLength() == 0)
+            {
+                return null;
+            }
+
+            var productId = products[0].TryGetProperty("ProductId", out var idElement)
+                ? idElement.GetString()
+                : null;
+
+            return string.IsNullOrWhiteSpace(productId) ? null : productId;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public static IReadOnlyList<Action> BuildInstallAttempts(string? storeProductId, string? packageFamilyName)
     {
@@ -76,8 +130,10 @@ internal static class XboxInstallClient
             UseShellExecute = true
         };
 
-        if (System.Diagnostics.Process.Start(psi) is null)
-            throw new InvalidOperationException(Loc.T("ProcessStartFailed", url));
+        // ShellExecute hands protocol URIs to the packaged Store/Xbox app and often
+        // returns null even on success, so we only rely on it throwing for real failures
+        // (e.g. an unregistered protocol raises a Win32Exception).
+        System.Diagnostics.Process.Start(psi);
     }
 
     internal static string? FindXboxAppExecutable()

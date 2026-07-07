@@ -76,7 +76,9 @@ internal sealed class GameLaunchService
                 attempts.Add(() => StartProcess(steamExe, $"-applaunch {appId}", Path.GetDirectoryName(steamExe)));
         }
 
-        if (game.Platform == Platform.Ea && !string.IsNullOrWhiteSpace(game.PlatformGameId))
+        if (game.Platform == Platform.Ea
+            && game.IsInstalled
+            && !string.IsNullOrWhiteSpace(game.PlatformGameId))
         {
             attempts.Add(() => StartProtocol($"link2ea://launchgame/contentids/{game.PlatformGameId}"));
             attempts.Add(() => StartProtocol($"origin2://game/launch?offerIds={game.PlatformGameId}"));

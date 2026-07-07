@@ -525,6 +525,13 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    private async Task ShowEaManualInstallNoticeAsync(string gameTitle)
+    {
+        var viewModel = new EaManualInstallNoticeViewModel(gameTitle);
+        var window = new EaManualInstallNoticeWindow(viewModel);
+        await ShowDialogAsync(window);
+    }
+
     private void ResetDevSession()
     {
         _steamApiPromptOffered = false;
@@ -728,7 +735,7 @@ public partial class MainWindowViewModel : ViewModelBase
         SelectedGame = ReferenceEquals(SelectedGame, game) ? null : game;
 
     [RelayCommand]
-    private void LaunchSelectedGame()
+    private async Task LaunchSelectedGameAsync()
     {
         if (SelectedGame is null)
         {
@@ -770,9 +777,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.GamePass)
             {
-                _libraryService.LaunchGame(SelectedGame.Source);
                 StatusText = Loc.T("XboxInstallStarted", SelectedGame.Title);
+                var pfn = SelectedGame.Source.PlatformGameId;
+                var storeProductId = await XboxInstallClient.ResolveStoreProductIdAsync(pfn);
+                XboxInstallClient.StartInstall(storeProductId, pfn);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
+                return;
+            }
+
+            if (!SelectedGame.Source.IsInstalled && SelectedGame.Platform == Platform.Ea)
+            {
+                await ShowEaManualInstallNoticeAsync(SelectedGame.Title);
                 return;
             }
 
