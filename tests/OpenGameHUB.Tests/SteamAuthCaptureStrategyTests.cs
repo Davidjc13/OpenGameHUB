@@ -4,7 +4,7 @@ namespace OpenGameHUB.Tests;
 
 public sealed class SteamAuthCaptureStrategyTests
 {
-  private const string SampleApiKeyPage = """
+    private const string SampleApiKeyPage = """
         <html>
         <script>var g_steamID = "76561198123456789";</script>
         <body>
