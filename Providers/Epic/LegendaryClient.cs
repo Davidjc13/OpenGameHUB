@@ -149,6 +149,19 @@ public static class LegendaryClient
     public static void RunAuth() =>
         RunHidden(FindExecutable(), "auth");
 
+    public static async Task RunAuthWithCodeAsync(
+        string authorizationCode,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(authorizationCode))
+            throw new ArgumentException("Authorization code is required.", nameof(authorizationCode));
+
+        var legendary = FindExecutable()
+            ?? throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
+
+        await RunAsync(legendary, $"auth --code {EscapeCliArgument(authorizationCode)}", cancellationToken);
+    }
+
     public static void RunDisconnect() =>
         RunDisconnectAsync(CancellationToken.None).GetAwaiter().GetResult();
 
@@ -504,6 +517,9 @@ public static class LegendaryClient
         [JsonPropertyName("id")]
         public string CatalogItemId { get; set; } = string.Empty;
     }
+
+    private static string EscapeCliArgument(string value) =>
+        $"\"{value.Replace("\"", "\\\"")}\"";
 }
 
 public sealed record LegendaryCatalogEntry(

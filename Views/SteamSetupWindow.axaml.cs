@@ -13,6 +13,7 @@ public partial class SteamSetupWindow : Window
     public SteamSetupWindow(SteamSetupViewModel viewModel) : this()
     {
         DataContext = viewModel;
+        viewModel.SetOwnerWindow(this);
         viewModel.RequestClose += Close;
     }
 }

@@ -45,14 +45,27 @@ If missing, `LegendaryBootstrap.EnsureInstalledAsync` downloads from:
 
 ## Epic authentication
 
-### Connect (Settings or onboarding prompt)
+### Connect (Settings)
+
+**Preferred (WebView2 available):**
 
 ```
 LegendaryBootstrap.EnsureInstalledAsync
-  → LegendaryClient.RunAuth()   // hidden process, legendary auth
-  → User completes login in browser/legendary window
+  → EmbeddedBrowserService + EpicAuthCaptureStrategy
+  → User signs in on legendary.gl / epicgames.com (allowlisted hosts only)
+  → App captures authorizationCode from Epic redirect response
+  → LegendaryClient.RunAuthWithCodeAsync(code)
   → Credentials in ~/.config/legendary/user.json
+  → EpicAuthHelper.PersistFromLegendary
 ```
+
+**Fallback (no WebView2 runtime):**
+
+```
+LegendaryClient.RunAuth()   // hidden process, legendary opens browser
+```
+
+See [auth-browser-security.md](auth-browser-security.md) for the OAuth browser threat model.
 
 ### Persistence in OpenGameHUB
 

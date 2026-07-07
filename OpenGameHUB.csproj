@@ -53,6 +53,19 @@
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
     <PackageReference Include="GameFinder.StoreHandlers.Xbox" Version="4.5.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.22" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
+
+  <!-- The WebView2 NuGet .targets add WPF/WinForms references by full path (…\Microsoft.Web.WebView2.Wpf.dll).
+       We only use the Core assembly; the WPF one targets net5.0-windows and drags in WindowsBase 5.0.0.0,
+       causing an MSB3277 conflict during assembly resolution. Drop them before RAR runs so they are never
+       probed nor copied to the output. -->
+  <Target Name="RemoveWebView2DesktopUiReferences" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)"
+        Condition="'%(Reference.Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Reference.Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
 </Project>

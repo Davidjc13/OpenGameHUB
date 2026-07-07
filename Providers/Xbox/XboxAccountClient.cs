@@ -28,19 +28,38 @@ internal sealed class XboxAccountClient
 
     public static bool IsAuthenticated() => XboxTokenStore.HasTokens();
 
-    public static string BuildAuthorizeUrl() =>
-        "https://login.live.com/oauth20_authorize.srf?" + BuildQuery(new Dictionary<string, string>
+    public static XboxOAuthSession CreateOAuthSession()
+    {
+        var state = GenerateUrlSafeToken(32);
+        var codeVerifier = GenerateUrlSafeToken(64);
+        var codeChallenge = ComputeCodeChallenge(codeVerifier);
+
+        var url = "https://login.live.com/oauth20_authorize.srf?" + BuildQuery(new Dictionary<string, string>
         {
             ["client_id"] = ClientId,
             ["response_type"] = "code",
             ["redirect_uri"] = RedirectUri,
             ["scope"] = Scope,
-            ["approval_prompt"] = "auto"
+            ["approval_prompt"] = "auto",
+            ["state"] = state,
+            ["code_challenge"] = codeChallenge,
+            ["code_challenge_method"] = "S256"
         });
 
-    public async Task CompleteLoginAsync(string authorizationCode, CancellationToken cancellationToken = default)
+        return new XboxOAuthSession
+        {
+            AuthorizeUrl = url,
+            State = state,
+            CodeVerifier = codeVerifier
+        };
+    }
+
+    public async Task CompleteLoginAsync(
+        string authorizationCode,
+        string codeVerifier,
+        CancellationToken cancellationToken = default)
     {
-        var oauth = await ExchangeAuthorizationCodeAsync(authorizationCode, cancellationToken);
+        var oauth = await ExchangeAuthorizationCodeAsync(authorizationCode, codeVerifier, cancellationToken);
         var liveToken = new XboxLiveTokenData
         {
             AccessToken = oauth.access_token,
@@ -99,6 +118,7 @@ internal sealed class XboxAccountClient
 
     private async Task<XboxOAuthTokenResponse> ExchangeAuthorizationCodeAsync(
         string authorizationCode,
+        string codeVerifier,
         CancellationToken cancellationToken)
     {
         using var content = new FormUrlEncodedContent(BuildFormValues(new Dictionary<string, string>
@@ -107,7 +127,8 @@ internal sealed class XboxAccountClient
             ["code"] = authorizationCode,
             ["client_id"] = ClientId,
             ["redirect_uri"] = RedirectUri,
-            ["scope"] = Scope
+            ["scope"] = Scope,
+            ["code_verifier"] = codeVerifier
         }));
 
         using var response = await _httpClient.PostAsync(
@@ -388,4 +409,22 @@ internal sealed class XboxAccountClient
     private static IEnumerable<KeyValuePair<string, string>> BuildFormValues(
         IReadOnlyDictionary<string, string> values) =>
         values.Select(pair => new KeyValuePair<string, string>(pair.Key, pair.Value));
+
+    private static string GenerateUrlSafeToken(int byteCount)
+    {
+        var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(byteCount);
+        return Base64UrlEncode(bytes);
+    }
+
+    internal static string ComputeCodeChallenge(string codeVerifier)
+    {
+        var hash = System.Security.Cryptography.SHA256.HashData(Encoding.ASCII.GetBytes(codeVerifier));
+        return Base64UrlEncode(hash);
+    }
+
+    private static string Base64UrlEncode(byte[] bytes) =>
+        Convert.ToBase64String(bytes)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 }

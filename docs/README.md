@@ -20,6 +20,7 @@ Transparent technical documentation: what each piece does, where it gets data fr
 | [riot.md](riot.md) | Riot Client catalog, install, covers |
 | [xbox.md](xbox.md) | Xbox / Game Pass installed games, launch, covers (cloud pending) |
 | [ui-and-viewmodels.md](ui-and-viewmodels.md) | Avalonia, MVVM, windows and onboarding |
+| [auth-browser-security.md](auth-browser-security.md) | Embedded WebView2 OAuth: threat model and controls |
 | [storage-and-settings.md](storage-and-settings.md) | Disk paths, `settings.json` |
 | [app-updater.md](app-updater.md) | GitHub Releases update checks |
 | [windows-specific.md](windows-specific.md) | Registry, paths, Inno Setup installer |
@@ -55,4 +56,5 @@ Ver [project-structure.md](project-structure.md) for the full layer guide and ho
 | `%LocalAppData%\OpenGameHUB\library.db` | Unified library |
 | `%LocalAppData%\OpenGameHUB\covers\` | Downloaded covers |
 | `%LocalAppData%\OpenGameHUB\tools\legendary.exe` | legendary CLI (auto-downloaded) |
+| `%LocalAppData%\OpenGameHUB\AuthProfile\{session}\` | Ephemeral WebView2 data for OAuth (deleted after login) |
 | `%USERPROFILE%\.config\legendary\` | Epic credentials (legendary) |

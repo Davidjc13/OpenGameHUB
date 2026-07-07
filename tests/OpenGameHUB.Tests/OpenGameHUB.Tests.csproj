@@ -29,4 +29,14 @@
     <ProjectReference Include="..\..\OpenGameHUB.csproj" />
   </ItemGroup>
 
+  <!-- The WebView2 package flows in transitively and adds WPF/WinForms references by full path,
+       dragging in WindowsBase 5.0.0.0 and causing an MSB3277 conflict. Drop them before RAR,
+       mirroring the main project. -->
+  <Target Name="RemoveWebView2DesktopUiReferences" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)"
+        Condition="'%(Reference.Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Reference.Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -8,6 +8,7 @@ Everything under the Windows user profile (no admin):
 |------|----------|------------|
 | `%LocalAppData%\OpenGameHUB\settings.json` | Preferences (no API secrets) | `SettingsService` |
 | `%LocalAppData%\OpenGameHUB\secrets.dat` | Steam / IGDB / SteamGridDB API keys (DPAPI) | `SettingsSecretsStore` |
+| `%LocalAppData%\OpenGameHUB\AuthProfile\{session}\` | Ephemeral WebView2 OAuth data (deleted after login) | `WebView2AuthProfile` |
 | `%LocalAppData%\OpenGameHUB\library.db` | SQLite library | `GameDatabase` |
 | `%LocalAppData%\OpenGameHUB\covers\` | JPEG/PNG covers | `MetadataService` |
 | `%LocalAppData%\OpenGameHUB\tools\legendary.exe` | legendary CLI | `LegendaryBootstrap` |

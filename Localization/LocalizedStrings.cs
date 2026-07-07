@@ -106,6 +106,7 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamGridDbApiKeyOptional => Loc.T("SteamGridDbApiKeyOptional");
     public string Cancel => Loc.T("Cancel");
     public string Save => Loc.T("Save");
+    public string SteamSetupSignInWithBrowser => Loc.T("SteamSetupSignInWithBrowser");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }
