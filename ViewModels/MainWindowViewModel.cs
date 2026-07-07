@@ -752,7 +752,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 && !string.IsNullOrWhiteSpace(SelectedGame.Source.LaunchSpec.Value)
                 && LegendaryClient.IsEpicLauncherInstalled())
             {
-                EpicLauncherClient.StartInstall(SelectedGame.Source.LaunchSpec.Value);
+                CancelScheduledStatusClear();
+                if (!EpicLauncherClient.IsEpicLauncherRunning())
+                    StatusText = Loc.T("EpicLauncherInstallWaiting");
+
+                await EpicLauncherClient.StartInstallAsync(SelectedGame.Source.LaunchSpec.Value);
                 StatusText = Loc.T("EpicLauncherInstallStarted", SelectedGame.Title);
                 ScheduleStatusClear(TimeSpan.FromSeconds(8));
                 return;
