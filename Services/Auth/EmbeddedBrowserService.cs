@@ -20,6 +20,7 @@ internal static class EmbeddedBrowserService
         var profilePath = WebView2AuthProfile.CreateSessionFolder();
         try
         {
+            // OAuth codes are exchanged over HTTP; resulting tokens stay in DPAPI-backed stores.
             var viewModel = new EmbeddedBrowserViewModel(strategy, profilePath);
             var window = new EmbeddedBrowserWindow(viewModel);
             await window.ShowDialog(owner).ConfigureAwait(true);
