@@ -53,6 +53,21 @@
     <PackageReference Include="YamlDotNet" Version="13.1.1" />
     <PackageReference Include="GameFinder.StoreHandlers.Xbox" Version="4.5.0" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.22" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
+
+  <!-- WebView2 NuGet pulls WinForms/WPF assemblies we do not use; they break library scan when probed. -->
+  <ItemGroup>
+    <Reference Remove="Microsoft.Web.WebView2.WinForms" />
+    <Reference Remove="Microsoft.Web.WebView2.Wpf" />
+  </ItemGroup>
+
+  <Target Name="ExcludeWebView2UiAssembliesFromOutput" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+        Condition="'%(Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
 </Project>

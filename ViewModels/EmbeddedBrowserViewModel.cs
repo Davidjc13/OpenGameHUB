@@ -1,0 +1,156 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Web.WebView2.Core;
+using OpenGameHUB.Localization;
+using OpenGameHUB.Services.Auth;
+using OpenGameHUB.Views.EmbeddedBrowser;
+
+namespace OpenGameHUB.ViewModels;
+
+internal partial class EmbeddedBrowserViewModel : ViewModelBase
+{
+    private readonly IAuthCaptureStrategy _strategy;
+    private WebView2Host? _host;
+    private bool _captureCompleted;
+
+    public EmbeddedBrowserViewModel(IAuthCaptureStrategy strategy)
+    {
+        _strategy = strategy;
+        Strings = new LocalizedStrings();
+        WindowTitle = Loc.T(strategy.WindowTitleKey);
+        IntroText = Loc.T(strategy.IntroKey);
+        StatusMessage = Loc.T("EmbeddedBrowserLoading");
+    }
+
+    public LocalizedStrings Strings { get; }
+
+    public string WindowTitle { get; }
+
+    public string IntroText { get; }
+
+    [ObservableProperty]
+    private string _statusMessage;
+
+    [ObservableProperty]
+    private bool _isBusy = true;
+
+    public object? Result { get; private set; }
+
+    public event Action? RequestClose;
+
+    public void AttachHost(WebView2Host host)
+    {
+        if (_host is not null)
+            return;
+
+        _host = host;
+        host.NavigationStarting += OnNavigationStarting;
+        host.SourceChanged += OnSourceChanged;
+        host.NavigationCompleted += OnNavigationCompleted;
+        _ = InitializeAsync();
+    }
+
+    public void DetachHost()
+    {
+        if (_host is null)
+            return;
+
+        _host.NavigationStarting -= OnNavigationStarting;
+        _host.SourceChanged -= OnSourceChanged;
+        _host.NavigationCompleted -= OnNavigationCompleted;
+        _host = null;
+    }
+
+    [RelayCommand]
+    private void Cancel()
+    {
+        Result = null;
+        RequestClose?.Invoke();
+    }
+
+    private async Task InitializeAsync()
+    {
+        if (_host is null)
+            return;
+
+        try
+        {
+            await _host.EnsureInitializedAsync().ConfigureAwait(true);
+            await _host.NavigateAsync(_strategy.StartUrl).ConfigureAwait(true);
+            StatusMessage = Loc.T("EmbeddedBrowserReady");
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = Loc.T("EmbeddedBrowserInitFailed", ex.Message);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void OnNavigationStarting(object? sender, string url)
+    {
+        if (_captureCompleted)
+            return;
+
+        var captured = _strategy.TryCaptureFromNavigation(url);
+        if (captured is not null)
+            CompleteCapture(captured);
+    }
+
+    private void OnSourceChanged(object? sender, string url) =>
+        _ = InspectDomAsync(url);
+
+    private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    {
+        if (_captureCompleted || _host is null)
+            return;
+
+        _ = InspectDomAsync(_host.CurrentSource ?? string.Empty);
+    }
+
+    private async Task InspectDomAsync(string url)
+    {
+        if (_captureCompleted || _host is null || string.IsNullOrWhiteSpace(url))
+            return;
+
+        try
+        {
+            var captured = await _strategy.TryCaptureFromDomAsync(
+                script => _host.ExecuteScriptAsync(script),
+                url).ConfigureAwait(true);
+
+            if (captured is null)
+            {
+                if (!string.IsNullOrWhiteSpace(_strategy.WaitingStatusKey))
+                    StatusMessage = Loc.T(_strategy.WaitingStatusKey);
+                return;
+            }
+
+            if (captured is SteamBrowserCaptureResult steam && !steam.IsComplete)
+            {
+                if (!string.IsNullOrWhiteSpace(_strategy.WaitingStatusKey))
+                    StatusMessage = Loc.T(_strategy.WaitingStatusKey);
+                return;
+            }
+
+            CompleteCapture(captured);
+        }
+        catch
+        {
+            // keep the browser open for the user
+        }
+    }
+
+    private void CompleteCapture(object captured)
+    {
+        if (_captureCompleted)
+            return;
+
+        _captureCompleted = true;
+        Result = captured;
+        StatusMessage = Loc.T("EmbeddedBrowserCaptured");
+        RequestClose?.Invoke();
+    }
+}

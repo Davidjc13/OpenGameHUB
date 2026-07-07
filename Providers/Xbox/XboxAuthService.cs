@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using OpenGameHUB.Services.Auth;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.Views;
 
@@ -8,10 +8,31 @@ namespace OpenGameHUB.Providers.Xbox;
 
 internal static class XboxAuthService
 {
-    private static readonly Regex AuthorizationCodeRegex =
-        new(@"[?&]code=([^&]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
     public static async Task SignInAsync(SettingsService settings, Window ownerWindow)
+    {
+        var authorizationCode = await TryCaptureAuthorizationCodeAsync(ownerWindow);
+        if (string.IsNullOrWhiteSpace(authorizationCode))
+            throw new InvalidOperationException(Loc.T("XboxAuthCancelled"));
+
+        var client = new XboxAccountClient();
+        await client.CompleteLoginAsync(authorizationCode);
+        var gamertag = await client.GetGamertagAsync();
+        XboxAuthHelper.PersistProfile(settings, gamertag);
+    }
+
+    private static async Task<string?> TryCaptureAuthorizationCodeAsync(Window ownerWindow)
+    {
+        if (EmbeddedBrowserService.IsAvailable)
+        {
+            return await EmbeddedBrowserService.ShowCaptureAsync<string>(
+                new XboxAuthCaptureStrategy(),
+                ownerWindow);
+        }
+
+        return await SignInWithPasteFallbackAsync(ownerWindow);
+    }
+
+    private static async Task<string?> SignInWithPasteFallbackAsync(Window ownerWindow)
     {
         Process.Start(new ProcessStartInfo(XboxAccountClient.BuildAuthorizeUrl())
         {
@@ -22,14 +43,7 @@ internal static class XboxAuthService
         var window = new XboxPasteAuthWindow(viewModel);
         await window.ShowDialog(ownerWindow);
 
-        var authorizationCode = TryExtractAuthorizationCode(viewModel.RedirectUrl.Trim());
-        if (string.IsNullOrWhiteSpace(authorizationCode))
-            throw new InvalidOperationException(Loc.T("XboxAuthCancelled"));
-
-        var client = new XboxAccountClient();
-        await client.CompleteLoginAsync(authorizationCode);
-        var gamertag = await client.GetGamertagAsync();
-        XboxAuthHelper.PersistProfile(settings, gamertag);
+        return TryExtractAuthorizationCode(viewModel.RedirectUrl.Trim());
     }
 
     internal static string? TryExtractAuthorizationCode(string? url)
@@ -43,4 +57,7 @@ internal static class XboxAuthService
 
         return Uri.UnescapeDataString(match.Groups[1].Value);
     }
+
+    private static readonly System.Text.RegularExpressions.Regex AuthorizationCodeRegex =
+        new(@"[?&]code=([^&]+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
 }

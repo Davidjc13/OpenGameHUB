@@ -6,6 +6,7 @@ using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Xbox;
+using OpenGameHUB.Services.Auth;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -258,8 +259,30 @@ public partial class SettingsViewModel : ViewModelBase
                 return;
             }
 
+            if (EmbeddedBrowserService.IsAvailable)
+            {
+                var authCode = await EmbeddedBrowserService.ShowCaptureAsync<string>(
+                    new EpicAuthCaptureStrategy(),
+                    GetOwnerWindow());
+
+                if (string.IsNullOrWhiteSpace(authCode))
+                {
+                    StatusMessage = Loc.T("EpicAuthCancelled");
+                    return;
+                }
+
+                using var authCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+                await LegendaryClient.RunAuthWithCodeAsync(authCode, authCts.Token);
+                EpicAuthHelper.PersistFromLegendary(_settingsService);
+                RefreshEpicStatus();
+                OnPropertyChanged(nameof(IsEpicConnected));
+                OnPropertyChanged(nameof(CanConnectEpic));
+                StatusMessage = Loc.T("EpicAuthCompleted");
+                return;
+            }
+
             LegendaryClient.RunAuth();
-            StatusMessage = Loc.T("EpicAuthStarted");
+            StatusMessage = Loc.T("EpicAuthStartedFallback");
         }
         catch (Exception ex)
         {

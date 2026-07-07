@@ -314,4 +314,22 @@
   <data name="CannotRunLegendary" xml:space="preserve"><value>Could not run legendary.</value></data>
   <data name="LegendaryFailed" xml:space="preserve"><value>legendary failed with exit code {0}</value></data>
   <data name="LegendaryTimedOut" xml:space="preserve"><value>legendary took too long to respond</value></data>
+  <data name="EmbeddedBrowserXboxTitle" xml:space="preserve"><value>Sign in with Microsoft</value></data>
+  <data name="EmbeddedBrowserXboxIntro" xml:space="preserve"><value>Sign in to your Microsoft account. OpenGameHUB will capture the sign-in automatically when it completes.</value></data>
+  <data name="EmbeddedBrowserEpicTitle" xml:space="preserve"><value>Sign in with Epic Games</value></data>
+  <data name="EmbeddedBrowserEpicIntro" xml:space="preserve"><value>Sign in to your Epic account. OpenGameHUB will capture the authorization code automatically.</value></data>
+  <data name="EmbeddedBrowserSteamTitle" xml:space="preserve"><value>Sign in to Steam</value></data>
+  <data name="EmbeddedBrowserSteamIntro" xml:space="preserve"><value>Sign in to Steam and create or view your Web API key. OpenGameHUB will capture your Steam ID and API key automatically.</value></data>
+  <data name="EmbeddedBrowserSteamWaitingForKey" xml:space="preserve"><value>Waiting for your Steam Web API key. Register a key on this page if you do not have one yet.</value></data>
+  <data name="EmbeddedBrowserLoading" xml:space="preserve"><value>Loading sign-in page...</value></data>
+  <data name="EmbeddedBrowserReady" xml:space="preserve"><value>Complete sign-in in the browser above.</value></data>
+  <data name="EmbeddedBrowserCaptured" xml:space="preserve"><value>Sign-in captured. Finishing setup...</value></data>
+  <data name="EmbeddedBrowserInitFailed" xml:space="preserve"><value>Could not start embedded browser: {0}</value></data>
+  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>Embedded browser is unavailable. Install the Microsoft Edge WebView2 runtime or use the manual steps below.</value></data>
+  <data name="EpicAuthCompleted" xml:space="preserve"><value>Epic account connected. Refresh your library.</value></data>
+  <data name="EpicAuthCancelled" xml:space="preserve"><value>Epic sign-in was cancelled.</value></data>
+  <data name="EpicAuthStartedFallback" xml:space="preserve"><value>Epic sign-in opened in an external window. After completing it, refresh your library.</value></data>
+  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in with embedded browser</value></data>
+  <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
+  <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
 </root>

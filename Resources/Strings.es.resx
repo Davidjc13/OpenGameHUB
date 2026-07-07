@@ -314,4 +314,22 @@
   <data name="CannotRunLegendary" xml:space="preserve"><value>No se pudo ejecutar legendary.</value></data>
   <data name="LegendaryFailed" xml:space="preserve"><value>legendary falló con código {0}</value></data>
   <data name="LegendaryTimedOut" xml:space="preserve"><value>legendary tardó demasiado en responder</value></data>
+  <data name="EmbeddedBrowserXboxTitle" xml:space="preserve"><value>Iniciar sesión con Microsoft</value></data>
+  <data name="EmbeddedBrowserXboxIntro" xml:space="preserve"><value>Inicia sesión con tu cuenta Microsoft. OpenGameHUB capturará el inicio de sesión automáticamente al completarse.</value></data>
+  <data name="EmbeddedBrowserEpicTitle" xml:space="preserve"><value>Iniciar sesión con Epic Games</value></data>
+  <data name="EmbeddedBrowserEpicIntro" xml:space="preserve"><value>Inicia sesión con tu cuenta Epic. OpenGameHUB capturará el código de autorización automáticamente.</value></data>
+  <data name="EmbeddedBrowserSteamTitle" xml:space="preserve"><value>Iniciar sesión en Steam</value></data>
+  <data name="EmbeddedBrowserSteamIntro" xml:space="preserve"><value>Inicia sesión en Steam y crea o consulta tu clave Web API. OpenGameHUB capturará tu Steam ID y clave API automáticamente.</value></data>
+  <data name="EmbeddedBrowserSteamWaitingForKey" xml:space="preserve"><value>Esperando tu clave Web API de Steam. Regístrala en esta página si aún no tienes una.</value></data>
+  <data name="EmbeddedBrowserLoading" xml:space="preserve"><value>Cargando página de inicio de sesión...</value></data>
+  <data name="EmbeddedBrowserReady" xml:space="preserve"><value>Completa el inicio de sesión en el navegador de arriba.</value></data>
+  <data name="EmbeddedBrowserCaptured" xml:space="preserve"><value>Inicio de sesión capturado. Finalizando configuración...</value></data>
+  <data name="EmbeddedBrowserInitFailed" xml:space="preserve"><value>No se pudo iniciar el navegador embebido: {0}</value></data>
+  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>El navegador embebido no está disponible. Instala Microsoft Edge WebView2 Runtime o usa los pasos manuales de abajo.</value></data>
+  <data name="EpicAuthCompleted" xml:space="preserve"><value>Cuenta Epic conectada. Actualiza la biblioteca.</value></data>
+  <data name="EpicAuthCancelled" xml:space="preserve"><value>Se canceló el inicio de sesión de Epic.</value></data>
+  <data name="EpicAuthStartedFallback" xml:space="preserve"><value>Inicio de sesión de Epic abierto en una ventana externa. Cuando lo completes, actualiza la biblioteca.</value></data>
+  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Iniciar sesión con navegador embebido</value></data>
+  <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Se canceló el inicio de sesión de Steam.</value></data>
+  <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Credenciales de Steam capturadas. Probando conexión...</value></data>
 </root>
