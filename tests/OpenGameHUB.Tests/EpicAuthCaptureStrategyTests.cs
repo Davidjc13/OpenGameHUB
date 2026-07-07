@@ -27,4 +27,15 @@ public sealed class EpicAuthCaptureStrategyTests
     {
         Assert.Null(EpicAuthCaptureStrategy.TryParseAuthorizationCode("not auth data"));
     }
+
+    [Fact]
+    public void TryCaptureFromResponse_reads_epic_redirect_body()
+    {
+        var strategy = new EpicAuthCaptureStrategy();
+        var code = strategy.TryCaptureFromResponse(
+            "https://www.epicgames.com/id/api/redirect",
+            """{"authorizationCode":"epic-code"}""");
+
+        Assert.Equal("epic-code", code);
+    }
 }

@@ -12,7 +12,5 @@ internal interface IAuthCaptureStrategy
 
     object? TryCaptureFromNavigation(string url);
 
-    Task<object?> TryCaptureFromDomAsync(
-        Func<string, Task<string?>> executeScriptAsync,
-        string currentUrl);
+    object? TryCaptureFromResponse(string requestUrl, string responseBody);
 }

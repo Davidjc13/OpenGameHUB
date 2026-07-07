@@ -49,8 +49,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
         host.UserDataFolder = _profilePath;
         host.AllowedHosts = _strategy.AllowedHosts;
         host.NavigationStarting += OnNavigationStarting;
-        host.SourceChanged += OnSourceChanged;
-        host.NavigationCompleted += OnNavigationCompleted;
+        host.AuthResponseReceived += OnAuthResponseReceived;
         _ = InitializeAsync();
     }
 
@@ -60,8 +59,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
             return;
 
         _host.NavigationStarting -= OnNavigationStarting;
-        _host.SourceChanged -= OnSourceChanged;
-        _host.NavigationCompleted -= OnNavigationCompleted;
+        _host.AuthResponseReceived -= OnAuthResponseReceived;
         _host = null;
     }
 
@@ -103,39 +101,32 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
             CompleteCapture(captured);
     }
 
-    private void OnSourceChanged(object? sender, string url) =>
-        _ = InspectDomAsync(url);
-
-    private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+    private void OnAuthResponseReceived(object? sender, CoreWebView2WebResourceResponseReceivedEventArgs e)
     {
-        if (_captureCompleted || _host is null)
+        if (_captureCompleted)
             return;
 
-        _ = InspectDomAsync(_host.CurrentSource ?? string.Empty);
+        _ = TryCaptureFromResponseAsync(e);
     }
 
-    private async Task InspectDomAsync(string url)
+    private async Task TryCaptureFromResponseAsync(CoreWebView2WebResourceResponseReceivedEventArgs e)
     {
-        if (_captureCompleted || _host is null || string.IsNullOrWhiteSpace(url))
-            return;
-
         try
         {
-            var captured = await _strategy.TryCaptureFromDomAsync(
-                script => _host.ExecuteScriptAsync(script),
-                url).ConfigureAwait(true);
-
-            if (captured is null)
+            var response = e.Response;
+            if (response is null || response.StatusCode < 200 || response.StatusCode >= 300)
                 return;
 
-            if (captured is SteamBrowserCaptureResult steam && !steam.IsComplete)
-                return;
-
-            CompleteCapture(captured);
+            using var contentStream = await response.GetContentAsync().ConfigureAwait(true);
+            using var reader = new StreamReader(contentStream);
+            var body = await reader.ReadToEndAsync().ConfigureAwait(true);
+            var captured = _strategy.TryCaptureFromResponse(e.Request.Uri, body);
+            if (captured is not null)
+                CompleteCapture(captured);
         }
         catch
         {
-            // keep the browser open for the user
+            // keep the browser open until the callback arrives
         }
     }
 

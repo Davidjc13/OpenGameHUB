@@ -62,11 +62,6 @@
                                        Foreground="#7E8AA3"
                                        FontSize="12"
                                        TextWrapping="Wrap"/>
-                            <Button Content="{Binding Strings.SteamSetupSignInWithBrowser}"
-                                    Command="{Binding SignInWithBrowserCommand}"
-                                    HorizontalAlignment="Left"
-                                    IsVisible="{Binding CanUseEmbeddedBrowser}"
-                                    IsEnabled="{Binding !IsBusy}"/>
                             <Button Content="{Binding Strings.SteamSetupOpenApiKeyPage}"
                                     Command="{Binding OpenApiKeyPageCommand}"
                                     HorizontalAlignment="Left"/>

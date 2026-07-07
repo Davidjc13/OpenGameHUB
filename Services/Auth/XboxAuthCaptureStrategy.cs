@@ -29,8 +29,5 @@ internal sealed class XboxAuthCaptureStrategy : IAuthCaptureStrategy
         return XboxAuthService.TryExtractAuthorizationCode(url);
     }
 
-    public Task<object?> TryCaptureFromDomAsync(
-        Func<string, Task<string?>> executeScriptAsync,
-        string currentUrl) =>
-        Task.FromResult<object?>(null);
+    public object? TryCaptureFromResponse(string requestUrl, string responseBody) => null;
 }

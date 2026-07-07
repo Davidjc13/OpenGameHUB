@@ -27,22 +27,12 @@ internal sealed class EpicAuthCaptureStrategy : IAuthCaptureStrategy
 
     public object? TryCaptureFromNavigation(string url) => null;
 
-    public async Task<object?> TryCaptureFromDomAsync(
-        Func<string, Task<string?>> executeScriptAsync,
-        string currentUrl)
+    public object? TryCaptureFromResponse(string requestUrl, string responseBody)
     {
-        if (!currentUrl.Contains("/id/api/redirect", StringComparison.OrdinalIgnoreCase)
-            && !currentUrl.Contains("legendary.gl", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        var raw = await executeScriptAsync("document.body ? document.body.innerText : ''");
-        var body = WebViewScriptHelper.UnwrapJsonString(raw);
-        if (string.IsNullOrWhiteSpace(body))
+        if (!requestUrl.Contains("/id/api/redirect", StringComparison.OrdinalIgnoreCase))
             return null;
 
-        return TryParseAuthorizationCode(body);
+        return TryParseAuthorizationCode(responseBody);
     }
 
     internal static string? TryParseAuthorizationCode(string body)
