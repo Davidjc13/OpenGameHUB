@@ -43,12 +43,17 @@ public sealed class IgdbClient
         if (_accessToken is not null && DateTime.UtcNow < _tokenExpiresAt)
             return _accessToken;
 
-        var url =
-            $"https://id.twitch.tv/oauth2/token?client_id={Uri.EscapeDataString(settings.IgdbClientId)}" +
-            $"&client_secret={Uri.EscapeDataString(settings.IgdbClientSecret)}" +
-            "&grant_type=client_credentials";
+        // Send credentials in the form body (not the query string) so the client_secret never
+        // lands in a URL that an HTTP log, proxy or APM might capture.
+        using var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["client_id"] = settings.IgdbClientId,
+            ["client_secret"] = settings.IgdbClientSecret,
+            ["grant_type"] = "client_credentials"
+        });
 
-        var response = await _httpClient.PostAsync(url, null, cancellationToken);
+        var response = await _httpClient.PostAsync(
+            "https://id.twitch.tv/oauth2/token", content, cancellationToken);
         if (!response.IsSuccessStatusCode)
             return null;
 

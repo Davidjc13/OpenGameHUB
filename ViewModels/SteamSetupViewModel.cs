@@ -147,12 +147,10 @@ public partial class SteamSetupViewModel : ViewModelBase
         }
         catch
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = $"/c start \"\" \"{SteamAuthCaptureStrategy.LoginUrl}\"",
-                UseShellExecute = false
-            });
+            // Fallback without a shell: hand the URL to explorer as a discrete argument.
+            var psi = new ProcessStartInfo { FileName = "explorer.exe", UseShellExecute = false };
+            psi.ArgumentList.Add(SteamAuthCaptureStrategy.LoginUrl);
+            Process.Start(psi);
         }
 
         StatusMessage = Loc.T("SteamSetupApiKeyInstructions");
