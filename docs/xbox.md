@@ -11,7 +11,7 @@ OpenGameHUB supports **installed** Xbox / Game Pass titles (local Appx scan) and
 | `Services/XboxGamePassScanner.cs` | Installed packages via GameFinder |
 | `Services/Xbox/XboxManifestReader.cs` | Appx manifest metadata + logos |
 | `Services/Xbox/XboxAccountClient.cs` | OAuth tokens, Xbox Live / title hub API |
-| `Services/Xbox/XboxAuthService.cs` | Sign-in flow (browser + paste redirect URL) |
+| `Services/Xbox/XboxAuthService.cs` | Sign-in flow (embedded WebView2 or paste fallback) |
 | `Services/Xbox/XboxTokenStore.cs` | Encrypted token files (DPAPI) |
 | `Services/Xbox/XboxInstallClient.cs` | Install URIs (`msxbox://`, Store PDP) |
 | `Services/LibraryProviders/XboxCloudLibraryProvider.cs` | Uninstalled catalog entries |
@@ -46,10 +46,12 @@ See [Launch strategies](#launch-strategies) and [Manifest parsing](#manifest-par
 ### User flow
 
 1. **Settings** → *Xbox / Game Pass library* → **Connect Microsoft account**
-2. Default browser opens Microsoft OAuth
-3. After sign-in, user copies the redirect URL (`…oauth20_desktop.srf?code=…`) into the dialog
+2. Embedded WebView2 opens Microsoft OAuth (isolated profile, allowlisted hosts). The app captures `code=` from the redirect automatically.
+3. **Fallback** if WebView2 is unavailable: system browser + paste redirect URL into `XboxPasteAuthWindow`.
 4. Tokens saved under `%LocalAppData%\OpenGameHUB\xbox\` (DPAPI-encrypted)
 5. **Refresh library** → `titlehub.xboxlive.com` title history → PC games not installed appear as `IsInstalled = false`
+
+See [auth-browser-security.md](auth-browser-security.md) for OAuth browser controls.
 
 Disconnect: Settings → **Disconnect Microsoft account** (deletes tokens + gamertag in settings).
 
