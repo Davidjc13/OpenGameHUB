@@ -71,6 +71,7 @@
   <data name="SelectGame" xml:space="preserve"><value>Selecciona un juego</value></data>
   <data name="Play" xml:space="preserve"><value>Jugar</value></data>
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
+  <data name="EaHowToInstall" xml:space="preserve"><value>Cómo instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Parrilla</value></data>
   <data name="ViewList" xml:space="preserve"><value>Lista</value></data>
@@ -135,6 +136,9 @@
   <data name="LegendaryPromptDontRemind" xml:space="preserve"><value>No volver a recordar</value></data>
   <data name="EaCloudHint" xml:space="preserve"><value> · Biblioteca EA vía EA app</value></data>
   <data name="EaCloudLogHint" xml:space="preserve"><value> · Biblioteca EA vía logs de EA app</value></data>
+  <data name="EaManualInstallNoticeTitle" xml:space="preserve"><value>Instalación manual</value></data>
+  <data name="EaManualInstallNotice" xml:space="preserve"><value>Este juego no está instalado. Los juegos de EA no instalados deben instalarse manualmente desde la EA App.</value></data>
+  <data name="EaManualInstallNoticeOk" xml:space="preserve"><value>Entendido</value></data>
   <data name="EaCacheMissing" xml:space="preserve"><value>No se encontró la caché de la EA app. Abre la EA app e inicia sesión al menos una vez.</value></data>
   <data name="EaCacheDecryptFailed" xml:space="preserve"><value>No se pudo leer la caché de la EA app. Abre la EA app, inicia sesión e inténtalo de nuevo. Si el problema continúa, repara la EA app desde Ajustes de Windows.</value></data>
   <data name="EaAppNotInstalled" xml:space="preserve"><value>La EA app no está instalada en este PC.</value></data>

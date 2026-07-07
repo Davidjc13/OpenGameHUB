@@ -162,17 +162,63 @@ public static class AppUpdateService
         if (!File.Exists(installerPath))
             throw new FileNotFoundException(Loc.T("AppUpdateInstallerMissing", installerPath), installerPath);
 
+        var appExePath = ResolveInstalledExecutablePath();
+        var helperPath = WriteUpdateHelperBatch(installerPath, appExePath);
+
         var psi = new ProcessStartInfo
         {
-            FileName = installerPath,
-            Arguments = "/SILENT /CLOSEAPPLICATIONS",
-            UseShellExecute = true
+            FileName = "cmd.exe",
+            Arguments = BuildDetachedLaunchArguments(helperPath),
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
         };
 
         if (Process.Start(psi) is null)
             throw new InvalidOperationException(Loc.T("AppUpdateLaunchFailed"));
 
         Environment.Exit(0);
+    }
+
+    internal static string BuildDetachedLaunchArguments(string helperPath) =>
+        $"/c start \"\" /MIN \"{helperPath}\"";
+
+    internal static string ResolveInstalledExecutablePath()
+    {
+        if (!string.IsNullOrWhiteSpace(Environment.ProcessPath)
+            && File.Exists(Environment.ProcessPath))
+        {
+            return Environment.ProcessPath;
+        }
+
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Programs",
+            "OpenGameHUB",
+            "OpenGameHUB.exe");
+    }
+
+    internal static string BuildUpdateHelperBatch(string installerPath, string appExePath)
+    {
+        var installer = Path.GetFullPath(installerPath);
+        var appExe = Path.GetFullPath(appExePath);
+        var appDir = Path.GetDirectoryName(appExe) ?? string.Empty;
+
+        return $"""
+            @echo off
+            "{installer}" /SILENT /CLOSEAPPLICATIONS
+            if exist "{appExe}" start "" /D "{appDir}" "{appExe}"
+            """;
+    }
+
+    private static string WriteUpdateHelperBatch(string installerPath, string appExePath)
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "OpenGameHUB", "updates");
+        Directory.CreateDirectory(directory);
+
+        var helperPath = Path.Combine(directory, $"apply-update-{Guid.NewGuid():N}.cmd");
+        File.WriteAllText(helperPath, BuildUpdateHelperBatch(installerPath, appExePath));
+        return helperPath;
     }
 
     private static string ResolveCurrentVersion()

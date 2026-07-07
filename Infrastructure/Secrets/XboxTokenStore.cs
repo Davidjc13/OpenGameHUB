@@ -20,6 +20,7 @@ internal static class XboxTokenStore
 
     private static string LiveTokenPath => Path.Combine(TokenDirectory, "login.dat");
     private static string XstsTokenPath => Path.Combine(TokenDirectory, "xsts.dat");
+    private static string LicensingXstsTokenPath => Path.Combine(TokenDirectory, "xsts-licensing.dat");
 
     public static bool HasTokens() =>
         File.Exists(LiveTokenPath) && File.Exists(XstsTokenPath);
@@ -28,6 +29,7 @@ internal static class XboxTokenStore
     {
         TryDelete(LiveTokenPath);
         TryDelete(XstsTokenPath);
+        TryDelete(LicensingXstsTokenPath);
     }
 
     public static XboxLiveTokenData? LoadLiveToken()
@@ -43,6 +45,12 @@ internal static class XboxTokenStore
 
     public static void SaveXstsToken(XboxAuthorizationData token) =>
         SaveEncrypted(XstsTokenPath, token);
+
+    public static XboxAuthorizationData? LoadLicensingXstsToken() =>
+        LoadEncrypted<XboxAuthorizationData>(LicensingXstsTokenPath);
+
+    public static void SaveLicensingXstsToken(XboxAuthorizationData token) =>
+        SaveEncrypted(LicensingXstsTokenPath, token);
 
     private static T? LoadEncrypted<T>(string path)
     {

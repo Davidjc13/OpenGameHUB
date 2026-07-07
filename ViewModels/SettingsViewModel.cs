@@ -377,10 +377,10 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanInstallUpdate))]
+    [RelayCommand]
     private async Task InstallUpdateAsync()
     {
-        if (_pendingRelease is null)
+        if (_pendingRelease is null || IsUpdateBusy)
             return;
 
         _updateCts?.Cancel();

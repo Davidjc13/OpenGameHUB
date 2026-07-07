@@ -95,7 +95,7 @@ Launch only (no install action).
 
 ### Cloud entries (`IsInstalled = false`)
 
-`MainWindowViewModel` → `GameLibraryService.LaunchGame` → `XboxInstallClient`:
+`MainWindowViewModel` (Game Pass branch) → `XboxInstallClient`:
 
 | URI | Purpose |
 |-----|---------|
@@ -106,6 +106,35 @@ Launch only (no install action).
 | `ms-windows-store://navigatetopage/?Id=Gaming` | Store gaming hub |
 
 OpenGameHUB does **not** download games silently — the user confirms install in Microsoft's UI. Refresh the library after install completes.
+
+#### Store product id resolution (install fix)
+
+The `productId` baked into the cloud entry's `LaunchSpec` comes from the title-history
+fields (`windowsPhoneProductId` / `modernTitleId`), which are **legacy numeric ids**
+(e.g. `2080211397`). The Xbox app's `msxbox://game/?productId=…` deep link expects the
+current **Store "big-id"** instead (e.g. `9MWR1NC6VQ6L`). Passing the legacy id makes the
+Xbox app open but fail with *"We couldn't load the content. Confirm you have permission to
+view this product…"*.
+
+Fix: when the user clicks **Install** on a Game Pass game, we resolve the real big-id from
+the reliably-known **PFN** before launching:
+
+```
+XboxInstallClient.ResolveStoreProductIdAsync(pfn)
+  └─ GET displaycatalog.mp.microsoft.com/v7.0/products/lookup
+         ?market={m}&languages={l}&alternateId=PackageFamilyName&value={pfn}
+  └─ Products[0].ProductId  → e.g. 9MWR1NC6VQ6L
+```
+
+- Public display-catalog endpoint, **no authentication** required.
+- Runs once, only at install-click time (not during library refresh).
+- On any failure (network, no match) it returns `null`, and `XboxInstallClient.StartInstall`
+  falls back to the PFN-based Store PDP (`ms-windows-store://pdp/?PFN={pfn}`).
+
+> **Protocol launch note:** `Process.Start` with `UseShellExecute = true` hands protocol
+> URIs to the packaged Store/Xbox app and often returns `null` *even on success*, so
+> `XboxInstallClient` no longer treats a `null` return as a failure — only a thrown
+> `Win32Exception` (e.g. an unregistered protocol) counts as one.
 
 ---
 

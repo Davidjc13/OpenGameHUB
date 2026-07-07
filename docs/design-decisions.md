@@ -131,6 +131,30 @@ The user can open EA App from an onboarding prompt to force cache refresh (`EaDe
 
 ---
 
+## Game Pass install: resolve Store big-id from PFN at click time
+
+**Decision:** when pressing Install on an uninstalled Game Pass game, resolve the current
+Store product "big-id" from the package family name (PFN) via the public display-catalog
+lookup, then open `msxbox://game/?productId={bigId}`.
+
+**Reason:** the Xbox title-history API only exposes **legacy numeric** product ids
+(`windowsPhoneProductId` / `modernTitleId`, e.g. `2080211397`). The Xbox app deep link
+expects the modern Store big-id (e.g. `9MWR1NC6VQ6L`); the legacy id makes the app open but
+show *"We couldn't load the content. Confirm you have permission…"*. The PFN is stored
+reliably, so we map PFN → big-id on demand.
+
+**Implementation:**
+
+- `XboxInstallClient.ResolveStoreProductIdAsync(pfn)` → `GET displaycatalog.mp.microsoft.com/v7.0/products/lookup?alternateId=PackageFamilyName&value={pfn}` (public, no auth)
+- Called once at install-click time from `MainWindowViewModel` (not during refresh)
+- On failure returns `null`; `StartInstall` falls back to `ms-windows-store://pdp/?PFN={pfn}`
+- Protocol launches via `UseShellExecute` no longer treat a `null` `Process.Start` result as
+  failure (ShellExecute hands the URI to the packaged app and returns `null` on success)
+
+See [xbox.md](xbox.md#store-product-id-resolution-install-fix).
+
+---
+
 ## Updater via GitHub Releases
 
 **Decision:** download `OpenGameHUB-Setup-*.exe` and run Inno Setup silently.

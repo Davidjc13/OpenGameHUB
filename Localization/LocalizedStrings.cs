@@ -64,6 +64,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string EaLibraryPromptOpenEaApp => Loc.T("EaLibraryPromptOpenEaApp");
     public string EaLibraryPromptContinue => Loc.T("EaLibraryPromptContinue");
     public string EaLibraryPromptDontRemind => Loc.T("EaLibraryPromptDontRemind");
+    public string EaManualInstallNoticeTitle => Loc.T("EaManualInstallNoticeTitle");
+    public string EaManualInstallNoticeOk => Loc.T("EaManualInstallNoticeOk");
     public string LegendaryPromptTitle => Loc.T("LegendaryPromptTitle");
     public string LegendaryPromptIntro => Loc.T("LegendaryPromptIntro");
     public string LegendaryPromptAuthTitle => Loc.T("LegendaryPromptAuthTitle");
