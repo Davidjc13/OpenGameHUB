@@ -58,16 +58,14 @@
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
   </ItemGroup>
 
-  <!-- WebView2 NuGet pulls WinForms/WPF assemblies we do not use; they break library scan when probed. -->
-  <ItemGroup>
-    <Reference Remove="Microsoft.Web.WebView2.WinForms" />
-    <Reference Remove="Microsoft.Web.WebView2.Wpf" />
-  </ItemGroup>
-
-  <Target Name="ExcludeWebView2UiAssembliesFromOutput" AfterTargets="ResolveReferences">
+  <!-- The WebView2 NuGet .targets add WPF/WinForms references by full path (…\Microsoft.Web.WebView2.Wpf.dll).
+       We only use the Core assembly; the WPF one targets net5.0-windows and drags in WindowsBase 5.0.0.0,
+       causing an MSB3277 conflict during assembly resolution. Drop them before RAR runs so they are never
+       probed nor copied to the output. -->
+  <Target Name="RemoveWebView2DesktopUiReferences" BeforeTargets="ResolveAssemblyReferences">
     <ItemGroup>
-      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-        Condition="'%(Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+      <Reference Remove="@(Reference)"
+        Condition="'%(Reference.Filename)' == 'Microsoft.Web.WebView2.WinForms' Or '%(Reference.Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
     </ItemGroup>
   </Target>
 </Project>

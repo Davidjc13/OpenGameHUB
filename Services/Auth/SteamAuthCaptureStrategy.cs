@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OpenGameHUB.Infrastructure.Browser;
 
 namespace OpenGameHUB.Services.Auth;
 
@@ -37,18 +38,14 @@ internal sealed class SteamAuthCaptureStrategy : IAuthCaptureStrategy
 
     public object? TryCaptureFromResponse(string requestUrl, string responseBody)
     {
-        if (!Uri.TryCreate(requestUrl, UriKind.Absolute, out var uri))
-            return null;
-
-        if (!uri.Host.EndsWith("steamcommunity.com", StringComparison.OrdinalIgnoreCase)
-            && !uri.Host.EndsWith("steampowered.com", StringComparison.OrdinalIgnoreCase))
+        if (!AuthUrl.TryParse(requestUrl, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, Hosts))
             return null;
 
         var steamId = TryParseSteamId(responseBody);
         if (!string.IsNullOrWhiteSpace(steamId))
             _steamId = steamId;
 
-        if (requestUrl.Contains("/dev/apikey", StringComparison.OrdinalIgnoreCase))
+        if (AuthUrl.PathMatches(uri, "/dev/apikey"))
         {
             var apiKey = TryParseApiKey(responseBody);
             if (!string.IsNullOrWhiteSpace(apiKey))

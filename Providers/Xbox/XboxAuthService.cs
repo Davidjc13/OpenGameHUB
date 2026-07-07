@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Avalonia.Controls;
+using OpenGameHUB.Infrastructure.Browser;
 using OpenGameHUB.Services.Auth;
 using OpenGameHUB.Services.Configuration;
 using OpenGameHUB.ViewModels;
@@ -10,12 +10,6 @@ namespace OpenGameHUB.Providers.Xbox;
 
 internal static class XboxAuthService
 {
-    private static readonly Regex AuthorizationCodeRegex =
-        new(@"[?&]code=([^&]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-    private static readonly Regex StateRegex =
-        new(@"[?&]state=([^&]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
     public static async Task SignInAsync(SettingsService settings, Window ownerWindow)
     {
         var session = XboxAccountClient.CreateOAuthSession();
@@ -68,31 +62,43 @@ internal static class XboxAuthService
     }
 
     internal static bool IsExpectedRedirect(string? url) =>
-        Uri.TryCreate(url, UriKind.Absolute, out var uri)
-        && uri.Host.Equals("login.live.com", StringComparison.OrdinalIgnoreCase);
+        AuthUrl.TryParse(url, out var uri)
+        && uri.Host.Equals("login.live.com", StringComparison.OrdinalIgnoreCase)
+        && AuthUrl.PathMatches(uri, "/oauth20_desktop.srf");
 
     internal static bool IsMatchingState(string? url, string expectedState)
     {
-        if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(expectedState))
+        if (string.IsNullOrWhiteSpace(expectedState) || !AuthUrl.TryParse(url, out var uri))
             return false;
 
-        var match = StateRegex.Match(url);
-        if (!match.Success)
-            return false;
-
-        var actualState = Uri.UnescapeDataString(match.Groups[1].Value);
-        return string.Equals(actualState, expectedState, StringComparison.Ordinal);
+        var actualState = GetQueryValue(uri, "state");
+        return actualState is not null && string.Equals(actualState, expectedState, StringComparison.Ordinal);
     }
 
     internal static string? TryExtractAuthorizationCode(string? url)
     {
-        if (string.IsNullOrWhiteSpace(url))
+        if (!AuthUrl.TryParse(url, out var uri))
             return null;
 
-        var match = AuthorizationCodeRegex.Match(url);
-        if (!match.Success)
-            return null;
+        var code = GetQueryValue(uri, "code");
+        return string.IsNullOrWhiteSpace(code) ? null : code;
+    }
 
-        return Uri.UnescapeDataString(match.Groups[1].Value);
+    // Reads a query parameter from the already-parsed Uri.Query component (no manual URL scanning).
+    private static string? GetQueryValue(Uri uri, string key)
+    {
+        var query = uri.Query.TrimStart('?');
+        foreach (var pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var separator = pair.IndexOf('=');
+            var name = separator >= 0 ? pair[..separator] : pair;
+            if (!name.Equals(key, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var value = separator >= 0 ? pair[(separator + 1)..] : string.Empty;
+            return Uri.UnescapeDataString(value);
+        }
+
+        return null;
     }
 }

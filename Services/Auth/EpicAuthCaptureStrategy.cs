@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using OpenGameHUB.Infrastructure.Browser;
 
 namespace OpenGameHUB.Services.Auth;
 
@@ -29,7 +30,10 @@ internal sealed class EpicAuthCaptureStrategy : IAuthCaptureStrategy
 
     public object? TryCaptureFromResponse(string requestUrl, string responseBody)
     {
-        if (!requestUrl.Contains("/id/api/redirect", StringComparison.OrdinalIgnoreCase))
+        if (!AuthUrl.TryParse(requestUrl, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, Hosts))
+            return null;
+
+        if (!AuthUrl.PathMatches(uri, "/id/api/redirect"))
             return null;
 
         return TryParseAuthorizationCode(responseBody);

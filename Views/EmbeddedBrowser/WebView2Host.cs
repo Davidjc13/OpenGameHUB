@@ -143,7 +143,8 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
 
             _webView.NavigationStarting += (_, e) =>
             {
-                if (!TryGetHost(e.Uri, out var host) || !AuthHostPolicy.IsHostAllowed(host, AllowedHosts))
+                // Only absolute HTTPS URLs whose host is on the provider allowlist may load.
+                if (!AuthUrl.TryParse(e.Uri, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, AllowedHosts))
                 {
                     e.Cancel = true;
                     return;
@@ -154,7 +155,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
 
             _webView.WebResourceResponseReceived += (_, e) =>
             {
-                if (!TryGetHost(e.Request.Uri, out var host) || !AuthHostPolicy.IsHostAllowed(host, AllowedHosts))
+                if (!AuthUrl.TryParse(e.Request.Uri, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, AllowedHosts))
                     return;
 
                 AuthResponseReceived?.Invoke(this, e);
@@ -199,16 +200,6 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
             DestroyWindow(_hostHwnd);
             _hostHwnd = IntPtr.Zero;
         }
-    }
-
-    private static bool TryGetHost(string url, out string host)
-    {
-        host = string.Empty;
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            return false;
-
-        host = uri.Host;
-        return !string.IsNullOrWhiteSpace(host);
     }
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]

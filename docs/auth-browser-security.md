@@ -97,6 +97,7 @@ sequenceDiagram
 - Each auth session uses `%LocalAppData%\OpenGameHUB\AuthProfile\{guid}\` via `WebView2AuthProfile.CreateSessionFolder()`.
 - `CoreWebView2Environment.CreateAsync(null, userDataFolder)` — **not** the shared Evergreen user profile.
 - Folder is deleted in a `finally` block after the dialog closes (`DeleteSessionFolder`), success or cancel.
+- **Orphan cleanup:** `CleanupOrphanedProfiles()` runs at app startup (`App.OnFrameworkInitializationCompleted`) and again before each new session, so a crash or hard kill during login cannot leave cookies on disk.
 
 ---
 
@@ -109,8 +110,10 @@ sequenceDiagram
 **Implementation**
 
 - Each `IAuthCaptureStrategy` defines `AllowedHosts`.
-- `WebView2Host` cancels `NavigationStarting` when `AuthHostPolicy.IsHostAllowed` fails (exact host or `*.allowed` suffix).
-- `WebResourceResponseReceived` ignores responses from non-allowed hosts.
+- Every URL is parsed once through `AuthUrl.TryParse`, which **requires an absolute HTTPS URL** (scheme checked explicitly); non-HTTPS, relative or malformed URLs are rejected before any host/path logic.
+- Host membership uses `AuthHostPolicy`, which compares **DNS labels right-to-left** with `OrdinalIgnoreCase` (never `EndsWith` on the raw string). So `steamcommunity.com` allows `store.steamcommunity.com` but rejects `evilsteamcommunity.com` and `steamcommunity.com.evil.tld`.
+- Path checks use `AuthUrl.PathMatches` (whole-segment, case-insensitive) instead of `Contains`, so `/dev/apikey-evil` does not match `/dev/apikey`.
+- `WebView2Host` cancels `NavigationStarting` and ignores `WebResourceResponseReceived` whenever those checks fail.
 
 **Current allowlists**
 
@@ -139,6 +142,7 @@ The broad `microsoft.com` entry was removed: login navigations stay within the f
 - `ExecuteScriptAsync` is **not exposed** on `WebView2Host`.
 - `IAuthCaptureStrategy` has no DOM capture path.
 - Epic’s `authorizationCode` is read from the **HTTP response body** of the provider redirect (`WebResourceResponseReceived` → `TryCaptureFromResponse`), not from `document.body`.
+- The response body read is **capped at 1 MiB** (`EmbeddedBrowserViewModel.ReadCappedAsync`), so a large or hostile response cannot exhaust memory in the capture path.
 
 
 
@@ -189,6 +193,7 @@ After capture, the dialog closes immediately (or stays open for Steam until both
 - Strategies return only `string` authorization codes (or null).
 - No code path reads password inputs or general page content.
 - `IAuthCaptureStrategy` is documented to forbid returning credentials.
+- **No secret logging:** the application ships without a logger (only Avalonia’s `LogToTrace` for UI diagnostics). No code path writes `authorization_code`, `access_token`, `refresh_token` or Steam API keys to console, trace, or files — the captured value lives only in memory and is passed straight to the token exchange / `legendary --code` / `SteamWebApiService`. The Epic code is handed to `legendary` as a process argument (not logged) with `CreateNoWindow`, and `RunAsync` only surfaces `stderr` on failure (never the code).
 
 **Practice?** Yes — desktop apps should use OAuth and treat the IdP login form as a black box.
 

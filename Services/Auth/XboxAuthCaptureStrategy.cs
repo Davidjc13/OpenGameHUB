@@ -1,3 +1,4 @@
+using OpenGameHUB.Infrastructure.Browser;
 using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.Services.Auth;
@@ -26,7 +27,7 @@ internal sealed class XboxAuthCaptureStrategy : IAuthCaptureStrategy
 
     public object? TryCaptureFromNavigation(string url)
     {
-        if (!url.Contains("oauth20_desktop.srf", StringComparison.OrdinalIgnoreCase))
+        if (!AuthUrl.TryParse(url, out var uri) || !AuthUrl.PathMatches(uri, "/oauth20_desktop.srf"))
             return null;
 
         // Reject the redirect unless the returned state matches our request (CSRF binding).
