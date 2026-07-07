@@ -141,10 +141,10 @@ public static class LegendaryClient
         ListCatalogEntriesAsync(cancellationToken).GetAwaiter().GetResult();
 
     public static void RunInstall(string appName) =>
-        RunInConsole(FindExecutable(), $"install {appName}");
+        RunInConsole(FindExecutable(), "install", appName);
 
     public static void RunLaunch(string appName) =>
-        RunInConsole(FindExecutable(), $"launch {appName}");
+        RunInConsole(FindExecutable(), "launch", appName);
 
     public static void RunAuth() =>
         RunHidden(FindExecutable(), "auth");
@@ -233,19 +233,23 @@ public static class LegendaryClient
             throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
     }
 
-    private static void RunInConsole(string? executable, string arguments)
+    // Launches legendary in its own console window (so the user sees install/launch progress).
+    // The verb and appName go through ArgumentList so the OS quotes them; we never build a shell
+    // command line, which removes any risk of command injection from a tampered catalog appName.
+    private static void RunInConsole(string? executable, string verb, string appName)
     {
         if (string.IsNullOrWhiteSpace(executable))
             throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
 
         var psi = new ProcessStartInfo
         {
-            FileName = "cmd.exe",
-            Arguments = $"/c start \"legendary\" \"{executable}\" {arguments}",
+            FileName = executable,
+            WorkingDirectory = Path.GetDirectoryName(executable) ?? string.Empty,
             UseShellExecute = false,
-            CreateNoWindow = true,
-            WindowStyle = ProcessWindowStyle.Hidden
+            CreateNoWindow = false
         };
+        psi.ArgumentList.Add(verb);
+        psi.ArgumentList.Add(appName);
 
         if (Process.Start(psi) is null)
             throw new InvalidOperationException(Loc.T("CannotRunLegendary"));
