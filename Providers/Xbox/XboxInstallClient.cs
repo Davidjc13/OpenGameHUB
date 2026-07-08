@@ -1,4 +1,5 @@
 using System.Text.Json;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -56,8 +57,14 @@ internal static class XboxInstallClient
 
             return string.IsNullOrWhiteSpace(productId) ? null : productId;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxInstallClient),
+                operation: "ResolveStoreProductIdAsync",
+                exception: ex,
+                platform: OpenGameHUB.Domain.Enums.Platform.GamePass,
+                details: $"packageFamilyName={packageFamilyName?.Trim()}");
             return null;
         }
     }
@@ -91,15 +98,22 @@ internal static class XboxInstallClient
     public static void StartInstall(string? storeProductId, string? packageFamilyName)
     {
         var errors = new List<string>();
-        foreach (var attempt in BuildInstallAttempts(storeProductId, packageFamilyName))
+        var attempts = BuildInstallAttempts(storeProductId, packageFamilyName);
+        for (var i = 0; i < attempts.Count; i++)
         {
             try
             {
-                attempt();
+                attempts[i]();
                 return;
             }
             catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(XboxInstallClient),
+                    operation: "InstallAttempt",
+                    exception: ex,
+                    platform: OpenGameHUB.Domain.Enums.Platform.GamePass,
+                    details: $"storeProductId={storeProductId?.Trim()} | packageFamilyName={packageFamilyName?.Trim()} | attemptIndex={i}");
                 errors.Add(ex.Message);
             }
         }

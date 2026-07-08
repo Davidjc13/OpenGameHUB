@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Gog;
 
 namespace OpenGameHUB.Providers.Gog;
@@ -72,7 +73,7 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
             yield break;
 
         var releaseKey = TryGetReleaseKey(game.Id) ?? $"gog_{gogId}";
-        yield return () => StartProtocol(GogCatalogReader.BuildInstallProtocolUrl(releaseKey));
+        yield return () => ProtocolLauncher.Start(GogCatalogReader.BuildInstallProtocolUrl(releaseKey));
 
         var clientExe = GogCatalogReader.FindGalaxyClientExecutable();
         if (clientExe is not null)
@@ -93,18 +94,6 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
         return separator >= 0 && separator < payload.Length - 1
             ? payload[(separator + 1)..]
             : null;
-    }
-
-    private static void StartProtocol(string url)
-    {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
     }
 
     private static void StartLauncherArgs(string launcherExe, string arguments)

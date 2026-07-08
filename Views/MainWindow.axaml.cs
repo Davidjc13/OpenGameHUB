@@ -47,7 +47,7 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm)
             return;
 
-        await vm.InstallAppUpdateCommand.ExecuteAsync(null);
+        await vm.Updates.InstallUpdateCommand.ExecuteAsync(null);
         e.Handled = true;
     }
 

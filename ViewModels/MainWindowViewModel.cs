@@ -22,10 +22,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private CancellationTokenSource? _statusClearCts;
     private CancellationTokenSource? _refreshCts;
     private CancellationTokenSource? _coverCts;
-    private CancellationTokenSource? _appUpdateCheckCts;
-    private CancellationTokenSource? _appUpdateInstallCts;
-    private AppReleaseInfo? _pendingAppUpdate;
-    private string? _dismissedAppUpdateTag;
     private bool _steamApiPromptOffered;
     private bool _eaLibraryPromptOffered;
     private bool _legendaryPromptOffered;
@@ -50,19 +46,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
         CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        Updates = new MainWindowUpdatesViewModel(
+            statusText => StatusText = statusText,
+            ScheduleStatusClear);
 
-        AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
         StatusText = Loc.T("LoadingLibrary");
         LoadCachedGames();
         _ = RefreshLibraryCommand.ExecuteAsync(null);
-        _ = CheckForAppUpdateAsync();
-        StartPeriodicAppUpdateChecks();
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
     public ObservableCollection<PlatformFilterItem> PlatformFilters { get; }
     public ObservableCollection<SortOptionItem> SortOptions { get; }
     public LocalizedStrings Strings { get; }
+    public MainWindowUpdatesViewModel Updates { get; }
 
     [ObservableProperty]
     private string _searchText = string.Empty;
@@ -71,30 +68,10 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _statusText = string.Empty;
 
     [ObservableProperty]
-    private string _appVersionText = string.Empty;
-
-    [ObservableProperty]
     private string _gamesCountLabel = string.Empty;
 
     [ObservableProperty]
     private bool _isRefreshing;
-
-    [ObservableProperty]
-    private bool _isAppUpdateBannerVisible;
-
-    [ObservableProperty]
-    private string _appUpdateBannerTag = string.Empty;
-
-    [ObservableProperty]
-    private string _appUpdateBannerText = string.Empty;
-
-    [ObservableProperty]
-    private bool _isAppUpdateInstalling;
-
-    [ObservableProperty]
-    private double _appUpdateProgress;
-
-    public bool CanInstallAppUpdate => _pendingAppUpdate is not null && !IsAppUpdateInstalling;
 
     [ObservableProperty]
     private GameItemViewModel? _selectedGame;
@@ -356,128 +333,6 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }, token);
     }
-
-    private async Task CheckForAppUpdateAsync(CancellationToken cancellationToken = default)
-    {
-        if (AppUpdateService.IsDevBuild)
-            return;
-
-        try
-        {
-            var release = await AppUpdateService.GetLatestReleaseAsync(cancellationToken);
-            if (release is null || !AppUpdateService.IsNewer(release.TagName, AppUpdateService.CurrentVersion))
-                return;
-
-            _pendingAppUpdate = release;
-            var showBanner = !string.Equals(_dismissedAppUpdateTag, release.TagName, StringComparison.OrdinalIgnoreCase);
-
-            await RunOnUiThreadAsync(() =>
-            {
-                AppUpdateBannerTag = release.TagName;
-                UpdateAppUpdateBannerText();
-                IsAppUpdateBannerVisible = showBanner;
-                OnPropertyChanged(nameof(CanInstallAppUpdate));
-                InstallAppUpdateCommand.NotifyCanExecuteChanged();
-                StatusText = Loc.T("AppUpdateAvailableHint", release.TagName);
-                ScheduleStatusClear(TimeSpan.FromSeconds(12));
-            });
-        }
-        catch (OperationCanceledException)
-        {
-            // optional background check
-        }
-        catch
-        {
-            // optional background check
-        }
-    }
-
-    private void StartPeriodicAppUpdateChecks()
-    {
-        if (AppUpdateService.IsDevBuild)
-            return;
-
-        _appUpdateCheckCts?.Cancel();
-        _appUpdateCheckCts = new CancellationTokenSource();
-        _ = RunPeriodicAppUpdateChecksAsync(_appUpdateCheckCts.Token);
-    }
-
-    private async Task RunPeriodicAppUpdateChecksAsync(CancellationToken cancellationToken)
-    {
-        using var timer = new PeriodicTimer(AppUpdateService.BackgroundCheckInterval);
-        try
-        {
-            while (await timer.WaitForNextTickAsync(cancellationToken))
-                await CheckForAppUpdateAsync(cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // app shutting down
-        }
-    }
-
-    [RelayCommand]
-    private void DismissAppUpdateBanner()
-    {
-        if (!string.IsNullOrWhiteSpace(AppUpdateBannerTag))
-            _dismissedAppUpdateTag = AppUpdateBannerTag;
-
-        IsAppUpdateBannerVisible = false;
-    }
-
-    [RelayCommand]
-    private async Task InstallAppUpdateAsync()
-    {
-        if (_pendingAppUpdate is null || IsAppUpdateInstalling)
-            return;
-
-        _appUpdateInstallCts?.Cancel();
-        _appUpdateInstallCts = new CancellationTokenSource();
-        var cancellationToken = _appUpdateInstallCts.Token;
-
-        IsAppUpdateInstalling = true;
-        AppUpdateProgress = 0;
-        InstallAppUpdateCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(CanInstallAppUpdate));
-
-        try
-        {
-            var progress = new Progress<double>(value =>
-            {
-                AppUpdateProgress = value;
-                StatusText = Loc.T("AppUpdateDownloading", value);
-            });
-
-            StatusText = Loc.T("AppUpdateDownloading", 0);
-            await AppUpdateService.DownloadAndInstallAsync(
-                _pendingAppUpdate,
-                progress,
-                cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // optional
-        }
-        catch (Exception ex)
-        {
-            StatusText = Loc.T("AppUpdateDownloadFailed", ex.Message);
-            IsAppUpdateInstalling = false;
-            AppUpdateProgress = 0;
-            InstallAppUpdateCommand.NotifyCanExecuteChanged();
-            OnPropertyChanged(nameof(CanInstallAppUpdate));
-        }
-    }
-
-    partial void OnIsAppUpdateInstallingChanged(bool value)
-    {
-        InstallAppUpdateCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(CanInstallAppUpdate));
-    }
-
-    private void UpdateAppUpdateBannerText() =>
-        AppUpdateBannerText = string.IsNullOrWhiteSpace(AppUpdateBannerTag)
-            ? string.Empty
-            : Loc.T("AppUpdateBannerMessage", AppUpdateBannerTag);
 
     private async Task OfferOnboardingPromptsAsync()
     {
@@ -1104,8 +959,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Strings.Refresh();
         RebuildSortOptions();
         RebuildPlatformFilters();
-        UpdateAppUpdateBannerText();
-        AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
+        Updates.RefreshLocalizedText();
 
         foreach (var game in _allGames)
             game.ApplyLocalization();

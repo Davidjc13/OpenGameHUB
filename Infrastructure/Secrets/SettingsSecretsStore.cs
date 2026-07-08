@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Infrastructure.Secrets;
 
@@ -31,8 +32,13 @@ internal static class SettingsSecretsStore
             var jsonBytes = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
             return DeserializeSecrets(jsonBytes);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsSecretsStore),
+                operation: "Load",
+                exception: ex,
+                details: "secrets.dat");
             return new SettingsSecrets();
         }
     }
@@ -74,8 +80,13 @@ internal static class SettingsSecretsStore
                        ?? new SettingsSecrets();
             }
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsSecretsStore),
+                operation: "DeserializeSecrets.VersionedEnvelope",
+                exception: ex,
+                details: "Falling back to legacy secrets format");
             // fall through to legacy format
         }
 

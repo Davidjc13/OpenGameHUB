@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Ubisoft;
 
 namespace OpenGameHUB.Providers.Ubisoft;
@@ -61,23 +62,11 @@ public sealed class UbisoftCloudLibraryProvider : ICloudLibraryProvider
             yield break;
 
         var installUrl = $"uplay://install/{game.PlatformGameId}";
-        yield return () => StartProtocol(installUrl);
+        yield return () => ProtocolLauncher.Start(installUrl);
 
         var launcherExe = UbisoftCatalogReader.FindLauncherExecutable();
         if (launcherExe is not null)
             yield return () => StartLauncherArgs(launcherExe, installUrl);
-    }
-
-    private static void StartProtocol(string url)
-    {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
     }
 
     private static void StartLauncherArgs(string launcherExe, string protocolUrl)

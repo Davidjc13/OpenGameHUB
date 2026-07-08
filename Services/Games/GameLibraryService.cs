@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
@@ -113,8 +114,13 @@ public sealed class GameLibraryService : IDisposable
                     cancellationToken);
                 _steamCloudProvider.SetOwnedGames(steamOwned);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLibraryService),
+                    operation: "RefreshLibraryAsync.SyncSteamApi",
+                    exception: ex,
+                    platform: Platform.Steam);
                 failedCloudPlatforms.Add(Platform.Steam);
             }
         }
@@ -126,8 +132,13 @@ public sealed class GameLibraryService : IDisposable
                 steamOwned = await LoadLocalSteamLibraryAsync(cancellationToken);
                 _steamCloudProvider.SetOwnedGames(steamOwned);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLibraryService),
+                    operation: "RefreshLibraryAsync.SyncSteamLocal",
+                    exception: ex,
+                    platform: Platform.Steam);
                 failedCloudPlatforms.Add(Platform.Steam);
             }
         }
@@ -145,8 +156,14 @@ public sealed class GameLibraryService : IDisposable
             {
                 await LegendaryBootstrap.EnsureInstalledAsync(progress, downloadCts.Token);
             }
-            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLibraryService),
+                    operation: "RefreshLibraryAsync.PrepareEpicLibrary",
+                    exception: ex,
+                    platform: Platform.Epic,
+                    details: "Timed out while ensuring Legendary bootstrap");
                 // Epic helper download timed out; continue without cloud Epic.
             }
 
@@ -163,8 +180,13 @@ public sealed class GameLibraryService : IDisposable
                 var gamertag = await new XboxAccountClient().GetGamertagAsync(cancellationToken);
                 XboxAuthHelper.PersistProfile(_settingsService, gamertag);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLibraryService),
+                    operation: "RefreshLibraryAsync.SyncXboxLibrary",
+                    exception: ex,
+                    platform: Platform.GamePass);
                 // optional cloud sync
             }
         }
@@ -275,8 +297,14 @@ public sealed class GameLibraryService : IDisposable
 
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLibraryService),
+                    operation: "ScanAllGames.GetUninstalledLibraryGames",
+                    exception: ex,
+                    platform: provider.Platform,
+                    details: provider.GetType().Name);
                 failedCloudPlatforms.Add(provider.Platform);
             }
         }
