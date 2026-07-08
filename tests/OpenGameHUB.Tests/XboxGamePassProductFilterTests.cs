@@ -75,4 +75,70 @@ public sealed class XboxGamePassProductFilterTests
         using var document = JsonDocument.Parse(json);
         Assert.True(XboxGamePassProductFilter.IsInstallableOnPc(document.RootElement));
     }
+
+    [Fact]
+    public void IsInstallableOnPc_accepts_xpa_installation_terms()
+    {
+        const string json = """
+            {
+              "LocalizedProperties": [{ "ProductTitle": "The Elder Scrolls IV: Oblivion Remastered" }],
+              "Properties": {
+                "Attributes": [{ "Name": "XPA" }]
+              },
+              "DisplaySkuAvailabilities": [{
+                "Sku": {
+                  "Properties": {
+                    "InstallationTerms": "InstallationTermsRestrictiveXPA"
+                  }
+                }
+              }]
+            }
+            """;
+
+        using var document = JsonDocument.Parse(json);
+        Assert.True(XboxGamePassProductFilter.IsInstallableOnPc(document.RootElement));
+    }
+
+    [Fact]
+    public void IsInstallableOnPc_accepts_restrictive_xbox_terms_when_pc_game_pad_present()
+    {
+        const string json = """
+            {
+              "LocalizedProperties": [{ "ProductTitle": "Halo Infinite" }],
+              "Properties": {
+                "Attributes": [{ "Name": "PcGamePad" }, { "Name": "XPA" }]
+              },
+              "DisplaySkuAvailabilities": [{
+                "Sku": {
+                  "Properties": {
+                    "InstallationTerms": "InstallationTermsRestrictiveXbox"
+                  }
+                }
+              }]
+            }
+            """;
+
+        using var document = JsonDocument.Parse(json);
+        Assert.True(XboxGamePassProductFilter.IsInstallableOnPc(document.RootElement));
+    }
+
+    [Fact]
+    public void IsInstallableOnPc_accepts_windows_suffix_in_title()
+    {
+        const string json = """
+            {
+              "LocalizedProperties": [{ "ProductTitle": "Call of Duty (Windows)" }],
+              "DisplaySkuAvailabilities": [{
+                "Sku": {
+                  "Properties": {
+                    "InstallationTerms": "InstallationTermsRestrictiveXbox"
+                  }
+                }
+              }]
+            }
+            """;
+
+        using var document = JsonDocument.Parse(json);
+        Assert.True(XboxGamePassProductFilter.IsInstallableOnPc(document.RootElement));
+    }
 }
