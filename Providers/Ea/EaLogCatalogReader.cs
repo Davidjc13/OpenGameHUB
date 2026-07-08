@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Ea;
 
@@ -20,8 +22,14 @@ internal static class EaLogCatalogReader
             {
                 content = ReadSharedLogContent(logPath);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(EaLogCatalogReader),
+                    operation: "ReadLibraryEntries.ReadSharedLogContent",
+                    exception: ex,
+                    platform: Platform.Ea,
+                    details: logPath);
                 continue;
             }
 

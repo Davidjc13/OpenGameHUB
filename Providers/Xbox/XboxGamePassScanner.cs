@@ -6,6 +6,7 @@ using GameFinder.StoreHandlers.Xbox;
 using NexusMods.Paths;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.Providers.Xbox;
@@ -38,8 +39,14 @@ internal static class XboxGamePassScanner
             {
                 metadata = XboxManifestReader.Read(manifestPath);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(XboxGamePassScanner),
+                    operation: "Scan.ReadManifest",
+                    exception: ex,
+                    platform: Platform.GamePass,
+                    details: manifestPath);
                 continue;
             }
 

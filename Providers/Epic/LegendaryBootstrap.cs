@@ -1,4 +1,6 @@
 using System.Net.Http;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Epic;
 
@@ -63,8 +65,14 @@ internal static class LegendaryBootstrap
             LegendaryClient.InvalidateExecutableCache();
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryBootstrap),
+                operation: "EnsureInstalledAsync",
+                exception: ex,
+                platform: Platform.Epic,
+                details: ManagedExecutablePath);
             TryDeleteIfExists(ManagedExecutablePath + ".download");
             return false;
         }

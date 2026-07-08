@@ -1,6 +1,7 @@
 using System.Text.Json;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Epic;
 
@@ -34,8 +35,14 @@ internal static class EpicManifestScanner
             {
                 itemFiles = Directory.EnumerateFiles(root, "*.item", SearchOption.TopDirectoryOnly);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(EpicManifestScanner),
+                    operation: "ScanInstalled.EnumerateManifestFiles",
+                    exception: ex,
+                    platform: Platform.Epic,
+                    details: root);
                 continue;
             }
 
@@ -54,9 +61,14 @@ internal static class EpicManifestScanner
                     if (!GameEntryFilter.IsExcluded(game))
                         games.Add(game);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // optional per file
+                    AppDiagnostics.ReportError(
+                        area: nameof(EpicManifestScanner),
+                        operation: "ScanInstalled.ParseManifest",
+                        exception: ex,
+                        platform: Platform.Epic,
+                        details: itemFile);
                 }
             }
         }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Xbox;
@@ -192,6 +193,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ConnectXboxAsync",
+                exception: ex,
+                platform: Platform.GamePass);
             StatusMessage = Loc.T("XboxConnectFailed", ex.Message);
         }
     }
@@ -269,6 +275,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ConnectEpicAsync",
+                exception: ex,
+                platform: Platform.Epic);
             StatusMessage = Loc.T("EpicConnectFailed", ex.Message);
         }
     }
@@ -295,6 +306,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "DisconnectEpicAsync",
+                exception: ex,
+                platform: Platform.Epic);
             StatusMessage = Loc.T("EpicDisconnectFailed", ex.Message);
         }
     }
@@ -361,6 +377,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "RefreshEpicStatus",
+                exception: ex,
+                platform: Platform.Epic);
             EpicStatusText = Loc.T("EpicNotConnectedStatus");
             StatusMessage = Loc.T("ScanError", ex.Message);
         }

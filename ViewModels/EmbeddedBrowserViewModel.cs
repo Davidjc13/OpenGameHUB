@@ -2,6 +2,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Web.WebView2.Core;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Services.Auth;
 using OpenGameHUB.Views.EmbeddedBrowser;
@@ -84,6 +85,11 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(EmbeddedBrowserViewModel),
+                operation: "InitializeAsync",
+                exception: ex,
+                details: _strategy.StartUrl);
             StatusMessage = Loc.T("EmbeddedBrowserInitFailed", ex.Message);
         }
         finally

@@ -6,6 +6,8 @@ using GameFinder.StoreHandlers.EADesktop.Crypto;
 using GameFinder.StoreHandlers.EADesktop.Crypto.Windows;
 using NexusMods.Paths;
 using OneOf;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Ea;
 
@@ -43,9 +45,14 @@ internal static class EaInstallInfoDecryptor
                 if (IsValidInstallInfoJson(plaintext))
                     return plaintext;
             }
-            catch
+            catch (Exception ex)
             {
-                // try next hardware profile
+                AppDiagnostics.ReportError(
+                    area: nameof(EaInstallInfoDecryptor),
+                    operation: "TryDecrypt",
+                    exception: ex,
+                    platform: Platform.Ea,
+                    details: installInfoPath);
             }
         }
 

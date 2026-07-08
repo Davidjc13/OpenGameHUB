@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
@@ -266,6 +267,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowViewModel),
+                operation: "RefreshLibraryAsync",
+                exception: ex,
+                details: "Top-level library refresh");
             await RunOnUiThreadAsync(() =>
                 StatusText = Loc.T("ScanError", ex.Message));
         }
@@ -442,6 +448,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowViewModel),
+                operation: "OpenSettingsAsync",
+                exception: ex,
+                details: "Settings dialog flow");
             StatusText = Loc.T("ScanError", ex.Message);
             ScheduleStatusClear(TimeSpan.FromSeconds(8));
         }
@@ -657,6 +668,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowViewModel),
+                operation: "LaunchSelectedGameAsync",
+                exception: ex,
+                platform: SelectedGame?.Platform,
+                details: SelectedGame?.Source.Id);
             StatusText = Loc.T("LaunchFailed", ex.Message);
         }
         finally
@@ -752,6 +769,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowViewModel),
+                operation: "ChangeCustomCoverAsync",
+                exception: ex,
+                platform: SelectedGame?.Platform,
+                details: SelectedGame?.Source.Id);
             StatusText = Loc.T("CoverUpdateFailedDetail", ex.Message);
             ScheduleStatusClear(TimeSpan.FromSeconds(6));
         }
@@ -784,6 +807,12 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowViewModel),
+                operation: "ResetCustomCoverAsync",
+                exception: ex,
+                platform: SelectedGame?.Platform,
+                details: SelectedGame?.Source.Id);
             StatusText = Loc.T("CoverUpdateFailedDetail", ex.Message);
             ScheduleStatusClear(TimeSpan.FromSeconds(6));
         }

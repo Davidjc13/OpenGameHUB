@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Services.Updates;
 
 namespace OpenGameHUB.ViewModels;
@@ -77,6 +78,10 @@ public partial class SettingsUpdatesViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsUpdatesViewModel),
+                operation: "CheckForUpdatesAsync",
+                exception: ex);
             _pendingRelease = null;
             IsUpdateAvailable = false;
             _setStatusMessage(Loc.T("AppUpdateCheckFailedDetail", ex.Message));
@@ -122,6 +127,11 @@ public partial class SettingsUpdatesViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsUpdatesViewModel),
+                operation: "InstallUpdateAsync",
+                exception: ex,
+                details: _pendingRelease?.TagName);
             _setStatusMessage(Loc.T("AppUpdateDownloadFailed", ex.Message));
         }
         finally

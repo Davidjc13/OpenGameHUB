@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
@@ -83,9 +84,14 @@ public sealed class MetadataService
             {
                 // Per-cover timeout; continue with the rest.
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore individual cover download failures.
+                AppDiagnostics.ReportError(
+                    area: nameof(MetadataService),
+                    operation: "EnrichCoversAsync.DownloadCover",
+                    exception: ex,
+                    platform: game.Platform,
+                    details: $"gameId={game.Id} | title={game.Title}");
             }
         }
     }

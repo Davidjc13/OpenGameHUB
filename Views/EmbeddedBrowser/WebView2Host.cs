@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Microsoft.Web.WebView2.Core;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Browser;
 
 namespace OpenGameHUB.Views.EmbeddedBrowser;
@@ -169,6 +170,11 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(WebView2Host),
+                operation: "InitializeAsync",
+                exception: ex,
+                details: _userDataFolder);
             _initTcs.TrySetException(ex);
         }
     }
