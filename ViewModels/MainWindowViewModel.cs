@@ -215,8 +215,6 @@ public partial class MainWindowViewModel : ViewModelBase
         CancelScheduledStatusClear();
         await RunOnUiThreadAsync(() =>
         {
-            _suppressCoverLoading = true;
-            ReleaseAllGameCovers();
             IsRefreshing = true;
         });
 
@@ -841,6 +839,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _allGames = cached.Select(g => new GameItemViewModel(g)).ToList();
         RebuildPlatformFilters();
         ApplyFilter();
+        _suppressCoverLoading = false;
+        ApplyVisibleCovers();
         StatusText = Loc.T("GamesInCache", _allGames.Count);
     }
 
