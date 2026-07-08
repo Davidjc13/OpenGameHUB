@@ -132,24 +132,24 @@
                                FontWeight="SemiBold"
                                Foreground="#D7DFF1"
                                Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding AppVersionText}"
+                    <TextBlock Text="{Binding Updates.AppVersionText}"
                                Foreground="#9AA6BF"
                                TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Button Content="{Binding Strings.AppCheckForUpdates}"
-                                Command="{Binding CheckForUpdatesCommand}"
-                                IsEnabled="{Binding !IsUpdateBusy}"/>
+                                Command="{Binding Updates.CheckForUpdatesCommand}"
+                                IsEnabled="{Binding !Updates.IsUpdateBusy}"/>
                         <Button Classes="primary"
                                 Content="{Binding Strings.AppInstallUpdate}"
-                                Command="{Binding InstallUpdateCommand}"
-                                IsEnabled="{Binding !IsUpdateBusy}"
-                                IsVisible="{Binding IsUpdateAvailable}"/>
+                                Command="{Binding Updates.InstallUpdateCommand}"
+                                IsEnabled="{Binding !Updates.IsUpdateBusy}"
+                                IsVisible="{Binding Updates.IsUpdateAvailable}"/>
                     </StackPanel>
                     <ProgressBar Minimum="0"
                                  Maximum="100"
-                                 Value="{Binding UpdateProgress}"
-                                 IsIndeterminate="{Binding ShowIndeterminateUpdateProgress}"
-                                 IsVisible="{Binding IsUpdateBusy}"
+                                 Value="{Binding Updates.UpdateProgress}"
+                                 IsIndeterminate="{Binding Updates.ShowIndeterminateUpdateProgress}"
+                                 IsVisible="{Binding Updates.IsUpdateBusy}"
                                  Height="4"/>
 
                     <Border Background="#1A1218"

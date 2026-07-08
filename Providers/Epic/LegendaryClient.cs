@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Epic;
 
 namespace OpenGameHUB.Providers.Epic;
@@ -109,8 +110,14 @@ public static class LegendaryClient
 
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "TryReadAuthSnapshot",
+                exception: ex,
+                platform: Platform.Epic,
+                details: UserDataPath);
             return false;
         }
     }
@@ -130,8 +137,14 @@ public static class LegendaryClient
 
             return ParseCatalogJson(output);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "ListCatalogEntriesAsync",
+                exception: ex,
+                platform: Platform.Epic,
+                details: legendary);
             return [];
         }
     }
@@ -324,9 +337,13 @@ public static class LegendaryClient
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "TryFindOnPath",
+                exception: ex,
+                platform: Platform.Epic);
         }
 
         return null;
@@ -359,9 +376,13 @@ public static class LegendaryClient
                     return exe;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "FindEpicLauncherExecutable.ReadRegistry",
+                exception: ex,
+                platform: Platform.Epic);
         }
 
         return null;
@@ -420,8 +441,13 @@ public static class LegendaryClient
                         : entry.Metadata.CatalogItemId.Trim()))
                 .ToList();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "ParseCatalogJson",
+                exception: ex,
+                platform: Platform.Epic);
             return [];
         }
     }

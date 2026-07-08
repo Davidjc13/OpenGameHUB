@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -108,8 +110,13 @@ internal sealed class XboxAccountClient
                     : entry)
                 .ToList();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxAccountClient),
+                operation: "GetPcLibraryEntriesAsync.EnrichPlaytime",
+                exception: ex,
+                platform: Platform.GamePass);
             return pcTitles;
         }
     }
@@ -249,8 +256,13 @@ internal sealed class XboxAccountClient
             using var response = await _httpClient.SendAsync(request, cancellationToken);
             return response.IsSuccessStatusCode;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxAccountClient),
+                operation: "IsLoggedInAsync",
+                exception: ex,
+                platform: Platform.GamePass);
             return false;
         }
     }

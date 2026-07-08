@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -13,16 +15,43 @@ internal sealed class XboxGamePassCatalogClient
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly HttpClient _httpClient = new()
+    private readonly HttpClient _httpClient;
+
+    public XboxGamePassCatalogClient()
+        : this(CreateHttpClient())
     {
-        Timeout = TimeSpan.FromMinutes(2)
-    };
+    }
+
+    internal XboxGamePassCatalogClient(HttpClient httpClient)
+    {
+        _httpClient = httpClient;
+    }
+
+    private static HttpClient CreateHttpClient()
+    {
+        var httpClient = new HttpClient
+        {
+            Timeout = TimeSpan.FromMinutes(2)
+        };
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("OpenGameHUB/1.0");
+        return httpClient;
+    }
 
     public async Task<IReadOnlyList<XboxCatalogEntry>> GetInstallablePcGamesAsync(
         CancellationToken cancellationToken = default)
     {
         var (market, language) = XboxCatalogMarket.Resolve();
-        var productIds = await GetPcGamePassProductIdsAsync(market, language, cancellationToken);
+        return await GetInstallablePcGamesAsync(market, language, cancellationToken);
+    }
+
+    internal async Task<IReadOnlyList<XboxCatalogEntry>> GetInstallablePcGamesAsync(
+        string market,
+        string language,
+        CancellationToken cancellationToken = default)
+    {
+        var (resolvedMarket, resolvedLanguage, productIds) =
+            await ResolveProductIdsWithFallbackAsync(market, language, cancellationToken);
+
         if (productIds.Count == 0)
             return [];
 
@@ -30,7 +59,7 @@ internal sealed class XboxGamePassCatalogClient
         foreach (var batch in productIds.Chunk(ProductBatchSize))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var products = await GetProductsAsync(batch, market, language, cancellationToken);
+            var products = await GetProductsAsync(batch, resolvedMarket, resolvedLanguage, cancellationToken);
             entries.AddRange(products);
         }
 
@@ -39,6 +68,24 @@ internal sealed class XboxGamePassCatalogClient
             .Select(group => group.First())
             .OrderBy(entry => entry.Title, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
+    }
+
+    internal async Task<(string Market, string Language, IReadOnlyList<string> ProductIds)>
+        ResolveProductIdsWithFallbackAsync(
+            string market,
+            string language,
+            CancellationToken cancellationToken = default)
+    {
+        var productIds = await GetPcGamePassProductIdsAsync(market, language, cancellationToken);
+        if (productIds.Count == 0
+            && !string.Equals(market, "US", StringComparison.OrdinalIgnoreCase))
+        {
+            var usProductIds = await GetPcGamePassProductIdsAsync("US", "en-us", cancellationToken);
+            if (usProductIds.Count > 0)
+                return ("US", "en-us", usProductIds);
+        }
+
+        return (market, language, productIds);
     }
 
     internal static async Task<IReadOnlyList<string>> GetPcGamePassProductIdsAsync(
@@ -52,7 +99,16 @@ internal sealed class XboxGamePassCatalogClient
 
         using var response = await httpClient.GetAsync(url, cancellationToken);
         if (!response.IsSuccessStatusCode)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxGamePassCatalogClient),
+                operation: "GetPcGamePassProductIdsAsync",
+                exception: new HttpRequestException(
+                    $"SIGL request failed with status {(int)response.StatusCode} ({response.StatusCode})."),
+                platform: Platform.GamePass,
+                details: $"market={market};language={language}");
             return [];
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
@@ -95,7 +151,16 @@ internal sealed class XboxGamePassCatalogClient
 
         using var response = await _httpClient.GetAsync(url, cancellationToken);
         if (!response.IsSuccessStatusCode)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxGamePassCatalogClient),
+                operation: "GetProductsAsync",
+                exception: new HttpRequestException(
+                    $"Display catalog request failed with status {(int)response.StatusCode} ({response.StatusCode})."),
+                platform: Platform.GamePass,
+                details: $"market={market};language={language};batchSize={productIds.Count}");
             return [];
+        }
 
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         using var document = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);

@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using ProtoBuf;
 using YamlDotNet.Serialization;
 using YamlDeserializer = YamlDotNet.Serialization.IDeserializer;
@@ -66,8 +67,14 @@ internal static class UbisoftCatalogReader
             {
                 productInfo = YamlDeserializer.Deserialize<UbisoftProductInformation>(item.GameInfo);
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(UbisoftCatalogReader),
+                    operation: "ReadLibraryEntries.DeserializeYaml",
+                    exception: ex,
+                    platform: Platform.Ubisoft,
+                    details: $"uplayId={item.UplayId}");
                 continue;
             }
 
@@ -120,8 +127,13 @@ internal static class UbisoftCatalogReader
         {
             entries = ReadLibraryEntries();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(UbisoftCatalogReader),
+                operation: "EnrichCatalogCoverUrls.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Ubisoft);
             return;
         }
 

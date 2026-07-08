@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Ea;
 
@@ -178,8 +179,14 @@ internal static class EaDesktopScanner
                 contentIds,
                 ResolveRegistryPath(launcherPath));
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(EaDesktopScanner),
+                operation: "ReadInstallerMetadata",
+                exception: ex,
+                platform: Platform.Ea,
+                details: installerFile);
             return InstallerMetadata.Empty;
         }
     }

@@ -3,6 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Gog;
 
@@ -52,9 +53,13 @@ internal static class GogCatalogReader
             if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
                 return path;
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(GogCatalogReader),
+                operation: "FindGalaxyClientExecutable.ReadRegistry",
+                exception: ex,
+                platform: Platform.Gog);
         }
 
         return null;
@@ -203,9 +208,14 @@ internal static class GogCatalogReader
                 return titleElement.GetString()?.Trim();
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(GogCatalogReader),
+                operation: "ParseTitle",
+                exception: ex,
+                platform: Platform.Gog,
+                details: titleJson is null ? null : $"titleJsonLength={titleJson.Length}");
         }
 
         return null;

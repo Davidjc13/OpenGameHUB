@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Steam;
 
@@ -47,7 +48,7 @@ public sealed class SteamCloudLibraryProvider : ICloudLibraryProvider
         if (!int.TryParse(game.PlatformGameId, out var appId))
             yield break;
 
-        yield return () => StartProtocol($"steam://install/{appId}");
+        yield return () => ProtocolLauncher.Start($"steam://install/{appId}");
 
         var steamExe = FindSteamExecutable();
         if (steamExe is not null)
@@ -74,18 +75,6 @@ public sealed class SteamCloudLibraryProvider : ICloudLibraryProvider
         }
 
         return null;
-    }
-
-    private static void StartProtocol(string url)
-    {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
     }
 
     private static void StartLauncherArgs(string launcherExe, string protocolUrl)

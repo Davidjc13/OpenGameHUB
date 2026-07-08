@@ -1,6 +1,8 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Secrets;
 
 namespace OpenGameHUB.Providers.Xbox;
@@ -49,8 +51,13 @@ internal sealed class XboxGamePassSubscriptionClient
         {
             return await QueryActiveSubscriptionsAsync(licensingXsts, cancellationToken);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxGamePassSubscriptionClient),
+                operation: "HasActivePcGamePassAsync",
+                exception: ex,
+                platform: Platform.GamePass);
             return false;
         }
     }

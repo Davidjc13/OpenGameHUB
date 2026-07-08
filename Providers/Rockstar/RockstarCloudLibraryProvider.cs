@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Rockstar;
 
 namespace OpenGameHUB.Providers.Rockstar;
@@ -29,7 +30,22 @@ public sealed class RockstarCloudLibraryProvider : ICloudLibraryProvider
 
         var results = new List<UnifiedGame>();
 
-        foreach (var entry in RockstarCatalogReader.ReadLibraryEntries())
+        IReadOnlyList<RockstarCatalogEntry> entries;
+        try
+        {
+            entries = RockstarCatalogReader.ReadLibraryEntries();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(RockstarCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Rockstar);
+            return [];
+        }
+
+        foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

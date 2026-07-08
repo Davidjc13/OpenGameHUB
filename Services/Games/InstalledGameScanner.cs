@@ -3,6 +3,7 @@ using GameLib.Core;
 using GameLib.Plugin.Steam.Model;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Services.Covers;
 
 namespace OpenGameHUB.Services.Games;
@@ -93,8 +94,14 @@ internal sealed class InstalledGameScanner
                 LaunchSpec = launchSpec
             };
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(InstalledGameScanner),
+                operation: "MapGame",
+                exception: ex,
+                platform: platform,
+                details: game.Name);
             return null;
         }
     }

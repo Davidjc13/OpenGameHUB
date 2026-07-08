@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Ea;
 
@@ -46,9 +47,13 @@ internal static class EaCatalogReader
             if (!string.IsNullOrWhiteSpace(clientPath) && File.Exists(clientPath))
                 return clientPath;
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(EaCatalogReader),
+                operation: "FindEaDesktopExecutable.ReadRegistry",
+                exception: ex,
+                platform: Platform.Ea);
         }
 
         return null;
