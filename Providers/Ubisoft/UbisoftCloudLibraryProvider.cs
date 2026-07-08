@@ -24,7 +24,20 @@ public sealed class UbisoftCloudLibraryProvider : ICloudLibraryProvider
             .Select(g => g.PlatformGameId)
             .ToHashSet(StringComparer.Ordinal);
 
-        var entries = UbisoftCatalogReader.ReadLibraryEntries();
+        IReadOnlyList<UbisoftCatalogEntry> entries;
+        try
+        {
+            entries = UbisoftCatalogReader.ReadLibraryEntries();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(UbisoftCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Ubisoft);
+            return [];
+        }
         var results = new List<UnifiedGame>();
 
         foreach (var entry in entries)

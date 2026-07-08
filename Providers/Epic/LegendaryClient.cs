@@ -337,9 +337,13 @@ public static class LegendaryClient
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "TryFindOnPath",
+                exception: ex,
+                platform: Platform.Epic);
         }
 
         return null;
@@ -372,9 +376,13 @@ public static class LegendaryClient
                     return exe;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "FindEpicLauncherExecutable.ReadRegistry",
+                exception: ex,
+                platform: Platform.Epic);
         }
 
         return null;
@@ -433,8 +441,13 @@ public static class LegendaryClient
                         : entry.Metadata.CatalogItemId.Trim()))
                 .ToList();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(LegendaryClient),
+                operation: "ParseCatalogJson",
+                exception: ex,
+                platform: Platform.Epic);
             return [];
         }
     }

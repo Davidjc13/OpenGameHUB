@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Rockstar;
 
@@ -268,8 +269,14 @@ internal static class RockstarCatalogReader
 
             return [];
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(RockstarCatalogReader),
+                operation: "ReadEncryptedTitleFile",
+                exception: ex,
+                platform: Platform.Rockstar,
+                details: Path.GetFileName(path));
             return [];
         }
     }
@@ -371,8 +378,14 @@ internal static class RockstarCatalogReader
                 if (checkedGames >= totalGames)
                     break;
             }
-            catch
+            catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(RockstarCatalogReader),
+                    operation: "ReadOwnedTitleIdsFromLogs.ParseLogFile",
+                    exception: ex,
+                    platform: Platform.Rockstar,
+                    details: Path.GetFileName(logPath));
                 break;
             }
         }
@@ -492,9 +505,14 @@ internal static class RockstarCatalogReader
                 return true;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(RockstarCatalogReader),
+                operation: "IsTitleInstalled.ReadRegistry",
+                exception: ex,
+                platform: Platform.Rockstar,
+                details: titleId);
         }
 
         return false;
@@ -527,9 +545,13 @@ internal static class RockstarCatalogReader
             using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Rockstar Games\Launcher");
             installFolder = key?.GetValue("InstallFolder") as string;
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(RockstarCatalogReader),
+                operation: "ReadRegistryLauncherPaths.ReadInstallFolder",
+                exception: ex,
+                platform: Platform.Rockstar);
         }
 
         if (!string.IsNullOrWhiteSpace(installFolder))
@@ -545,9 +567,14 @@ internal static class RockstarCatalogReader
                 if (!string.IsNullOrWhiteSpace(executable))
                     paths.Add(executable);
             }
-            catch
+            catch (Exception ex)
             {
-                // optional
+                AppDiagnostics.ReportError(
+                    area: nameof(RockstarCatalogReader),
+                    operation: "ReadRegistryLauncherPaths.ReadCommand",
+                    exception: ex,
+                    platform: Platform.Rockstar,
+                    details: root.Name);
             }
         }
 

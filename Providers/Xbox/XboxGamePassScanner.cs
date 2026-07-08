@@ -156,8 +156,14 @@ internal static class XboxGamePassScanner
                 ? output
                 : null;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxGamePassScanner),
+                operation: "ResolveShellAppsFolderUri",
+                exception: ex,
+                platform: Platform.GamePass,
+                details: installPath);
             return null;
         }
     }

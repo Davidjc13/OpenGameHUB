@@ -1,4 +1,5 @@
 using System.Text.Json;
+using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
@@ -173,9 +174,14 @@ internal static class XboxInstallClient
                 if (match is not null)
                     return match;
             }
-            catch
+            catch (Exception ex)
             {
-                // WindowsApps may be inaccessible without elevated rights.
+                AppDiagnostics.ReportError(
+                    area: nameof(XboxInstallClient),
+                    operation: "FindXboxAppExecutable.EnumerateWindowsApps",
+                    exception: ex,
+                    platform: Platform.GamePass,
+                    details: root);
             }
         }
 

@@ -89,8 +89,13 @@ internal static class EaInstallInfoDecryptor
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(EaInstallInfoDecryptor),
+                operation: "GetVideoControllerDeviceIds",
+                exception: ex,
+                platform: Platform.Ea);
             return [];
         }
     }

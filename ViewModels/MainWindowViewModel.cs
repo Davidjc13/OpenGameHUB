@@ -320,9 +320,12 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 // A newer refresh started.
             }
-            catch
+            catch (Exception ex)
             {
-                // Cover downloads are optional.
+                AppDiagnostics.ReportError(
+                    area: nameof(MainWindowViewModel),
+                    operation: "StartBackgroundCoverEnrichment",
+                    exception: ex);
             }
             finally
             {

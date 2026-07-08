@@ -28,7 +28,22 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
         var clientExe = GogCatalogReader.FindGalaxyClientExecutable();
         var results = new List<UnifiedGame>();
 
-        foreach (var entry in GogCatalogReader.ReadLibraryEntries())
+        IReadOnlyList<GogCatalogEntry> entries;
+        try
+        {
+            entries = GogCatalogReader.ReadLibraryEntries();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(GogCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Gog);
+            return [];
+        }
+
+        foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
 

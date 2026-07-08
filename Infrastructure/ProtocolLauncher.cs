@@ -10,8 +10,13 @@ internal static class ProtocolLauncher
         {
             StartProcess(url, useShellExecute: true);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(ProtocolLauncher),
+                operation: "Start",
+                exception: ex,
+                details: url);
             StartProtocolFallback(url);
         }
     }

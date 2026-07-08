@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Epic;
 
@@ -101,8 +102,14 @@ internal static class EpicCatalogReader
         {
             files = Directory.EnumerateFiles(metadataDirectory, "*.json", SearchOption.TopDirectoryOnly);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(EpicCatalogReader),
+                operation: "RebuildCache.EnumerateFiles",
+                exception: ex,
+                platform: Platform.Epic,
+                details: metadataDirectory);
             ClearCache(metadataDirectory);
             return;
         }
@@ -114,9 +121,14 @@ internal static class EpicCatalogReader
                 using var document = JsonDocument.Parse(File.ReadAllText(file));
                 TryRegisterAsset(document.RootElement);
             }
-            catch
+            catch (Exception ex)
             {
-                // optional per file
+                AppDiagnostics.ReportError(
+                    area: nameof(EpicCatalogReader),
+                    operation: "RebuildCache.ParseMetadataFile",
+                    exception: ex,
+                    platform: Platform.Epic,
+                    details: Path.GetFileName(file));
             }
         }
 

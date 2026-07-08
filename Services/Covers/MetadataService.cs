@@ -144,9 +144,13 @@ public sealed class MetadataService
             if (File.Exists(cachePath))
                 File.Delete(cachePath);
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(MetadataService),
+                operation: "TryResetCustomCoverAsync.DeleteCacheFile",
+                exception: ex,
+                details: cachePath);
         }
 
         game.CoverPath = null;
@@ -229,8 +233,13 @@ public sealed class MetadataService
             File.Copy(sourcePath, destinationPath, overwrite: true);
             return SafeImageValidator.IsValidImageFile(destinationPath);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MetadataService),
+                operation: "TryCopyValidatedImage",
+                exception: ex,
+                details: $"source={sourcePath}");
             if (File.Exists(destinationPath))
                 File.Delete(destinationPath);
             return false;

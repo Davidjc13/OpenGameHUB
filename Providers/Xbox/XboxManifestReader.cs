@@ -1,6 +1,7 @@
 using System.Xml.Linq;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -75,9 +76,14 @@ internal static class XboxManifestReader
                 if (!string.IsNullOrWhiteSpace(metadata.CoverPath))
                     game.CatalogCoverUrl = metadata.CoverPath;
             }
-            catch
+            catch (Exception ex)
             {
-                // optional enrichment
+                AppDiagnostics.ReportError(
+                    area: nameof(XboxManifestReader),
+                    operation: "EnrichCatalogCoverUrls.ReadManifest",
+                    exception: ex,
+                    platform: Platform.GamePass,
+                    details: manifestPath);
             }
         }
     }
@@ -137,8 +143,14 @@ internal static class XboxManifestReader
                 .OrderByDescending(path => new FileInfo(path).Length)
                 .FirstOrDefault();
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxManifestReader),
+                operation: "TryResolveScaledAsset",
+                exception: ex,
+                platform: Platform.GamePass,
+                details: searchDir);
             return null;
         }
     }

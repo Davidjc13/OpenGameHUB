@@ -34,7 +34,22 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
 
         var results = new List<UnifiedGame>();
 
-        foreach (var entry in LegendaryClient.ListCatalogEntries(cancellationToken))
+        IReadOnlyList<LegendaryCatalogEntry> catalogEntries;
+        try
+        {
+            catalogEntries = LegendaryClient.ListCatalogEntries(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(EpicCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ListCatalogEntries",
+                exception: ex,
+                platform: Platform.Epic);
+            return [];
+        }
+
+        foreach (var entry in catalogEntries)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
