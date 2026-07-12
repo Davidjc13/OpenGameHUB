@@ -70,8 +70,10 @@
     <CornerRadius x:Key="RadiusBadge">4</CornerRadius>
     <CornerRadius x:Key="RadiusBrowser">8</CornerRadius>
 
-    <Thickness x:Key="ThicknessPanelPadding">14</Thickness>
-    <Thickness x:Key="ThicknessPanelPaddingLg">16,20</Thickness>
+    <Thickness x:Key="ThicknessPanelPadding">16</Thickness>
+    <Thickness x:Key="ThicknessPanelPaddingLg">18</Thickness>
     <Thickness x:Key="ThicknessPanelPaddingDetail">20</Thickness>
+    <Thickness x:Key="ThicknessWindowMargin">20</Thickness>
+    <Thickness x:Key="ThicknessSectionGap">0,0,0,20</Thickness>
 
 </ResourceDictionary>

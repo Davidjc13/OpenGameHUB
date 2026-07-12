@@ -15,11 +15,11 @@ public sealed class RockstarCoverClient
     {
         var urls = new List<string>();
 
+        urls.AddRange(RockstarCoverUrls.GetIgdbCoverUrls(game.PlatformGameId, game.Title));
+
         var officialUrl = RockstarCoverUrls.GetCoverUrl(game.PlatformGameId, game.Title);
         if (!string.IsNullOrWhiteSpace(officialUrl))
             urls.Add(officialUrl);
-
-        urls.AddRange(RockstarCoverUrls.GetIgdbCoverUrls(game.PlatformGameId, game.Title));
 
         var wikipediaUrl = await _wikipediaCoverClient.FindCoverUrlAsync(game, cancellationToken);
         if (!string.IsNullOrWhiteSpace(wikipediaUrl))

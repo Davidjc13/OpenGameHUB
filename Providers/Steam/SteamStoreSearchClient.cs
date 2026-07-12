@@ -32,8 +32,7 @@ public sealed class SteamStoreSearchClient
 
         return
         [
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg",
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/header.jpg"
+            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg"
         ];
     }
 

@@ -95,13 +95,70 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isListView;
 
+    [ObservableProperty]
+    private int _gridColumns = 4;
+
+    [ObservableProperty]
+    private int _gridRows = 3;
+
+    private int _effectivePageSize;
+    private double _libraryViewportWidth;
+    private double _libraryViewportHeight;
+
     public bool IsGridView => !IsListView;
 
     public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
 
     private CoverQualityProfile CoverProfile => CoverQualitySettings.Get(CoverQualityMode);
 
-    private int PageSize => CoverProfile.PageSize;
+    private int PageSize => _effectivePageSize > 0
+        ? _effectivePageSize
+        : (IsListView ? CoverProfile.PageSize : Math.Max(1, GridColumns * GridRows));
+
+    public void UpdateLibraryViewport(double width, double height)
+    {
+        if (width >= 10 && height >= 10)
+        {
+            _libraryViewportWidth = width;
+            _libraryViewportHeight = height;
+        }
+
+        width = _libraryViewportWidth;
+        height = _libraryViewportHeight;
+        if (width < 10 || height < 10)
+            return;
+
+        var newPageSize = IsListView
+            ? LibraryGridMetrics.ListPageSizeFromHeight(height)
+            : LibraryGridMetrics.Calculate(width, height).PageSize;
+
+        if (!IsListView)
+        {
+            var metrics = LibraryGridMetrics.Calculate(width, height);
+            GridColumns = metrics.Columns;
+            GridRows = metrics.Rows;
+        }
+
+        if (newPageSize == _effectivePageSize)
+            return;
+
+        _effectivePageSize = newPageSize;
+        NotifyPaginationChanged();
+
+        if (CurrentPage > TotalPages)
+            CurrentPage = TotalPages;
+
+        ApplyCurrentPage();
+    }
+
+    private void NotifyPaginationChanged()
+    {
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+    }
 
     public bool SelectedGameHasCustomCover => SelectedGame?.HasCustomCover == true;
 
@@ -164,6 +221,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsGridView));
         PersistLibraryViewMode();
+        UpdateLibraryViewport(_libraryViewportWidth, _libraryViewportHeight);
         ApplyCurrentPage();
     }
 
@@ -924,7 +982,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         GamesCountLabel = _filteredGames.Count == 0
             ? Loc.T("ShowingGamesCount", 0)
-            : Loc.T("ShowingGamesPage", Games.Count, _filteredGames.Count, CurrentPage, TotalPages);
+            : Loc.T("ShowingGamesPage", CurrentPage, TotalPages, Games.Count, _filteredGames.Count);
 
         ApplyVisibleCovers();
     }

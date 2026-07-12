@@ -2,8 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style Selector="TextBlock.heading-xl">
-        <Setter Property="FontSize" Value="32"/>
+        <Setter Property="FontSize" Value="28"/>
         <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="LineHeight" Value="34"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
@@ -42,6 +43,14 @@
     </Style>
 
     <Style Selector="TextBlock.text-secondary">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="LineHeight" Value="20"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-body">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="LineHeight" Value="21"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
     </Style>
 
@@ -54,7 +63,9 @@
     </Style>
 
     <Style Selector="TextBlock.text-label">
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="LineHeight" Value="18"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
     </Style>
 
@@ -63,6 +74,8 @@
     </Style>
 
     <Style Selector="TextBlock.text-status">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="LineHeight" Value="16"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextStatus}"/>
     </Style>
 
@@ -87,14 +100,28 @@
     </Style>
 
     <Style Selector="TextBlock.card-title">
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="LineHeight" Value="18"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.card-title-lg">
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.pagination-label">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="LineHeight" Value="18"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.detail-title">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="LineHeight" Value="24"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 

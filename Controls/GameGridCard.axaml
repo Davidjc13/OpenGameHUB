@@ -3,7 +3,9 @@
              xmlns:vm="using:OpenGameHUB.ViewModels"
              xmlns:conv="using:OpenGameHUB.Converters"
              x:Class="OpenGameHUB.Controls.GameGridCard"
-             x:DataType="vm:GameItemViewModel">
+             x:DataType="vm:GameItemViewModel"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
     <UserControl.Resources>
         <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
     </UserControl.Resources>
@@ -12,13 +14,14 @@
             BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
             PointerPressed="OnCardPressed"
             DoubleTapped="OnGameDoubleTapped">
-        <Grid RowDefinitions="270,Auto,Auto,Auto">
+        <Grid RowDefinitions="*,Auto,Auto,Auto">
             <Border Grid.Row="0"
-                    Classes="game-cover-area">
+                    Classes="game-cover-area"
+                    MinHeight="120">
                 <Panel>
                     <Panel IsVisible="{Binding DisplayGridCover}">
                         <Image Source="{Binding CoverImage}"
-                               Stretch="Uniform"
+                               Stretch="UniformToFill"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Opacity="{Binding GridCoverOpacity}"/>
@@ -30,7 +33,7 @@
                             Opacity="{Binding GridPlaceholderOpacity}"/>
                     <TextBlock Text="{Binding Title}"
                                IsVisible="{Binding !DisplayGridCover}"
-                               Margin="14"
+                               Margin="12"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"
                                TextAlignment="Center"
@@ -40,7 +43,7 @@
                 </Panel>
             </Border>
 
-            <StackPanel Grid.Row="1" Margin="10,8,10,0" Spacing="3">
+            <StackPanel Grid.Row="1" Margin="12,10,12,0" Spacing="4">
                 <Border Classes="platform-badge"
                         Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
                     <TextBlock Text="{Binding PlatformLabel}"
@@ -54,13 +57,12 @@
             </StackPanel>
 
             <TextBlock Grid.Row="2"
-                       Margin="10,2,10,0"
+                       Margin="12,4,12,0"
                        Text="{Binding InstallStatus}"
-                       FontSize="11"
                        Classes="text-status"/>
 
             <Button Grid.Row="3"
-                    Margin="10,8,10,10"
+                    Margin="12,10,12,12"
                     Classes="primary"
                     HorizontalAlignment="Stretch"
                     Content="{Binding ActionLabel}"

@@ -85,8 +85,8 @@
   <data name="ResettingCover" xml:space="preserve"><value>Restaurando portada de {0}...</value></data>
   <data name="InvalidCoverImage" xml:space="preserve"><value>Ese archivo no es una imagen de portada válida.</value></data>
   <data name="CoverUpdateFailedDetail" xml:space="preserve"><value>No se pudo actualizar la portada: {0}</value></data>
-  <data name="ShowingGamesCount" xml:space="preserve"><value>Mostrando {0} juegos</value></data>
-  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} de {1} · página {2}/{3}</value></data>
+  <data name="ShowingGamesCount" xml:space="preserve"><value>Ningún juego coincide con los filtros</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>Página {0} de {1} · {2} visibles de {3} juegos</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
   <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
