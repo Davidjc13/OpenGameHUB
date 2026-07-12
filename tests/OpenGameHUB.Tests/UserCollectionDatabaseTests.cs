@@ -1,7 +1,7 @@
+using Microsoft.Data.Sqlite;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure.Database;
-using Microsoft.Data.Sqlite;
 
 namespace OpenGameHUB.Tests;
 
