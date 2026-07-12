@@ -205,7 +205,7 @@
                                                 <Panel>
                                                     <Panel IsVisible="{Binding DisplayGridCover}">
                                                         <Image Source="{Binding CoverImage}"
-                                                               Stretch="UniformToFill"
+                                                               Stretch="Uniform"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
                                                                Opacity="{Binding GridCoverOpacity}"/>
@@ -296,7 +296,7 @@
                                                     VerticalAlignment="Center">
                                                 <Panel>
                                                     <Image Source="{Binding CoverImage}"
-                                                           Stretch="UniformToFill"
+                                                           Stretch="Uniform"
                                                            IsVisible="{Binding DisplayListCover}"
                                                            Opacity="{Binding GridCoverOpacity}"/>
                                                     <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
@@ -386,7 +386,7 @@
                                 Background="#141A28"
                                 IsVisible="{Binding ShowDetailCover}">
                             <Image Source="{Binding SelectedGame.CoverImage}"
-                                   Stretch="UniformToFill"
+                                   Stretch="Uniform"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding SelectedGame.HasCover}"/>
