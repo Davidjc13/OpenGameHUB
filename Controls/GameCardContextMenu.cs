@@ -11,25 +11,26 @@ internal static class GameCardContextMenu
         if (TopLevel.GetTopLevel(host)?.DataContext is not MainWindowViewModel vm || !vm.HasUserCollections)
             return;
 
-        var menu = new ContextMenu();
-        menu.Items.Add(new MenuItem
-        {
-            Header = vm.Strings.AddToCollection,
-            IsEnabled = false
-        });
+        var collections = vm.GetContextMenuCollections(game);
+        if (collections.Count == 0)
+            return;
 
-        foreach (var item in vm.GetContextMenuCollections(game))
+        var menu = new ContextMenu { MaxWidth = 240 };
+        var submenu = new MenuItem { Header = vm.Strings.AddToCollection };
+
+        foreach (var item in collections)
         {
-            menu.Items.Add(new MenuItem
+            submenu.Items.Add(new MenuItem
             {
-                Header = item.IsMember
-                    ? $"- {item.Name}"
-                    : item.Name,
+                Header = item.Name,
+                ToggleType = MenuItemToggleType.CheckBox,
+                IsChecked = item.IsMember,
                 Command = vm.ToggleGameInCollectionCommand,
                 CommandParameter = new CollectionToggleRequest(game, item.CollectionId)
             });
         }
 
+        menu.Items.Add(submenu);
         menu.Open(host);
         e.Handled = true;
     }

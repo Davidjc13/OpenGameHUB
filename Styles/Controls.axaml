@@ -31,6 +31,53 @@
     <Style Selector="ListBox.sidebar-list TextBlock">
         <Setter Property="Padding" Value="8,6"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="ListBox.sidebar-list-platforms">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="MinHeight" Value="72"/>
+    </Style>
+
+    <Style Selector="ListBox.sidebar-list-collections">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="MinHeight" Value="72"/>
+    </Style>
+
+    <Style Selector="ListBox.sidebar-list-platforms TextBlock">
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="ListBox.sidebar-list-collections TextBlock">
+        <Setter Property="Padding" Value="8,5"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="Button.sidebar-icon">
+        <Setter Property="MinWidth" Value="28"/>
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="MaxWidth" Value="28"/>
+        <Setter Property="MaxHeight" Value="28"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+    </Style>
+    <Style Selector="Button.sidebar-icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource BrushBgCard}"/>
     </Style>
 
 </Styles>
