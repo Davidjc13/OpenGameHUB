@@ -35,6 +35,12 @@ public partial class GameGridCard : UserControl
         e.Handled = true;
     }
 
+    private void OnContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (DataContext is GameItemViewModel game)
+            GameCardContextMenu.Show(this, game, e);
+    }
+
     private MainWindowViewModel? GetMainViewModel()
     {
         return TopLevel.GetTopLevel(this)?.DataContext as MainWindowViewModel;

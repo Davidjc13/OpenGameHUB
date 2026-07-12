@@ -20,6 +20,14 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SelectGame => Loc.T("SelectGame");
     public string Play => Loc.T("Play");
     public string ToggleFavorite => Loc.T("ToggleFavorite");
+    public string Collections => Loc.T("Collections");
+    public string AllGames => Loc.T("AllGames");
+    public string NewCollection => Loc.T("NewCollection");
+    public string RenameCollection => Loc.T("RenameCollection");
+    public string DeleteCollection => Loc.T("DeleteCollection");
+    public string CollectionNamePrompt => Loc.T("CollectionNamePrompt");
+    public string CollectionNamePlaceholder => Loc.T("CollectionNamePlaceholder");
+    public string AddToCollection => Loc.T("AddToCollection");
     public string ViewGrid => Loc.T("ViewGrid");
     public string ViewList => Loc.T("ViewList");
     public string ChangeCover => Loc.T("ChangeCover");

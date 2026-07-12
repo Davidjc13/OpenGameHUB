@@ -13,7 +13,8 @@
     <Border Classes="game-card game-card-grid"
             BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
             PointerPressed="OnCardPressed"
-            DoubleTapped="OnGameDoubleTapped">
+            DoubleTapped="OnGameDoubleTapped"
+            ContextRequested="OnContextRequested">
         <Grid RowDefinitions="*,Auto,Auto,Auto">
             <Border Grid.Row="0"
                     Classes="game-cover-area"

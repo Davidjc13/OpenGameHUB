@@ -39,6 +39,28 @@ public partial class GameItemViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isFavorite;
 
+    private HashSet<string> _collectionIds = new(StringComparer.Ordinal);
+
+    public IReadOnlySet<string> CollectionIds => _collectionIds;
+
+    public bool IsInCollection(string collectionId) => _collectionIds.Contains(collectionId);
+
+    public void SetCollectionIds(IEnumerable<string> collectionIds)
+    {
+        _collectionIds = collectionIds.ToHashSet(StringComparer.Ordinal);
+        OnPropertyChanged(nameof(CollectionIds));
+    }
+
+    public void SetCollectionMembership(string collectionId, bool isMember)
+    {
+        if (isMember)
+            _collectionIds.Add(collectionId);
+        else
+            _collectionIds.Remove(collectionId);
+
+        OnPropertyChanged(nameof(CollectionIds));
+    }
+
     [ObservableProperty]
     private bool _isSelected;
 
