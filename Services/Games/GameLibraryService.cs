@@ -14,6 +14,7 @@ public sealed class GameLibraryService : IDisposable
 {
     private GameDatabase _database = new();
     private MetadataService _metadataService;
+    private UserCollectionService _collectionService;
     private readonly SteamWebApiService _steamWebApiService = new();
     private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SettingsService _settingsService = new();
@@ -42,6 +43,8 @@ public sealed class GameLibraryService : IDisposable
         ];
         _launchService = new GameLaunchService(_cloudProviders);
         _metadataService = new MetadataService(_database, _settingsService);
+        _collectionService = new UserCollectionService(_database);
+        _collectionService.Reload();
     }
 
     public bool IsEpicCloudAvailable => _epicCloudProvider.IsAvailable();
@@ -88,8 +91,11 @@ public sealed class GameLibraryService : IDisposable
 
     public MetadataService Metadata => _metadataService;
 
+    public UserCollectionService Collections => _collectionService;
+
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {
+        _collectionService.Reload();
         var games = _database.GetAllGames().ToList();
         EnrichTransientCatalogCovers(games);
         _metadataService.ReconcileCachedCovers(games);
@@ -199,6 +205,7 @@ public sealed class GameLibraryService : IDisposable
         games = GameLibraryMerger.PreserveCatalogEntriesForFailedProviders(
             games, existingGames, failedCloudPlatforms);
         _database.SyncScannedGames(games);
+        _collectionService.Reload();
 
         var stored = _database.GetAllGames();
         EnrichTransientCatalogCovers(stored);
@@ -327,6 +334,8 @@ public sealed class GameLibraryService : IDisposable
         DevModeService.ClearLocalLibraryCache();
         _database = new GameDatabase();
         _metadataService = new MetadataService(_database, _settingsService);
+        _collectionService = new UserCollectionService(_database);
+        _collectionService.Reload();
     }
 
     public void Dispose() => _database.Dispose();

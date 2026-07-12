@@ -182,6 +182,23 @@
   <data name="LaunchFailed" xml:space="preserve"><value>No se pudo lanzar: {0}</value></data>
   <data name="AddedToFavorites" xml:space="preserve"><value>Añadido a favoritos: {0}</value></data>
   <data name="RemovedFromFavorites" xml:space="preserve"><value>Quitado de favoritos: {0}</value></data>
+  <data name="Collections" xml:space="preserve"><value>Colecciones</value></data>
+  <data name="AllGames" xml:space="preserve"><value>Todos los juegos ({0})</value></data>
+  <data name="FavoritesCount" xml:space="preserve"><value>Favoritos ({0})</value></data>
+  <data name="InstalledCount" xml:space="preserve"><value>Instalados ({0})</value></data>
+  <data name="CollectionWithCount" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="NewCollection" xml:space="preserve"><value>Nueva colección</value></data>
+  <data name="RenameCollection" xml:space="preserve"><value>Renombrar</value></data>
+  <data name="DeleteCollection" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="CollectionNamePrompt" xml:space="preserve"><value>Introduce un nombre para la colección.</value></data>
+  <data name="CollectionNamePlaceholder" xml:space="preserve"><value>Nombre de la colección</value></data>
+  <data name="DeleteCollectionConfirm" xml:space="preserve"><value>¿Eliminar "{0}"? Los juegos seguirán en tu biblioteca.</value></data>
+  <data name="AddToCollection" xml:space="preserve"><value>Añadir a colección</value></data>
+  <data name="AddedToCollection" xml:space="preserve"><value>Añadido {0} a {1}</value></data>
+  <data name="RemovedFromCollection" xml:space="preserve"><value>Quitado {0} de {1}</value></data>
+  <data name="CollectionCreated" xml:space="preserve"><value>Colección creada: {0}</value></data>
+  <data name="CollectionRenamed" xml:space="preserve"><value>Colección renombrada a {0}</value></data>
+  <data name="CollectionDeleted" xml:space="preserve"><value>Colección eliminada: {0}</value></data>
   <data name="GamesInCache" xml:space="preserve"><value>{0} juegos en caché</value></data>
   <data name="UnknownPath" xml:space="preserve"><value>Ruta desconocida</value></data>
   <data name="NotInstalled" xml:space="preserve"><value>No instalado</value></data>

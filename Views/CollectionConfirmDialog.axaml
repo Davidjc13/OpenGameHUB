@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenGameHUB.ViewModels"
+        x:Class="OpenGameHUB.Views.CollectionConfirmDialog"
+        x:DataType="vm:CollectionConfirmDialogViewModel"
+        Title="{Binding Title}"
+        Width="420"
+        Height="200"
+        MinWidth="360"
+        WindowStartupLocation="CenterOwner"
+        Classes="app-window">
+    <Grid Margin="24" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Message}"
+                   Classes="text-secondary"
+                   TextWrapping="Wrap"/>
+
+        <StackPanel Grid.Row="1"
+                    Margin="0,20,0,0"
+                    Orientation="Horizontal"
+                    Spacing="10"
+                    HorizontalAlignment="Right">
+            <Button Content="{Binding Strings.Cancel}"
+                    Command="{Binding CancelCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            <Button Classes="primary"
+                    Content="{Binding Strings.DeleteCollection}"
+                    Command="{Binding ConfirmCommand}"
+                    CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -182,6 +182,23 @@
   <data name="LaunchFailed" xml:space="preserve"><value>Could not launch: {0}</value></data>
   <data name="AddedToFavorites" xml:space="preserve"><value>Added to favorites: {0}</value></data>
   <data name="RemovedFromFavorites" xml:space="preserve"><value>Removed from favorites: {0}</value></data>
+  <data name="Collections" xml:space="preserve"><value>Collections</value></data>
+  <data name="AllGames" xml:space="preserve"><value>All games ({0})</value></data>
+  <data name="FavoritesCount" xml:space="preserve"><value>Favorites ({0})</value></data>
+  <data name="InstalledCount" xml:space="preserve"><value>Installed ({0})</value></data>
+  <data name="CollectionWithCount" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="NewCollection" xml:space="preserve"><value>New collection</value></data>
+  <data name="RenameCollection" xml:space="preserve"><value>Rename</value></data>
+  <data name="DeleteCollection" xml:space="preserve"><value>Delete</value></data>
+  <data name="CollectionNamePrompt" xml:space="preserve"><value>Enter a name for the collection.</value></data>
+  <data name="CollectionNamePlaceholder" xml:space="preserve"><value>Collection name</value></data>
+  <data name="DeleteCollectionConfirm" xml:space="preserve"><value>Delete "{0}"? Games will stay in your library.</value></data>
+  <data name="AddToCollection" xml:space="preserve"><value>Add to collection</value></data>
+  <data name="AddedToCollection" xml:space="preserve"><value>Added {0} to {1}</value></data>
+  <data name="RemovedFromCollection" xml:space="preserve"><value>Removed {0} from {1}</value></data>
+  <data name="CollectionCreated" xml:space="preserve"><value>Collection created: {0}</value></data>
+  <data name="CollectionRenamed" xml:space="preserve"><value>Collection renamed to {0}</value></data>
+  <data name="CollectionDeleted" xml:space="preserve"><value>Collection deleted: {0}</value></data>
   <data name="GamesInCache" xml:space="preserve"><value>{0} games in cache</value></data>
   <data name="UnknownPath" xml:space="preserve"><value>Unknown path</value></data>
   <data name="NotInstalled" xml:space="preserve"><value>Not installed</value></data>

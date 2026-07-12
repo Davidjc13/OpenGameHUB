@@ -44,6 +44,18 @@ public partial class MainWindow : Window
             viewModel.SearchText = text;
     }
 
+    private void OnCollectionMembershipClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox
+            || checkBox.DataContext is not CollectionMembershipItem item
+            || DataContext is not MainWindowViewModel vm
+            || vm.SelectedGame is null)
+            return;
+
+        vm.ToggleGameInCollection(vm.SelectedGame, item.CollectionId);
+        e.Handled = true;
+    }
+
     private async void OnInstallAppUpdateClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)

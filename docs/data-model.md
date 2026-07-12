@@ -22,6 +22,8 @@ File: `Models/UnifiedGame.cs`
 | `IsFavorite` | bool | User-marked |
 | `LaunchSpec` | LaunchSpec | How to launch or install |
 
+User-defined **collections** are stored separately (see below); favorites remain on `IsFavorite` and are not migrated into collection tables.
+
 `PlatformLabel` is derived via `PlatformLabels.Get(Platform)` for the UI.
 
 ## `LaunchSpec`
@@ -106,6 +108,28 @@ Important logic on refresh:
 **Why delete stale entries:** if you uninstall a game, it should disappear from the library (except cloud-only entries from cloud providers).
 
 **Why keep favorites:** the user does not lose stars on refresh even if `id` changes slightly in edge cases (alternate key by title/path).
+
+### User collections
+
+Table `collections`:
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | TEXT PK | GUID (`N` format) |
+| `name` | TEXT | Display name |
+| `sort_order` | INTEGER | Sidebar order |
+| `created_at` | TEXT | ISO 8601 |
+| `updated_at` | TEXT | ISO 8601 |
+
+Table `collection_games` (many-to-many):
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `collection_id` | TEXT FK | References `collections.id` (`ON DELETE CASCADE`) |
+| `game_id` | TEXT | References `games.id` (orphans purged after sync) |
+| `added_at` | TEXT | ISO 8601 |
+
+**System views** (All games, Favorites, Installed) are not persisted — they are derived filters in the UI. Only user-created collections use these tables.
 
 ## ID generation (examples)
 

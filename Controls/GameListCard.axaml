@@ -11,7 +11,8 @@
     <Border Classes="game-card"
             BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
             PointerPressed="OnCardPressed"
-            DoubleTapped="OnGameDoubleTapped">
+            DoubleTapped="OnGameDoubleTapped"
+            ContextRequested="OnContextRequested">
         <Grid ColumnDefinitions="Auto,*,Auto"
               Margin="10"
               ColumnSpacing="12">

@@ -128,15 +128,31 @@
 
                         <Separator Classes="divider"/>
 
-                        <TextBlock Text="{Binding Strings.Filters}"
+                        <TextBlock Text="{Binding Strings.Collections}"
                                    Classes="text-label"/>
-                        <StackPanel Spacing="10">
-                            <CheckBox Content="{Binding Strings.FavoritesOnly}"
-                                      IsChecked="{Binding ShowFavoritesOnly}"
-                                      Classes="sidebar"/>
-                            <CheckBox Content="{Binding Strings.InstalledOnly}"
-                                      IsChecked="{Binding ShowInstalledOnly}"
-                                      Classes="sidebar"/>
+                        <ListBox ItemsSource="{Binding LibraryCollections}"
+                                 SelectedItem="{Binding SelectedLibraryCollection}"
+                                 Classes="sidebar-list">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:LibraryCollectionItem">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Spacing="8">
+                            <Button Content="{Binding Strings.NewCollection}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding CreateCollectionCommand}"/>
+                            <StackPanel Orientation="Horizontal"
+                                        Spacing="8"
+                                        IsVisible="{Binding CanManageSelectedCollection}">
+                                <Button Content="{Binding Strings.RenameCollection}"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding RenameCollectionCommand}"/>
+                                <Button Content="{Binding Strings.DeleteCollection}"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding DeleteCollectionCommand}"/>
+                            </StackPanel>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
@@ -260,6 +276,23 @@
                                             HorizontalAlignment="Stretch"
                                             Command="{Binding ToggleFavoriteCommand}"
                                             CommandParameter="{Binding SelectedGame}"/>
+
+                                    <StackPanel Spacing="8"
+                                                IsVisible="{Binding ShowDetailCollections}">
+                                        <TextBlock Text="{Binding Strings.AddToCollection}"
+                                                   Classes="text-label"/>
+                                        <ItemsControl ItemsSource="{Binding DetailCollectionMemberships}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:CollectionMembershipItem">
+                                                    <CheckBox Content="{Binding Name}"
+                                                              IsChecked="{Binding IsMember, Mode=OneWay}"
+                                                              Classes="sidebar"
+                                                              Click="OnCollectionMembershipClick"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+
                                     <Button Content="{Binding Strings.ChangeCover}"
                                             HorizontalAlignment="Stretch"
                                             Command="{Binding ChangeCustomCoverCommand}"/>
