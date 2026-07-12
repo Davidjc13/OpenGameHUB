@@ -1,0 +1,93 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="Window.app-window">
+        <Setter Property="Background" Value="{StaticResource BrushBgApp}"/>
+    </Style>
+
+    <Style Selector="Border.panel">
+        <Setter Property="Background" Value="{StaticResource BrushBgPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanelLg}"/>
+        <Setter Property="Padding" Value="{StaticResource ThicknessPanelPadding}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.panel-card">
+        <Setter Property="Background" Value="{StaticResource BrushBgPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}"/>
+        <Setter Property="Padding" Value="{StaticResource ThicknessPanelPadding}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.panel-content">
+        <Setter Property="Background" Value="{StaticResource BrushBgPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanelLg}"/>
+        <Setter Property="Padding" Value="{StaticResource ThicknessPanelPaddingLg}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.panel-detail">
+        <Setter Property="Background" Value="{StaticResource BrushBgPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanelLg}"/>
+        <Setter Property="Padding" Value="{StaticResource ThicknessPanelPaddingDetail}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style Selector="Border.update-banner">
+        <Setter Property="Background" Value="{StaticResource BrushBgBanner}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}"/>
+        <Setter Property="Padding" Value="14,12"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorderBanner}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.dev-panel">
+        <Setter Property="Background" Value="{StaticResource BrushBgDevPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}"/>
+        <Setter Property="Padding" Value="{StaticResource ThicknessPanelPadding}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorderDev}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.browser-host">
+        <Setter Property="Background" Value="{StaticResource BrushBgPanel}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusBrowser}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style Selector="Border.cover-frame">
+        <Setter Property="Background" Value="{StaticResource BrushBgCover}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusCover}"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style Selector="Border.cover-frame-lg">
+        <Setter Property="Background" Value="{StaticResource BrushBgCover}"/>
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+
+    <Style Selector="Border.overlay-dim">
+        <Setter Property="Background" Value="{StaticResource BrushOverlayDim}"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+
+    <Style Selector="TextBox.search-input">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}"/>
+        <Setter Property="Padding" Value="12,10"/>
+        <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+    </Style>
+
+    <Style Selector="Separator.divider">
+        <Setter Property="Background" Value="{StaticResource BrushBorder}"/>
+    </Style>
+
+</Styles>

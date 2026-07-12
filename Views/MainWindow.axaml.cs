@@ -1,6 +1,6 @@
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using OpenGameHUB.ViewModels;
 
 namespace OpenGameHUB.Views;
@@ -10,6 +10,28 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+    }
+
+    private void OnOpened(object? sender, EventArgs e)
+    {
+        QueueViewportUpdate();
+    }
+
+    private void OnGamesViewportSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || sender is not ScrollViewer scrollViewer)
+            return;
+
+        vm.UpdateLibraryViewport(scrollViewer.Bounds.Width, scrollViewer.Bounds.Height);
+    }
+
+    private void QueueViewportUpdate()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (DataContext is MainWindowViewModel vm)
+                vm.UpdateLibraryViewport(GamesScrollViewer.Bounds.Width, GamesScrollViewer.Bounds.Height);
+        }, DispatcherPriority.Loaded);
     }
 
     private void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
@@ -22,43 +44,12 @@ public partial class MainWindow : Window
             viewModel.SearchText = text;
     }
 
-    private void OnCardPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Control { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectGameCommand.Execute(game);
-    }
-
-    private void OnGameDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is not Control { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.LaunchGameCommand.Execute(game);
-
-        e.Handled = true;
-    }
-
     private async void OnInstallAppUpdateClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
         await vm.Updates.InstallUpdateCommand.ExecuteAsync(null);
-        e.Handled = true;
-    }
-
-    private void OnPlayClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.LaunchGameCommand.Execute(game);
-
         e.Handled = true;
     }
 }

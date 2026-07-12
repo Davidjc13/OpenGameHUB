@@ -1,0 +1,72 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenGameHUB.ViewModels"
+             xmlns:conv="using:OpenGameHUB.Converters"
+             x:Class="OpenGameHUB.Controls.GameGridCard"
+             x:DataType="vm:GameItemViewModel"
+             HorizontalAlignment="Stretch"
+             VerticalAlignment="Stretch">
+    <UserControl.Resources>
+        <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
+    </UserControl.Resources>
+
+    <Border Classes="game-card game-card-grid"
+            BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
+            PointerPressed="OnCardPressed"
+            DoubleTapped="OnGameDoubleTapped">
+        <Grid RowDefinitions="*,Auto,Auto,Auto">
+            <Border Grid.Row="0"
+                    Classes="game-cover-area"
+                    MinHeight="120">
+                <Panel>
+                    <Panel IsVisible="{Binding DisplayGridCover}">
+                        <Image Source="{Binding CoverImage}"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Opacity="{Binding GridCoverOpacity}"/>
+                        <Border Classes="overlay-dim"
+                                IsVisible="{Binding !IsInstalled}"/>
+                    </Panel>
+                    <Border IsVisible="{Binding !DisplayGridCover}"
+                            Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
+                            Opacity="{Binding GridPlaceholderOpacity}"/>
+                    <TextBlock Text="{Binding Title}"
+                               IsVisible="{Binding !DisplayGridCover}"
+                               Margin="12"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Classes="card-title"
+                               MaxHeight="72"/>
+                </Panel>
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="12,10,12,0" Spacing="4">
+                <Border Classes="platform-badge"
+                        Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
+                    <TextBlock Text="{Binding PlatformLabel}"
+                               Classes="badge-label"/>
+                </Border>
+                <TextBlock Text="{Binding Title}"
+                           Classes="card-title"
+                           TextWrapping="Wrap"
+                           MaxHeight="36"
+                           TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="2"
+                       Margin="12,4,12,0"
+                       Text="{Binding InstallStatus}"
+                       Classes="text-status"/>
+
+            <Button Grid.Row="3"
+                    Margin="12,10,12,12"
+                    Classes="primary"
+                    HorizontalAlignment="Stretch"
+                    Content="{Binding ActionLabel}"
+                    Click="OnPlayClick"/>
+        </Grid>
+    </Border>
+</UserControl>

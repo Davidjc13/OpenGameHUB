@@ -85,8 +85,8 @@
   <data name="ResettingCover" xml:space="preserve"><value>Resetting cover for {0}...</value></data>
   <data name="InvalidCoverImage" xml:space="preserve"><value>That file is not a supported cover image.</value></data>
   <data name="CoverUpdateFailedDetail" xml:space="preserve"><value>Could not update cover: {0}</value></data>
-  <data name="ShowingGamesCount" xml:space="preserve"><value>Showing {0} games</value></data>
-  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} of {1} · page {2}/{3}</value></data>
+  <data name="ShowingGamesCount" xml:space="preserve"><value>No games match your filters</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>Page {0} of {1} · showing {2} of {3} games</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
   <data name="NextPage" xml:space="preserve"><value>Next</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Name A-Z</value></data>

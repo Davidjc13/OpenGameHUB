@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OpenGameHUB.ViewModels"
-        xmlns:conv="using:OpenGameHUB.Converters"
+        xmlns:controls="using:OpenGameHUB.Controls"
+        xmlns:primitives="using:Avalonia.Controls.Primitives"
         x:Class="OpenGameHUB.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/app.ico"
@@ -10,28 +11,25 @@
         Height="800"
         MinWidth="1000"
         MinHeight="640"
-        Background="#10131A">
+        Classes="app-window"
+        Opened="OnOpened">
 
-    <Window.Resources>
-        <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
-    </Window.Resources>
-
-    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="24">
-        <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto">
-            <StackPanel Spacing="6">
+    <Grid RowDefinitions="Auto,Auto,Auto,*"
+          Margin="{StaticResource ThicknessWindowMargin}">
+        <Grid Grid.Row="0"
+              ColumnDefinitions="*,Auto,Auto"
+              Margin="{StaticResource ThicknessSectionGap}">
+            <StackPanel Spacing="4">
                 <TextBlock Text="OpenGameHUB"
-                           FontSize="32"
-                           FontWeight="Bold"
-                           Foreground="#F4F7FF"/>
+                           Classes="heading-xl"/>
                 <TextBlock Text="{Binding Strings.AppSubtitle}"
-                           Foreground="#9AA6BF"
-                           FontSize="14"/>
+                           Classes="text-body"/>
                 <TextBlock Text="{Binding Updates.AppVersionText}"
-                           Foreground="#6B7A96"
-                           FontSize="12"/>
+                           Classes="text-caption"
+                           Margin="0,2,0,0"/>
             </StackPanel>
             <Button Grid.Column="1"
-                    Margin="0,0,8,0"
+                    Margin="0,0,10,0"
                     VerticalAlignment="Center"
                     Content="{Binding Strings.Settings}"
                     Command="{Binding OpenSettingsCommand}"/>
@@ -44,29 +42,24 @@
         </Grid>
 
         <Border Grid.Row="1"
-                Margin="0,0,0,16"
-                Padding="14,12"
-                CornerRadius="10"
-                Background="#1A2438"
-                BorderBrush="#3D6FB8"
-                BorderThickness="1"
+                Classes="update-banner"
+                Margin="{StaticResource ThicknessSectionGap}"
                 IsVisible="{Binding Updates.IsAppUpdateBannerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto">
-                <StackPanel Spacing="4" VerticalAlignment="Center">
+                <StackPanel Spacing="6" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Updates.AppUpdateBannerText}"
-                               Foreground="#E8F0FF"
-                               FontWeight="SemiBold"
+                               Classes="text-banner"
                                TextWrapping="Wrap"/>
                     <ProgressBar Minimum="0"
                                  Maximum="100"
                                  Value="{Binding Updates.AppUpdateProgress}"
                                  IsVisible="{Binding Updates.IsAppUpdateInstalling}"
                                  Height="4"
-                                 Margin="0,4,0,0"/>
+                                 Margin="0,2,0,0"/>
                 </StackPanel>
                 <Button Grid.Column="1"
                         Classes="primary"
-                        Margin="12,0,8,0"
+                        Margin="16,0,10,0"
                         VerticalAlignment="Center"
                         Content="{Binding Strings.AppUpdateInstallNow}"
                         Click="OnInstallAppUpdateClick"
@@ -79,60 +72,50 @@
             </Grid>
         </Border>
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+        <Grid Grid.Row="2"
+              ColumnDefinitions="*,Auto"
+              Margin="{StaticResource ThicknessSectionGap}">
             <TextBox Name="SearchBox"
+                     Classes="search-input"
                      PlaceholderText="{Binding Strings.SearchPlaceholder}"
                      Text="{Binding SearchText, Mode=TwoWay}"
-                     TextChanged="OnSearchTextChanged"
-                     CornerRadius="8"
-                     Padding="12,10"
-                     Background="#1A2030"
-                     BorderBrush="#2B3448"/>
+                     TextChanged="OnSearchTextChanged"/>
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"
-                        Spacing="8"
+                        Spacing="12"
                         Margin="16,0,0,0"
                         VerticalAlignment="Center">
                 <ProgressBar Width="80"
                              Height="4"
                              IsIndeterminate="True"
                              IsVisible="{Binding IsRefreshing}"/>
-                <TextBlock Foreground="#9AA6BF"
+                <TextBlock Classes="text-body"
                            Text="{Binding StatusText}"
-                           MaxWidth="360"
+                           MaxWidth="380"
                            TextWrapping="Wrap"/>
             </StackPanel>
         </Grid>
 
-        <Grid Grid.Row="3" ColumnDefinitions="220,*">
-            <Border Background="#161B27"
-                    CornerRadius="12"
-                    Padding="14"
-                    BorderBrush="#2B3448"
-                    BorderThickness="1">
+        <Grid Grid.Row="3" ColumnDefinitions="236,*">
+            <Border Classes="panel">
                 <ScrollViewer>
-                    <StackPanel Spacing="14">
+                    <StackPanel Spacing="18">
                         <TextBlock Text="{Binding Strings.Platforms}"
-                                   FontWeight="SemiBold"
-                                   Foreground="#D7DFF1"/>
+                                   Classes="text-label"/>
                         <ListBox ItemsSource="{Binding PlatformFilters}"
                                  SelectedItem="{Binding SelectedPlatformFilter}"
-                                 Background="Transparent"
-                                 BorderThickness="0">
+                                 Classes="sidebar-list">
                             <ListBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:PlatformFilterItem">
-                                    <TextBlock Text="{Binding Label}"
-                                               Padding="8,6"
-                                               Foreground="#C5CEE0"/>
+                                    <TextBlock Text="{Binding Label}"/>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>
 
-                        <Separator Background="#2B3448"/>
+                        <Separator Classes="divider"/>
 
                         <TextBlock Text="{Binding Strings.Sort}"
-                                   FontWeight="SemiBold"
-                                   Foreground="#D7DFF1"/>
+                                   Classes="text-label"/>
                         <ComboBox ItemsSource="{Binding SortOptions}"
                                   SelectedItem="{Binding SelectedSortOption}"
                                   HorizontalAlignment="Stretch">
@@ -143,33 +126,30 @@
                             </ComboBox.ItemTemplate>
                         </ComboBox>
 
-                        <Separator Background="#2B3448"/>
+                        <Separator Classes="divider"/>
 
                         <TextBlock Text="{Binding Strings.Filters}"
-                                   FontWeight="SemiBold"
-                                   Foreground="#D7DFF1"/>
-                        <CheckBox Content="{Binding Strings.FavoritesOnly}"
-                                  IsChecked="{Binding ShowFavoritesOnly}"
-                                  Foreground="#C5CEE0"/>
-                        <CheckBox Content="{Binding Strings.InstalledOnly}"
-                                  IsChecked="{Binding ShowInstalledOnly}"
-                                  Foreground="#C5CEE0"/>
+                                   Classes="text-label"/>
+                        <StackPanel Spacing="10">
+                            <CheckBox Content="{Binding Strings.FavoritesOnly}"
+                                      IsChecked="{Binding ShowFavoritesOnly}"
+                                      Classes="sidebar"/>
+                            <CheckBox Content="{Binding Strings.InstalledOnly}"
+                                      IsChecked="{Binding ShowInstalledOnly}"
+                                      Classes="sidebar"/>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
 
-            <Grid Grid.Column="1" ColumnDefinitions="*,300" Margin="16,0,0,0">
-                <Border Background="#161B27"
-                        CornerRadius="12"
-                        Padding="16"
-                        BorderBrush="#2B3448"
-                        BorderThickness="1">
+            <Grid Grid.Column="1" ColumnDefinitions="*,288" Margin="20,0,0,0">
+                <Border Classes="panel-content">
                     <Grid RowDefinitions="Auto,*,Auto">
                         <StackPanel Grid.Row="0"
                                     Orientation="Horizontal"
                                     HorizontalAlignment="Right"
                                     Spacing="8"
-                                    Margin="0,0,0,12">
+                                    Margin="0,0,0,16">
                             <Button Content="{Binding Strings.ViewGrid}"
                                     Command="{Binding SetGridViewCommand}"
                                     Classes.primary="{Binding IsGridView}"/>
@@ -178,246 +158,116 @@
                                     Classes.primary="{Binding IsListView}"/>
                         </StackPanel>
 
-                        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer x:Name="GamesScrollViewer"
+                                      Grid.Row="1"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      SizeChanged="OnGamesViewportSizeChanged">
                             <Panel>
-                            <ItemsControl ItemsSource="{Binding Games}"
-                                            IsVisible="{Binding !IsListView}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:GameItemViewModel">
-                                    <Border Width="180"
-                                            Margin="0,0,12,12"
-                                            CornerRadius="10"
-                                            BorderThickness="2"
-                                            Background="#1E2535"
-                                            BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
-                                            ClipToBounds="True"
-                                            PointerPressed="OnCardPressed"
-                                            DoubleTapped="OnGameDoubleTapped">
-                                        <Grid RowDefinitions="270,Auto,Auto,Auto">
-                                            <Border Grid.Row="0"
-                                                    ClipToBounds="True"
-                                                    Background="#141A28">
-                                                <Panel>
-                                                    <Panel IsVisible="{Binding DisplayGridCover}">
-                                                        <Image Source="{Binding CoverImage}"
-                                                               Stretch="Uniform"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"
-                                                               Opacity="{Binding GridCoverOpacity}"/>
-                                                        <Border Background="#66484848"
-                                                                IsVisible="{Binding !IsInstalled}"
-                                                                IsHitTestVisible="False"/>
-                                                    </Panel>
-                                                    <Border IsVisible="{Binding !DisplayGridCover}"
-                                                            Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                                                            Opacity="{Binding GridPlaceholderOpacity}"/>
-                                                    <TextBlock Text="{Binding Title}"
-                                                               IsVisible="{Binding !DisplayGridCover}"
-                                                               Margin="14"
-                                                               VerticalAlignment="Center"
-                                                               HorizontalAlignment="Center"
-                                                               TextAlignment="Center"
-                                                               TextWrapping="Wrap"
-                                                               FontWeight="SemiBold"
-                                                               FontSize="13"
-                                                               Foreground="#F4F7FF"
-                                                               MaxHeight="72"/>
-                                                </Panel>
-                                            </Border>
+                                <ItemsControl ItemsSource="{Binding Games}"
+                                              IsVisible="{Binding !IsListView}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <primitives:UniformGrid Columns="{Binding GridColumns}"
+                                                                    Rows="{Binding GridRows}"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GameItemViewModel">
+                                            <controls:GameGridCard/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
 
-                                            <StackPanel Grid.Row="1" Margin="10,8,10,0" Spacing="3">
-                                                <Border CornerRadius="4"
-                                                        Padding="5,2"
-                                                        HorizontalAlignment="Left"
-                                                        Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
-                                                    <TextBlock Text="{Binding PlatformLabel}"
-                                                               FontSize="10"
-                                                               FontWeight="Bold"
-                                                               Foreground="White"/>
-                                                </Border>
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="13"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#F4F7FF"
-                                                           TextWrapping="Wrap"
-                                                           MaxHeight="36"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                            </StackPanel>
-
-                                            <TextBlock Grid.Row="2"
-                                                       Margin="10,2,10,0"
-                                                       Text="{Binding InstallStatus}"
-                                                       FontSize="11"
-                                                       Foreground="#8B97B0"/>
-
-                                            <Button Grid.Row="3"
-                                                    Margin="10,8,10,10"
-                                                    Classes="primary"
-                                                    HorizontalAlignment="Stretch"
-                                                    Content="{Binding ActionLabel}"
-                                                    Click="OnPlayClick"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <ItemsControl ItemsSource="{Binding Games}"
-                                      IsVisible="{Binding IsListView}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Spacing="8"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:GameItemViewModel">
-                                    <Border Margin="0,0,0,0"
-                                            CornerRadius="10"
-                                            BorderThickness="2"
-                                            Background="#1E2535"
-                                            BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
-                                            ClipToBounds="True"
-                                            PointerPressed="OnCardPressed"
-                                            DoubleTapped="OnGameDoubleTapped">
-                                        <Grid ColumnDefinitions="Auto,*,Auto"
-                                              Margin="10"
-                                              ColumnSpacing="12">
-                                            <Border Grid.Column="0"
-                                                    Width="48"
-                                                    Height="72"
-                                                    CornerRadius="6"
-                                                    ClipToBounds="True"
-                                                    Background="#141A28"
-                                                    VerticalAlignment="Center">
-                                                <Panel>
-                                                    <Image Source="{Binding CoverImage}"
-                                                           Stretch="Uniform"
-                                                           IsVisible="{Binding DisplayListCover}"
-                                                           Opacity="{Binding GridCoverOpacity}"/>
-                                                    <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                                                            Opacity="{Binding GridPlaceholderOpacity}"
-                                                            IsVisible="{Binding !DisplayListCover}"/>
-                                                </Panel>
-                                            </Border>
-
-                                            <StackPanel Grid.Column="1"
-                                                        VerticalAlignment="Center"
-                                                        Spacing="4">
-                                                <Border CornerRadius="4"
-                                                        Padding="5,2"
-                                                        HorizontalAlignment="Left"
-                                                        Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
-                                                    <TextBlock Text="{Binding PlatformLabel}"
-                                                               FontSize="10"
-                                                               FontWeight="Bold"
-                                                               Foreground="White"/>
-                                                </Border>
-                                                <TextBlock Text="{Binding Title}"
-                                                           FontSize="14"
-                                                           FontWeight="SemiBold"
-                                                           Foreground="#F4F7FF"
-                                                           TextWrapping="Wrap"
-                                                           MaxHeight="40"
-                                                           TextTrimming="CharacterEllipsis"/>
-                                                <TextBlock Text="{Binding InstallStatus}"
-                                                           FontSize="11"
-                                                           Foreground="#8B97B0"/>
-                                            </StackPanel>
-
-                                            <Button Grid.Column="2"
-                                                    Classes="primary"
-                                                    MinWidth="88"
-                                                    VerticalAlignment="Center"
-                                                    Content="{Binding ActionLabel}"
-                                                    Click="OnPlayClick"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding Games}"
+                                              IsVisible="{Binding IsListView}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Spacing="10"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GameItemViewModel">
+                                            <controls:GameListCard/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
                             </Panel>
                         </ScrollViewer>
-                        <StackPanel Grid.Row="2"
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Spacing="12"
-                                    Margin="0,12,0,0">
-                            <Button Content="{Binding Strings.PreviousPage}"
-                                    Command="{Binding PreviousPageCommand}"/>
-                            <TextBlock VerticalAlignment="Center"
-                                       Foreground="#9AA6BF"
-                                       Text="{Binding GamesCountLabel}"/>
-                            <Button Content="{Binding Strings.NextPage}"
-                                    Command="{Binding NextPageCommand}"/>
-                        </StackPanel>
+
+                        <Border Grid.Row="2"
+                                Margin="0,16,0,0"
+                                Padding="0,12,0,0"
+                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="0,1,0,0">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Button Grid.Column="0"
+                                        Content="{Binding Strings.PreviousPage}"
+                                        Command="{Binding PreviousPageCommand}"/>
+                                <TextBlock Grid.Column="1"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"
+                                           Classes="pagination-label"
+                                           Text="{Binding GamesCountLabel}"/>
+                                <Button Grid.Column="2"
+                                        Content="{Binding Strings.NextPage}"
+                                        Command="{Binding NextPageCommand}"/>
+                            </Grid>
+                        </Border>
                     </Grid>
                 </Border>
 
                 <Border Grid.Column="1"
-                        Margin="16,0,0,0"
-                        Background="#161B27"
-                        CornerRadius="12"
-                        Padding="20"
-                        BorderBrush="#2B3448"
-                        BorderThickness="1"
-                        ClipToBounds="True">
+                        Classes="panel-detail"
+                        Margin="20,0,0,0">
                     <Grid RowDefinitions="Auto,*">
                         <TextBlock Grid.Row="0"
                                    Text="{Binding Strings.Detail}"
-                                   FontSize="18"
-                                   FontWeight="SemiBold"
-                                   Foreground="#F4F7FF"
-                                   Margin="0,0,0,14"/>
+                                   Classes="heading-panel"
+                                   Margin="0,0,0,16"/>
 
                         <ScrollViewer Grid.Row="1"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel Spacing="14">
-                        <Border Width="200"
-                                Height="300"
-                                HorizontalAlignment="Center"
-                                CornerRadius="8"
-                                ClipToBounds="True"
-                                Background="#141A28"
-                                IsVisible="{Binding ShowDetailCover}">
-                            <Image Source="{Binding SelectedGame.CoverImage}"
-                                   Stretch="Uniform"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   IsVisible="{Binding SelectedGame.HasCover}"/>
-                        </Border>
+                            <StackPanel Spacing="16">
+                                <Border Width="200"
+                                        Height="300"
+                                        Classes="cover-frame-lg"
+                                        IsVisible="{Binding ShowDetailCover}">
+                                    <Image Source="{Binding SelectedGame.CoverImage}"
+                                           Stretch="Uniform"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           IsVisible="{Binding SelectedGame.HasCover}"/>
+                                </Border>
 
-                        <TextBlock Text="{Binding SelectedGameTitle}"
-                                   FontSize="17"
-                                   FontWeight="SemiBold"
-                                   Foreground="#F4F7FF"
-                                   TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding SelectedGame.InstallStatus, TargetNullValue=''}"
-                                   Foreground="#9AA6BF"/>
-                        <TextBlock Text="{Binding SelectedGame.InstallPath, TargetNullValue=''}"
-                                   TextWrapping="Wrap"
-                                   Foreground="#7E8AA3"
-                                   FontSize="12"/>
-                        <Button Classes="primary"
-                                Content="{Binding SelectedGameActionLabel}"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding LaunchSelectedGameCommand}"/>
-                        <Button Content="{Binding Strings.ToggleFavorite}"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding ToggleFavoriteCommand}"
-                                CommandParameter="{Binding SelectedGame}"/>
-                        <Button Content="{Binding Strings.ChangeCover}"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding ChangeCustomCoverCommand}"/>
-                        <Button Content="{Binding Strings.ResetCover}"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding ResetCustomCoverCommand}"
-                                IsVisible="{Binding SelectedGameHasCustomCover}"/>
+                                <TextBlock Text="{Binding SelectedGameTitle}"
+                                           Classes="detail-title"
+                                           TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectedGame.InstallStatus, TargetNullValue=''}"
+                                           Classes="text-body"/>
+                                <TextBlock Text="{Binding SelectedGame.InstallPath, TargetNullValue=''}"
+                                           TextWrapping="Wrap"
+                                           Classes="text-help"
+                                           Margin="0,0,0,4"/>
+                                <StackPanel Spacing="10">
+                                    <Button Classes="primary"
+                                            Content="{Binding SelectedGameActionLabel}"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding LaunchSelectedGameCommand}"/>
+                                    <Button Content="{Binding Strings.ToggleFavorite}"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding ToggleFavoriteCommand}"
+                                            CommandParameter="{Binding SelectedGame}"/>
+                                    <Button Content="{Binding Strings.ChangeCover}"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding ChangeCustomCoverCommand}"/>
+                                    <Button Content="{Binding Strings.ResetCover}"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding ResetCustomCoverCommand}"
+                                            IsVisible="{Binding SelectedGameHasCustomCover}"/>
+                                </StackPanel>
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>
