@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Steam;
 
@@ -43,9 +45,14 @@ public sealed class SteamStoreClient
                         names[appId] = value.Data.Name.Trim();
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Store API is best-effort for local library enrichment.
+                AppDiagnostics.ReportError(
+                    area: nameof(SteamStoreClient),
+                    operation: "GetAppNamesAsync",
+                    exception: ex,
+                    platform: Platform.Steam,
+                    details: $"batchSize={chunk.Length}");
             }
 
             if (chunk.Length == BatchSize)

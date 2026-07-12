@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Epic;
 
 namespace OpenGameHUB.Providers.Epic;
@@ -33,7 +34,22 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
 
         var results = new List<UnifiedGame>();
 
-        foreach (var entry in LegendaryClient.ListCatalogEntries(cancellationToken))
+        IReadOnlyList<LegendaryCatalogEntry> catalogEntries;
+        try
+        {
+            catalogEntries = LegendaryClient.ListCatalogEntries(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(EpicCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ListCatalogEntries",
+                exception: ex,
+                platform: Platform.Epic);
+            return [];
+        }
+
+        foreach (var entry in catalogEntries)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -76,25 +92,13 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
 
         var appName = game.PlatformGameId;
         yield return () => LegendaryClient.RunInstall(appName);
-        yield return () => StartProtocol($"com.epicgames.launcher://apps/{appName}?action=install");
+        yield return () => ProtocolLauncher.Start($"com.epicgames.launcher://apps/{appName}?action=install");
 
         var epicLauncher = LegendaryClient.FindEpicLauncherExecutable();
         if (epicLauncher is not null)
             yield return () => StartLauncherArgs(epicLauncher, $"com.epicgames.launcher://apps/{appName}?action=install");
 
         yield return () => LegendaryClient.RunLaunch(appName);
-    }
-
-    private static void StartProtocol(string url)
-    {
-        try
-        {
-            StartProcess(url, null, null, useShellExecute: true);
-        }
-        catch
-        {
-            StartProcess("cmd.exe", $"/c start \"\" \"{url}\"", null, useShellExecute: false);
-        }
     }
 
     private static void StartLauncherArgs(string launcherExe, string protocolUrl)

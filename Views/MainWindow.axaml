@@ -26,7 +26,7 @@
                 <TextBlock Text="{Binding Strings.AppSubtitle}"
                            Foreground="#9AA6BF"
                            FontSize="14"/>
-                <TextBlock Text="{Binding AppVersionText}"
+                <TextBlock Text="{Binding Updates.AppVersionText}"
                            Foreground="#6B7A96"
                            FontSize="12"/>
             </StackPanel>
@@ -50,17 +50,17 @@
                 Background="#1A2438"
                 BorderBrush="#3D6FB8"
                 BorderThickness="1"
-                IsVisible="{Binding IsAppUpdateBannerVisible}">
+                IsVisible="{Binding Updates.IsAppUpdateBannerVisible}">
             <Grid ColumnDefinitions="*,Auto,Auto">
                 <StackPanel Spacing="4" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding AppUpdateBannerText}"
+                    <TextBlock Text="{Binding Updates.AppUpdateBannerText}"
                                Foreground="#E8F0FF"
                                FontWeight="SemiBold"
                                TextWrapping="Wrap"/>
                     <ProgressBar Minimum="0"
                                  Maximum="100"
-                                 Value="{Binding AppUpdateProgress}"
-                                 IsVisible="{Binding IsAppUpdateInstalling}"
+                                 Value="{Binding Updates.AppUpdateProgress}"
+                                 IsVisible="{Binding Updates.IsAppUpdateInstalling}"
                                  Height="4"
                                  Margin="0,4,0,0"/>
                 </StackPanel>
@@ -70,12 +70,12 @@
                         VerticalAlignment="Center"
                         Content="{Binding Strings.AppUpdateInstallNow}"
                         Click="OnInstallAppUpdateClick"
-                        IsEnabled="{Binding !IsAppUpdateInstalling}"/>
+                        IsEnabled="{Binding !Updates.IsAppUpdateInstalling}"/>
                 <Button Grid.Column="2"
                         VerticalAlignment="Center"
                         Content="{Binding Strings.AppUpdateDismissLater}"
-                        Command="{Binding DismissAppUpdateBannerCommand}"
-                        IsEnabled="{Binding !IsAppUpdateInstalling}"/>
+                        Command="{Binding Updates.DismissBannerCommand}"
+                        IsEnabled="{Binding !Updates.IsAppUpdateInstalling}"/>
             </Grid>
         </Border>
 
@@ -205,7 +205,7 @@
                                                 <Panel>
                                                     <Panel IsVisible="{Binding DisplayGridCover}">
                                                         <Image Source="{Binding CoverImage}"
-                                                               Stretch="UniformToFill"
+                                                               Stretch="Uniform"
                                                                HorizontalAlignment="Center"
                                                                VerticalAlignment="Center"
                                                                Opacity="{Binding GridCoverOpacity}"/>
@@ -296,7 +296,7 @@
                                                     VerticalAlignment="Center">
                                                 <Panel>
                                                     <Image Source="{Binding CoverImage}"
-                                                           Stretch="UniformToFill"
+                                                           Stretch="Uniform"
                                                            IsVisible="{Binding DisplayListCover}"
                                                            Opacity="{Binding GridCoverOpacity}"/>
                                                     <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
@@ -386,7 +386,7 @@
                                 Background="#141A28"
                                 IsVisible="{Binding ShowDetailCover}">
                             <Image Source="{Binding SelectedGame.CoverImage}"
-                                   Stretch="UniformToFill"
+                                   Stretch="Uniform"
                                    HorizontalAlignment="Center"
                                    VerticalAlignment="Center"
                                    IsVisible="{Binding SelectedGame.HasCover}"/>

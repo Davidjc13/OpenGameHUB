@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
@@ -83,9 +84,14 @@ public sealed class MetadataService
             {
                 // Per-cover timeout; continue with the rest.
             }
-            catch
+            catch (Exception ex)
             {
-                // Ignore individual cover download failures.
+                AppDiagnostics.ReportError(
+                    area: nameof(MetadataService),
+                    operation: "EnrichCoversAsync.DownloadCover",
+                    exception: ex,
+                    platform: game.Platform,
+                    details: $"gameId={game.Id} | title={game.Title}");
             }
         }
     }
@@ -138,9 +144,13 @@ public sealed class MetadataService
             if (File.Exists(cachePath))
                 File.Delete(cachePath);
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(MetadataService),
+                operation: "TryResetCustomCoverAsync.DeleteCacheFile",
+                exception: ex,
+                details: cachePath);
         }
 
         game.CoverPath = null;
@@ -223,8 +233,13 @@ public sealed class MetadataService
             File.Copy(sourcePath, destinationPath, overwrite: true);
             return SafeImageValidator.IsValidImageFile(destinationPath);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(MetadataService),
+                operation: "TryCopyValidatedImage",
+                exception: ex,
+                details: $"source={sourcePath}");
             if (File.Exists(destinationPath))
                 File.Delete(destinationPath);
             return false;

@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Ea;
 
 namespace OpenGameHUB.Providers.Ea;
@@ -20,7 +21,20 @@ public sealed class EaCloudLibraryProvider : ICloudLibraryProvider
             .Where(g => g.Platform == Platform.Ea && g.IsInstalled)
             .ToList();
 
-        var entries = EaCatalogReader.ReadLibraryEntries();
+        IReadOnlyList<EaCatalogEntry> entries;
+        try
+        {
+            entries = EaCatalogReader.ReadLibraryEntries();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(EaCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Ea);
+            return [];
+        }
         var results = new List<UnifiedGame>();
 
         foreach (var entry in entries)

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Infrastructure.Secrets;
 
 namespace OpenGameHUB.Services.Configuration;
 
@@ -62,8 +64,13 @@ public sealed class SettingsService
 
             return settings;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsService),
+                operation: "Load",
+                exception: ex,
+                details: "settings.json");
             return new AppSettings();
         }
     }

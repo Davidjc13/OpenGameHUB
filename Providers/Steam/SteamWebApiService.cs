@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Steam;
 
@@ -118,6 +119,12 @@ public sealed class SteamWebApiService
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SteamWebApiService),
+                operation: "TestConnectionAsync",
+                exception: ex,
+                platform: Platform.Steam,
+                details: steamId);
             return new SteamConnectionTestResult(false, ex.Message, 0);
         }
     }

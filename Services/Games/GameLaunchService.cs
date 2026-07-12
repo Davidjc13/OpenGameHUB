@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Providers.Epic;
 
 namespace OpenGameHUB.Services.Games;
@@ -20,15 +21,21 @@ internal sealed class GameLaunchService
         var attempts = BuildLaunchAttempts(game);
         var errors = new List<string>();
 
-        foreach (var attempt in attempts)
+        for (var i = 0; i < attempts.Count; i++)
         {
             try
             {
-                attempt();
+                attempts[i]();
                 return;
             }
             catch (Exception ex)
             {
+                AppDiagnostics.ReportError(
+                    area: nameof(GameLaunchService),
+                    operation: "LaunchAttempt",
+                    exception: ex,
+                    platform: game.Platform,
+                    details: $"gameId={game.Id} | attemptIndex={i}");
                 errors.Add(ex.Message);
             }
         }

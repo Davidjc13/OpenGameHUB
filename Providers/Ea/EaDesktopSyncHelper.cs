@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Ea;
 
@@ -20,9 +22,14 @@ internal static class EaDesktopSyncHelper
                 UseShellExecute = true
             });
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(EaDesktopSyncHelper),
+                operation: "LaunchEaDesktop",
+                exception: ex,
+                platform: Platform.Ea,
+                details: eaDesktop);
         }
     }
 

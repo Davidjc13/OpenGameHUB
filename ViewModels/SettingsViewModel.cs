@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Xbox;
@@ -17,8 +18,6 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly Action? _onDevSessionReset;
     private readonly Action? _onDevRelaunchRequested;
     private readonly Action? _onDevClearLocalDatabase;
-    private AppReleaseInfo? _pendingRelease;
-    private CancellationTokenSource? _updateCts;
 
     public SettingsViewModel(
         SettingsService settingsService,
@@ -38,27 +37,11 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
+        Updates = new SettingsUpdatesViewModel(statusMessage => StatusMessage = statusMessage);
         RefreshSteamStatus();
         RefreshEpicStatus();
         RefreshXboxStatus();
-        AppVersionText = Loc.T("AppCurrentVersion", AppUpdateService.CurrentVersion);
-        _ = CheckForUpdatesAsync();
     }
-
-    public string AppVersionText { get; private set; } = string.Empty;
-
-    [ObservableProperty]
-    private bool _isUpdateAvailable;
-
-    [ObservableProperty]
-    private bool _isUpdateBusy;
-
-    [ObservableProperty]
-    private double _updateProgress;
-
-    public bool CanInstallUpdate => _pendingRelease is not null && !IsUpdateBusy;
-
-    public bool ShowIndeterminateUpdateProgress => IsUpdateBusy && UpdateProgress <= 0;
 
     public bool IsSteamApiConnected => _settingsService.Current.IsSteamApiConfigured;
 
@@ -78,6 +61,7 @@ public partial class SettingsViewModel : ViewModelBase
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
 
     public LocalizedStrings Strings { get; }
+    public SettingsUpdatesViewModel Updates { get; }
 
     [ObservableProperty]
     private string _steamStatusText = string.Empty;
@@ -209,6 +193,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ConnectXboxAsync",
+                exception: ex,
+                platform: Platform.GamePass);
             StatusMessage = Loc.T("XboxConnectFailed", ex.Message);
         }
     }
@@ -286,6 +275,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ConnectEpicAsync",
+                exception: ex,
+                platform: Platform.Epic);
             StatusMessage = Loc.T("EpicConnectFailed", ex.Message);
         }
     }
@@ -312,6 +306,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "DisconnectEpicAsync",
+                exception: ex,
+                platform: Platform.Epic);
             StatusMessage = Loc.T("EpicDisconnectFailed", ex.Message);
         }
     }
@@ -348,110 +347,6 @@ public partial class SettingsViewModel : ViewModelBase
         StatusMessage = Loc.T("DevClearLocalDatabaseDone");
     }
 
-    [RelayCommand]
-    private async Task CheckForUpdatesAsync()
-    {
-        _updateCts?.Cancel();
-        _updateCts = new CancellationTokenSource();
-        var cancellationToken = _updateCts.Token;
-
-        IsUpdateBusy = true;
-        UpdateProgress = 0;
-        InstallUpdateCommand.NotifyCanExecuteChanged();
-
-        try
-        {
-            var release = await AppUpdateService.GetLatestReleaseAsync(cancellationToken);
-            if (release is null)
-            {
-                _pendingRelease = null;
-                IsUpdateAvailable = false;
-                StatusMessage = Loc.T("AppUpdateCheckFailed");
-                return;
-            }
-
-            if (AppUpdateService.IsNewer(release.TagName, AppUpdateService.CurrentVersion))
-            {
-                _pendingRelease = release;
-                IsUpdateAvailable = true;
-                StatusMessage = Loc.T("AppUpdateAvailable", release.TagName);
-            }
-            else
-            {
-                _pendingRelease = null;
-                IsUpdateAvailable = false;
-                StatusMessage = Loc.T("AppUpdateUpToDate", AppUpdateService.CurrentVersion);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // optional
-        }
-        catch (Exception ex)
-        {
-            _pendingRelease = null;
-            IsUpdateAvailable = false;
-            StatusMessage = Loc.T("AppUpdateCheckFailedDetail", ex.Message);
-        }
-        finally
-        {
-            IsUpdateBusy = false;
-            InstallUpdateCommand.NotifyCanExecuteChanged();
-        }
-    }
-
-    [RelayCommand]
-    private async Task InstallUpdateAsync()
-    {
-        if (_pendingRelease is null || IsUpdateBusy)
-            return;
-
-        _updateCts?.Cancel();
-        _updateCts = new CancellationTokenSource();
-        var cancellationToken = _updateCts.Token;
-
-        IsUpdateBusy = true;
-        UpdateProgress = 0;
-        InstallUpdateCommand.NotifyCanExecuteChanged();
-
-        try
-        {
-            var progress = new Progress<double>(value =>
-            {
-                UpdateProgress = value;
-                StatusMessage = Loc.T("AppUpdateDownloading", value);
-            });
-
-            StatusMessage = Loc.T("AppUpdateInstalling");
-            await AppUpdateService.DownloadAndInstallAsync(
-                _pendingRelease,
-                progress,
-                cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            // optional
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = Loc.T("AppUpdateDownloadFailed", ex.Message);
-        }
-        finally
-        {
-            IsUpdateBusy = false;
-            InstallUpdateCommand.NotifyCanExecuteChanged();
-        }
-    }
-
-    partial void OnIsUpdateBusyChanged(bool value)
-    {
-        InstallUpdateCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(ShowIndeterminateUpdateProgress));
-    }
-
-    partial void OnUpdateProgressChanged(double value) =>
-        OnPropertyChanged(nameof(ShowIndeterminateUpdateProgress));
-
     private void RefreshEpicStatus()
     {
         try
@@ -482,6 +377,11 @@ public partial class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "RefreshEpicStatus",
+                exception: ex,
+                platform: Platform.Epic);
             EpicStatusText = Loc.T("EpicNotConnectedStatus");
             StatusMessage = Loc.T("ScanError", ex.Message);
         }

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Infrastructure.Secrets;
 
@@ -63,8 +64,13 @@ internal static class XboxTokenStore
             var jsonBytes = ProtectedData.Unprotect(protectedBytes, null, DataProtectionScope.CurrentUser);
             return JsonSerializer.Deserialize<T>(jsonBytes, JsonOptions);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(XboxTokenStore),
+                operation: $"LoadEncrypted<{typeof(T).Name}>",
+                exception: ex,
+                details: Path.GetFileName(path));
             return default;
         }
     }

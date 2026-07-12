@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 using YamlDotNet.Serialization;
 using YamlDeserializer = YamlDotNet.Serialization.IDeserializer;
 
@@ -112,8 +113,14 @@ internal static class RiotCatalogReader
             return !string.IsNullOrWhiteSpace(settings.ProductInstallFullPath)
                    && Directory.Exists(settings.ProductInstallFullPath);
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(RiotCatalogReader),
+                operation: "IsProductInstalled.ReadSettings",
+                exception: ex,
+                platform: Platform.Riot,
+                details: $"{productId}@{patchline}");
             return TryReadInstallPathFromYaml(settingsPath) is not null;
         }
     }
@@ -210,8 +217,14 @@ internal static class RiotCatalogReader
 
             return paths;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(RiotCatalogReader),
+                operation: "ReadInstallsJsonPaths",
+                exception: ex,
+                platform: Platform.Riot,
+                details: installsPath);
             return [];
         }
     }
@@ -249,9 +262,14 @@ internal static class RiotCatalogReader
                 if (!string.IsNullOrWhiteSpace(executable))
                     paths.Add(executable);
             }
-            catch
+            catch (Exception ex)
             {
-                // optional
+                AppDiagnostics.ReportError(
+                    area: nameof(RiotCatalogReader),
+                    operation: "ReadRegistryPaths",
+                    exception: ex,
+                    platform: Platform.Riot,
+                    details: root.Name);
             }
         }
 
@@ -355,9 +373,14 @@ internal static class RiotCatalogReader
                 return string.IsNullOrWhiteSpace(value) ? null : value;
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // optional
+            AppDiagnostics.ReportError(
+                area: nameof(RiotCatalogReader),
+                operation: "TryReadInstallPathFromYaml",
+                exception: ex,
+                platform: Platform.Riot,
+                details: settingsPath);
         }
 
         return null;

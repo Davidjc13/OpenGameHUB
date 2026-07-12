@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using OpenGameHUB.Domain.Enums;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Epic;
 
@@ -116,8 +118,13 @@ internal static class EpicLauncherClient
 
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            AppDiagnostics.ReportError(
+                area: nameof(EpicLauncherClient),
+                operation: "IsLauncherReady",
+                exception: ex,
+                platform: Platform.Epic);
             return false;
         }
         finally

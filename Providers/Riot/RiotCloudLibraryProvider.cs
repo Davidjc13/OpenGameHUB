@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Riot;
 
@@ -27,7 +28,22 @@ public sealed class RiotCloudLibraryProvider : ICloudLibraryProvider
 
         var results = new List<UnifiedGame>();
 
-        foreach (var entry in RiotCatalogReader.ReadLibraryEntries())
+        IReadOnlyList<RiotCatalogEntry> entries;
+        try
+        {
+            entries = RiotCatalogReader.ReadLibraryEntries();
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(RiotCloudLibraryProvider),
+                operation: "GetUninstalledLibraryGames.ReadLibraryEntries",
+                exception: ex,
+                platform: Platform.Riot);
+            return [];
+        }
+
+        foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
