@@ -1,6 +1,7 @@
 using System.Globalization;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
+using OpenGameHUB.Styles;
 
 namespace OpenGameHUB.Converters;
 
@@ -11,7 +12,7 @@ public sealed class SelectionBorderConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var selected = value is true;
-        return selected ? Brush.Parse("#3D6AF2") : Brush.Parse("#2B3448");
+        return selected ? ThemeColors.SelectedBorderBrush : ThemeColors.UnselectedBorderBrush;
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>

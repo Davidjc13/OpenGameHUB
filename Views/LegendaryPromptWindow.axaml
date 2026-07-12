@@ -9,7 +9,7 @@
         MinWidth="480"
         MinHeight="420"
         WindowStartupLocation="CenterOwner"
-        Background="#10131A">
+        Classes="app-window">
 
     <Grid Margin="24"
           RowDefinitions="*,Auto">
@@ -19,25 +19,17 @@
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="16">
                 <TextBlock Text="{Binding Strings.LegendaryPromptTitle}"
-                           FontSize="22"
-                           FontWeight="Bold"
-                           Foreground="#F4F7FF"/>
+                           Classes="heading-md"/>
                 <TextBlock Text="{Binding Strings.LegendaryPromptIntro}"
-                           Foreground="#9AA6BF"
+                           Classes="text-secondary"
                            TextWrapping="Wrap"/>
 
-                <Border Background="#161B27"
-                        CornerRadius="10"
-                        Padding="14"
-                        BorderBrush="#2B3448"
-                        BorderThickness="1">
+                <Border Classes="panel-card">
                     <StackPanel Spacing="6">
                         <TextBlock Text="{Binding Strings.LegendaryPromptAuthTitle}"
-                                   FontWeight="SemiBold"
-                                   Foreground="#D7DFF1"/>
+                                   Classes="text-label"/>
                         <TextBlock Text="{Binding Strings.LegendaryPromptAuth}"
-                                   Foreground="#7E8AA3"
-                                   FontSize="12"
+                                   Classes="text-help"
                                    TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>

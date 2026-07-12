@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenGameHUB.ViewModels"
+             xmlns:conv="using:OpenGameHUB.Converters"
+             x:Class="OpenGameHUB.Controls.GameListCard"
+             x:DataType="vm:GameItemViewModel">
+    <UserControl.Resources>
+        <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
+    </UserControl.Resources>
+
+    <Border Classes="game-card"
+            BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
+            PointerPressed="OnCardPressed"
+            DoubleTapped="OnGameDoubleTapped">
+        <Grid ColumnDefinitions="Auto,*,Auto"
+              Margin="10"
+              ColumnSpacing="12">
+            <Border Grid.Column="0"
+                    Classes="game-list-thumb">
+                <Panel>
+                    <Image Source="{Binding CoverImage}"
+                           Stretch="Uniform"
+                           IsVisible="{Binding DisplayListCover}"
+                           Opacity="{Binding GridCoverOpacity}"/>
+                    <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
+                            Opacity="{Binding GridPlaceholderOpacity}"
+                            IsVisible="{Binding !DisplayListCover}"/>
+                </Panel>
+            </Border>
+
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Spacing="4">
+                <Border Classes="platform-badge"
+                        Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
+                    <TextBlock Text="{Binding PlatformLabel}"
+                               Classes="badge-label"/>
+                </Border>
+                <TextBlock Text="{Binding Title}"
+                           Classes="card-title-lg"
+                           TextWrapping="Wrap"
+                           MaxHeight="40"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding InstallStatus}"
+                           FontSize="11"
+                           Classes="text-status"/>
+            </StackPanel>
+
+            <Button Grid.Column="2"
+                    Classes="primary"
+                    MinWidth="88"
+                    VerticalAlignment="Center"
+                    Content="{Binding ActionLabel}"
+                    Click="OnPlayClick"/>
+        </Grid>
+    </Border>
+</UserControl>

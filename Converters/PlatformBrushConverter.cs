@@ -3,6 +3,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Styles;
 
 namespace OpenGameHUB.Converters;
 
@@ -10,16 +11,16 @@ public static class PlatformBrushes
 {
     public static IBrush For(Platform platform) => platform switch
     {
-        Platform.Steam => Brush.Parse("#1B6FAD"),
-        Platform.Epic => Brush.Parse("#2F2F2F"),
-        Platform.Gog => Brush.Parse("#86328A"),
-        Platform.Ubisoft => Brush.Parse("#0070FF"),
-        Platform.Ea => Brush.Parse("#FF4747"),
-        Platform.BattleNet => Brush.Parse("#148EFF"),
-        Platform.Rockstar => Brush.Parse("#FCAF17"),
-        Platform.Riot => Brush.Parse("#D13639"),
-        Platform.GamePass => Brush.Parse("#107C10"),
-        _ => Brush.Parse("#5C5C5C")
+        Platform.Steam => ThemeColors.ParseBrush("#1B6FAD"),
+        Platform.Epic => ThemeColors.ParseBrush("#2F2F2F"),
+        Platform.Gog => ThemeColors.ParseBrush("#86328A"),
+        Platform.Ubisoft => ThemeColors.ParseBrush("#0070FF"),
+        Platform.Ea => ThemeColors.ParseBrush("#FF4747"),
+        Platform.BattleNet => ThemeColors.ParseBrush("#148EFF"),
+        Platform.Rockstar => ThemeColors.ParseBrush("#FCAF17"),
+        Platform.Riot => ThemeColors.ParseBrush("#D13639"),
+        Platform.GamePass => ThemeColors.ParseBrush("#107C10"),
+        _ => ThemeColors.ParseBrush("#5C5C5C")
     };
 }
 

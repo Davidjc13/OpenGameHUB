@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using OpenGameHUB.ViewModels;
 
@@ -22,43 +21,12 @@ public partial class MainWindow : Window
             viewModel.SearchText = text;
     }
 
-    private void OnCardPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (sender is not Control { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.SelectGameCommand.Execute(game);
-    }
-
-    private void OnGameDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (sender is not Control { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.LaunchGameCommand.Execute(game);
-
-        e.Handled = true;
-    }
-
     private async void OnInstallAppUpdateClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not MainWindowViewModel vm)
             return;
 
         await vm.Updates.InstallUpdateCommand.ExecuteAsync(null);
-        e.Handled = true;
-    }
-
-    private void OnPlayClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { DataContext: GameItemViewModel game })
-            return;
-
-        if (DataContext is MainWindowViewModel vm)
-            vm.LaunchGameCommand.Execute(game);
-
         e.Handled = true;
     }
 }

@@ -1,0 +1,107 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="TextBlock.heading-xl">
+        <Setter Property="FontSize" Value="32"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.heading-lg">
+        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.heading-md">
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.heading-sm">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.heading-panel">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.heading-subtitle">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-primary">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-secondary">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-tertiary">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-muted">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextMuted}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-label">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-sidebar">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-status">
+        <Setter Property="Foreground" Value="{StaticResource BrushTextStatus}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-help">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-caption">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-banner">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextBanner}"/>
+    </Style>
+
+    <Style Selector="TextBlock.text-dev">
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextDev}"/>
+    </Style>
+
+    <Style Selector="TextBlock.card-title">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.card-title-lg">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+    </Style>
+
+    <Style Selector="TextBlock.badge-label">
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+</Styles>

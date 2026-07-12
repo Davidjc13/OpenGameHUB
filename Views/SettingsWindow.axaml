@@ -9,7 +9,7 @@
         MinWidth="480"
         MinHeight="620"
         WindowStartupLocation="CenterOwner"
-        Background="#10131A">
+        Classes="app-window">
 
     <Grid Margin="24"
           RowDefinitions="*,Auto">
@@ -19,16 +19,13 @@
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="16">
                     <TextBlock Text="{Binding Strings.SettingsTitle}"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Foreground="#F4F7FF"/>
+                               Classes="heading-lg"/>
                     <TextBlock Text="{Binding Strings.SettingsDescription}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"/>
 
                     <TextBlock Text="{Binding Strings.Language}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <ComboBox ItemsSource="{Binding LanguageOptions}"
                               SelectedItem="{Binding SelectedLanguageOption}"
@@ -41,11 +38,10 @@
                     </ComboBox>
 
                     <TextBlock Text="{Binding Strings.SteamWebApi}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <TextBlock Text="{Binding SteamStatusText}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Button Content="{Binding Strings.SteamSetupButton}"
@@ -56,12 +52,11 @@
                     </StackPanel>
 
                     <TextBlock Text="{Binding Strings.EpicLibrarySection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"
                                IsVisible="{Binding IsEpicSectionVisible}"/>
                     <TextBlock Text="{Binding EpicStatusText}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"
                                IsVisible="{Binding IsEpicSectionVisible}"/>
                     <StackPanel Orientation="Horizontal"
@@ -76,11 +71,10 @@
                     </StackPanel>
 
                     <TextBlock Text="{Binding Strings.XboxLibrarySection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <TextBlock Text="{Binding XboxStatusText}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Button Content="{Binding Strings.XboxConnectAccount}"
@@ -92,12 +86,10 @@
                     </StackPanel>
 
                     <TextBlock Text="{Binding Strings.DisplaySection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <TextBlock Text="{Binding Strings.CoverQualitySection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <ComboBox ItemsSource="{Binding CoverQualityOptions}"
                               SelectedItem="{Binding SelectedCoverQualityOption}"
@@ -109,17 +101,14 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <TextBlock Text="{Binding Strings.CoverQualityHelp}"
-                               Foreground="#7E8AA3"
-                               FontSize="12"
+                               Classes="text-help"
                                TextWrapping="Wrap"/>
 
                     <TextBlock Text="{Binding Strings.CoverArtSection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <TextBlock Text="{Binding Strings.CoverArtHelp}"
-                               Foreground="#7E8AA3"
-                               FontSize="12"
+                               Classes="text-help"
                                TextWrapping="Wrap"/>
                     <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
                              Text="{Binding IgdbClientId}"/>
@@ -129,11 +118,10 @@
                              Text="{Binding SteamGridDbApiKey}"/>
 
                     <TextBlock Text="{Binding Strings.AppUpdateSection}"
-                               FontWeight="SemiBold"
-                               Foreground="#D7DFF1"
+                               Classes="text-label"
                                Margin="0,8,0,0"/>
                     <TextBlock Text="{Binding Updates.AppVersionText}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <Button Content="{Binding Strings.AppCheckForUpdates}"
@@ -152,19 +140,13 @@
                                  IsVisible="{Binding Updates.IsUpdateBusy}"
                                  Height="4"/>
 
-                    <Border Background="#1A1218"
-                            CornerRadius="10"
-                            Padding="14"
-                            BorderBrush="#5C3040"
-                            BorderThickness="1"
+                    <Border Classes="dev-panel"
                             IsVisible="{Binding IsDevModeEnabled}">
                         <StackPanel Spacing="10">
                             <TextBlock Text="{Binding Strings.DevModeSection}"
-                                       FontWeight="SemiBold"
-                                       Foreground="#F2B8C6"/>
+                                       Classes="text-dev"/>
                             <TextBlock Text="{Binding Strings.DevModeHelp}"
-                                       Foreground="#9AA6BF"
-                                       FontSize="12"
+                                       Classes="text-caption"
                                        TextWrapping="Wrap"/>
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <Button Content="{Binding Strings.DevResetConnections}"
@@ -178,7 +160,7 @@
                     </Border>
 
                     <TextBlock Text="{Binding StatusMessage}"
-                               Foreground="#9AA6BF"
+                               Classes="text-secondary"
                                TextWrapping="Wrap"/>
             </StackPanel>
         </ScrollViewer>
