@@ -37,6 +37,9 @@ public static class LibraryFilterPipeline
 
         return (sort switch
         {
+            SortOption.LastPlayedDesc => filtered
+                .OrderByDescending(g => g.Source.LastPlayed)
+                .ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
             SortOption.TitleDesc => filtered.OrderByDescending(g => g.Title, StringComparer.OrdinalIgnoreCase),
             SortOption.Platform => filtered.OrderBy(g => g.Platform).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
             SortOption.InstalledFirst => filtered.OrderByDescending(g => g.Source.IsInstalled).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
@@ -44,4 +47,9 @@ public static class LibraryFilterPipeline
             _ => filtered.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
         }).ToList();
     }
+
+    public static SortOption ResolveDefaultSort(IEnumerable<GameItemViewModel> games) =>
+        games.Any(g => g.Source.LastPlayed is not null)
+            ? SortOption.LastPlayedDesc
+            : SortOption.TitleAsc;
 }

@@ -183,6 +183,10 @@ public sealed class GameDatabase : IDisposable
                 "SELECT id, custom_cover FROM games WHERE custom_cover = 1")
             .ToDictionary(x => x.Id, x => x.HasCustomCover == 1, StringComparer.Ordinal);
 
+        var existingLastPlayed = _connection.Query<(string Id, string LastPlayed)>(
+                "SELECT id, last_played FROM games WHERE last_played IS NOT NULL AND last_played != ''")
+            .ToDictionary(x => x.Id, x => DateTime.Parse(x.LastPlayed), StringComparer.Ordinal);
+
         foreach (var game in list)
         {
             game.IsFavorite = favorites.TryGetValue(game.Id, out var fav) && fav
@@ -202,6 +206,9 @@ public sealed class GameDatabase : IDisposable
             var cachedCover = CoverPathHelper.ResolveExistingPath(game);
             if (cachedCover is not null)
                 game.CoverPath = cachedCover;
+
+            if (existingLastPlayed.TryGetValue(game.Id, out var lastPlayed))
+                game.LastPlayed = lastPlayed;
         }
 
         UpsertGames(list);
@@ -344,6 +351,21 @@ public sealed class GameDatabase : IDisposable
         public string name { get; init; } = string.Empty;
     }
 
+    public void RecordLauncherLaunch(string id, DateTime launchedAt)
+    {
+        _connection.Execute(
+            """
+            UPDATE games
+            SET last_played = @LastPlayed
+            WHERE id = @Id
+            """,
+            new
+            {
+                Id = id,
+                LastPlayed = launchedAt.ToString("O")
+            });
+    }
+
     public void UpdatePlaytime(string id, int playtimeMinutes, DateTime? lastPlayed)
     {
         _connection.Execute(
@@ -364,7 +386,15 @@ public sealed class GameDatabase : IDisposable
     public void PersistPlaytimes(IEnumerable<UnifiedGame> games)
     {
         foreach (var game in games)
-            UpdatePlaytime(game.Id, game.PlaytimeMinutes, game.LastPlayed);
+        {
+            _connection.Execute(
+                """
+                UPDATE games
+                SET playtime_minutes = @PlaytimeMinutes
+                WHERE id = @Id
+                """,
+                new { Id = game.Id, PlaytimeMinutes = game.PlaytimeMinutes });
+        }
     }
 
     public void SetFavorite(string id, bool isFavorite)

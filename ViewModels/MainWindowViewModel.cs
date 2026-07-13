@@ -32,6 +32,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _pendingDevRelaunch;
     private bool _pendingDevClearDatabase;
     private bool _suppressCoverLoading = true;
+    private bool _suppressSortOptionChanged;
+    private SortOption? _userSelectedSort;
 
     public MainWindowViewModel()
     {
@@ -210,7 +212,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
     partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
-    partial void OnSelectedSortOptionChanged(SortOptionItem? value) => ApplyFilter();
+    partial void OnSelectedSortOptionChanged(SortOptionItem? value)
+    {
+        if (_suppressSortOptionChanged)
+            return;
+
+        _userSelectedSort = value?.Option;
+        ApplyFilter();
+    }
     partial void OnSelectedLibraryCollectionChanged(LibraryCollectionItem? value)
     {
         OnPropertyChanged(nameof(CanManageSelectedCollection));
@@ -311,6 +320,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 _suppressCoverLoading = false;
                 RebuildPlatformFilters();
                 RebuildLibraryCollections();
+                RebuildSortOptions();
                 ApplyFilter();
 
                 var epicHint = IsEpicCloudAvailable ? Loc.T("EpicCloudHint") : string.Empty;
@@ -749,6 +759,10 @@ public partial class MainWindowViewModel : ViewModelBase
             }
 
             _libraryService.LaunchGame(SelectedGame.Source);
+            SelectedGame.RefreshLaunchState();
+            if (_userSelectedSort is null)
+                RebuildSortOptions();
+            ApplyFilter();
             StatusText = SelectedGame.Source.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
                 : Loc.T("StartingInstallLaunch", SelectedGame.Title);
@@ -931,6 +945,7 @@ public partial class MainWindowViewModel : ViewModelBase
         ApplyGameMembership();
         RebuildPlatformFilters();
         RebuildLibraryCollections();
+        RebuildSortOptions();
         ApplyFilter();
         _suppressCoverLoading = false;
         ApplyVisibleCovers();
@@ -1155,14 +1170,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void RebuildSortOptions()
     {
-        var selected = SelectedSortOption?.Option;
+        var selected = _userSelectedSort ?? LibraryFilterPipeline.ResolveDefaultSort(_allGames);
         SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(Loc.T("SortLastPlayedDesc"), SortOption.LastPlayedDesc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortTitleAsc"), SortOption.TitleAsc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortTitleDesc"), SortOption.TitleDesc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortPlatform"), SortOption.Platform));
         SortOptions.Add(new SortOptionItem(Loc.T("SortInstalledFirst"), SortOption.InstalledFirst));
         SortOptions.Add(new SortOptionItem(Loc.T("SortPlaytimeDesc"), SortOption.PlaytimeDesc));
+
+        _suppressSortOptionChanged = true;
         SelectedSortOption = SortOptions.FirstOrDefault(s => s.Option == selected) ?? SortOptions[0];
+        _suppressSortOptionChanged = false;
     }
 
     private void ApplyFilter()
@@ -1177,7 +1196,7 @@ public partial class MainWindowViewModel : ViewModelBase
             view,
             SelectedPlatformFilter?.Platform,
             SearchText,
-            SelectedSortOption?.Option ?? SortOption.TitleAsc,
+            _userSelectedSort ?? LibraryFilterPipeline.ResolveDefaultSort(_allGames),
             collectionGameIds);
 
         CurrentPage = 1;
