@@ -7,6 +7,7 @@ public static class PlatformLabels
         Platform.Ea => "EA",
         Platform.BattleNet => "Battle.net",
         Platform.GamePass => "Game Pass",
+        Platform.Custom => "Custom",
         _ => platform.ToString()
     };
 }

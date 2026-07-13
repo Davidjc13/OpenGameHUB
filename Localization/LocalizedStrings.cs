@@ -114,6 +114,15 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamGridDbApiKeyOptional => Loc.T("SteamGridDbApiKeyOptional");
     public string Cancel => Loc.T("Cancel");
     public string Save => Loc.T("Save");
+    public string Accept => Loc.T("Accept");
+    public string AddCustomGame => Loc.T("AddCustomGame");
+    public string AddCustomGameTitle => Loc.T("AddCustomGameTitle");
+    public string AddCustomGamePrompt => Loc.T("AddCustomGamePrompt");
+    public string AddCustomGameSearchPlaceholder => Loc.T("AddCustomGameSearchPlaceholder");
+    public string BrowseExecutable => Loc.T("BrowseExecutable");
+    public string CustomGameTitleLabel => Loc.T("CustomGameTitleLabel");
+    public string CustomGameTitlePlaceholder => Loc.T("CustomGameTitlePlaceholder");
+    public string CustomGameExecutablePlaceholder => Loc.T("CustomGameExecutablePlaceholder");
     public string SteamSetupSignInWithBrowser => Loc.T("SteamSetupSignInWithBrowser");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
