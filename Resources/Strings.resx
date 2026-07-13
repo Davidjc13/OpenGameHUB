@@ -351,4 +351,19 @@
   <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
+  <data name="AddCustomGame" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGameTitle" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGamePrompt" xml:space="preserve"><value>Select an installed program or browse for an executable file.</value></data>
+  <data name="AddCustomGameSearchPlaceholder" xml:space="preserve"><value>Search installed programs...</value></data>
+  <data name="BrowseExecutable" xml:space="preserve"><value>Browse...</value></data>
+  <data name="BrowseExecutableDialogTitle" xml:space="preserve"><value>Select executable</value></data>
+  <data name="ExecutableFilesFilter" xml:space="preserve"><value>Executable files</value></data>
+  <data name="CustomGameTitleLabel" xml:space="preserve"><value>Game title</value></data>
+  <data name="CustomGameTitlePlaceholder" xml:space="preserve"><value>Enter a display name</value></data>
+  <data name="CustomGameExecutablePlaceholder" xml:space="preserve"><value>No executable selected</value></data>
+  <data name="CustomGameTitleRequired" xml:space="preserve"><value>Enter a title for the game.</value></data>
+  <data name="CustomGameInvalidExecutable" xml:space="preserve"><value>Select a valid executable file.</value></data>
+  <data name="CustomGameAlreadyExists" xml:space="preserve"><value>{0} is already in your library.</value></data>
+  <data name="CustomGameAdded" xml:space="preserve"><value>Added {0} to your library.</value></data>
+  <data name="Accept" xml:space="preserve"><value>Accept</value></data>
 </root>

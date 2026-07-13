@@ -1039,6 +1039,31 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task AddCustomGameAsync()
+    {
+        var viewModel = new AddCustomGameDialogViewModel(_libraryService, GetMainWindow);
+        var window = new AddCustomGameDialog { DataContext = viewModel };
+        await ShowDialogAsync(window);
+        if (!viewModel.Confirmed || viewModel.CreatedGame is null)
+            return;
+
+        var game = viewModel.CreatedGame;
+        if (_allGames.Any(item => string.Equals(item.Source.Id, game.Id, StringComparison.Ordinal)))
+            return;
+
+        var item = new GameItemViewModel(game);
+        item.SetCollectionIds(_libraryService.Collections.GetCollectionIdsForGame(game.Id));
+        _allGames.Add(item);
+
+        RebuildPlatformFilters();
+        RebuildSortOptions();
+        ApplyFilter();
+        SelectedGame = item;
+        StatusText = Loc.T("CustomGameAdded", game.Title);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
     private async Task CreateCollectionAsync()
     {
         var name = await PromptCollectionNameAsync(

@@ -24,6 +24,7 @@ public sealed class GameLibraryService : IDisposable
     private readonly XboxCloudLibraryProvider _xboxCloudProvider;
     private readonly IReadOnlyList<ICloudLibraryProvider> _cloudProviders;
     private readonly GameLaunchService _launchService;
+    private CustomGameService _customGameService;
 
     public GameLibraryService()
     {
@@ -43,6 +44,7 @@ public sealed class GameLibraryService : IDisposable
         ];
         _launchService = new GameLaunchService(_cloudProviders);
         _metadataService = new MetadataService(_database, _settingsService);
+        _customGameService = new CustomGameService(_database);
         _collectionService = new UserCollectionService(_database);
         _collectionService.Reload();
     }
@@ -92,6 +94,11 @@ public sealed class GameLibraryService : IDisposable
     public MetadataService Metadata => _metadataService;
 
     public UserCollectionService Collections => _collectionService;
+
+    public CustomGameService CustomGames => _customGameService;
+
+    public UnifiedGame AddCustomGame(string title, string executablePath) =>
+        _customGameService.Add(title, executablePath);
 
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {
@@ -327,6 +334,7 @@ public sealed class GameLibraryService : IDisposable
             }
         }
 
+        games.AddRange(_customGameService.LoadAll());
         return GameLibraryMerger.Deduplicate(games);
     }
 
@@ -345,6 +353,7 @@ public sealed class GameLibraryService : IDisposable
         DevModeService.ClearLocalLibraryCache();
         _database = new GameDatabase();
         _metadataService = new MetadataService(_database, _settingsService);
+        _customGameService = new CustomGameService(_database);
         _collectionService = new UserCollectionService(_database);
         _collectionService.Reload();
     }

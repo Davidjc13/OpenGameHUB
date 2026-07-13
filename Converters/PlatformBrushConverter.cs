@@ -20,6 +20,7 @@ public static class PlatformBrushes
         Platform.Rockstar => ThemeColors.ParseBrush("#FCAF17"),
         Platform.Riot => ThemeColors.ParseBrush("#D13639"),
         Platform.GamePass => ThemeColors.ParseBrush("#107C10"),
+        Platform.Custom => ThemeColors.ParseBrush("#7A5AF8"),
         _ => ThemeColors.ParseBrush("#5C5C5C")
     };
 }
