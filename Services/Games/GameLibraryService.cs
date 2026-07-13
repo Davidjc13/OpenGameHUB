@@ -238,7 +238,18 @@ public sealed class GameLibraryService : IDisposable
         CancellationToken cancellationToken = default) =>
         _metadataService.TryResetCustomCoverAsync(game, cancellationToken);
 
-    public void LaunchGame(UnifiedGame game) => _launchService.Launch(game);
+    public void LaunchGame(UnifiedGame game)
+    {
+        _launchService.Launch(game);
+        RecordLauncherLaunch(game);
+    }
+
+    public void RecordLauncherLaunch(UnifiedGame game)
+    {
+        var launchedAt = DateTime.UtcNow;
+        game.LastPlayed = launchedAt;
+        _database.RecordLauncherLaunch(game.Id, launchedAt);
+    }
 
     public void ToggleFavorite(UnifiedGame game) =>
         _database.SetFavorite(game.Id, !game.IsFavorite);

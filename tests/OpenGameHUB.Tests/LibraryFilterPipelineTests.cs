@@ -72,12 +72,61 @@ public sealed class LibraryFilterPipelineTests
         Assert.Equal("Alpha", result[1].Title);
     }
 
+    [Fact]
+    public void Apply_sorts_by_last_played_descending_with_nulls_last()
+    {
+        var recent = DateTime.UtcNow.AddDays(-1);
+        var older = DateTime.UtcNow.AddDays(-30);
+        var games = new[]
+        {
+            CreateGame("steam:1", Platform.Steam, "No Play"),
+            CreateGame("steam:2", Platform.Steam, "Older", lastPlayed: older),
+            CreateGame("steam:3", Platform.Steam, "Recent", lastPlayed: recent)
+        };
+
+        var result = LibraryFilterPipeline.Apply(
+            games,
+            new LibraryViewState(LibraryViewKind.All),
+            null,
+            string.Empty,
+            SortOption.LastPlayedDesc);
+
+        Assert.Equal("Recent", result[0].Title);
+        Assert.Equal("Older", result[1].Title);
+        Assert.Equal("No Play", result[2].Title);
+    }
+
+    [Fact]
+    public void ResolveDefaultSort_uses_last_played_when_any_game_has_it()
+    {
+        var games = new[]
+        {
+            CreateGame("steam:1", Platform.Steam, "Alpha"),
+            CreateGame("steam:2", Platform.Steam, "Beta", lastPlayed: DateTime.UtcNow)
+        };
+
+        Assert.Equal(SortOption.LastPlayedDesc, LibraryFilterPipeline.ResolveDefaultSort(games));
+    }
+
+    [Fact]
+    public void ResolveDefaultSort_falls_back_to_title_when_no_last_played()
+    {
+        var games = new[]
+        {
+            CreateGame("steam:1", Platform.Steam, "Alpha"),
+            CreateGame("steam:2", Platform.Steam, "Beta")
+        };
+
+        Assert.Equal(SortOption.TitleAsc, LibraryFilterPipeline.ResolveDefaultSort(games));
+    }
+
     private static GameItemViewModel CreateGame(
         string id,
         Platform platform,
         string title,
         bool isFavorite = false,
-        bool isInstalled = false)
+        bool isInstalled = false,
+        DateTime? lastPlayed = null)
     {
         return new GameItemViewModel(new UnifiedGame
         {
@@ -87,6 +136,7 @@ public sealed class LibraryFilterPipelineTests
             Title = title,
             IsFavorite = isFavorite,
             IsInstalled = isInstalled,
+            LastPlayed = lastPlayed,
             LaunchSpec = LaunchSpec.Executable("game.exe")
         });
     }

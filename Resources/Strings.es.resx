@@ -89,6 +89,7 @@
   <data name="ShowingGamesPage" xml:space="preserve"><value>Página {0} de {1} · {2} visibles de {3} juegos</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
   <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="SortLastPlayedDesc" xml:space="preserve"><value>Jugado más reciente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Plataforma</value></data>
@@ -207,6 +208,7 @@
   <data name="PlaytimePlayed" xml:space="preserve"><value>{0}h {1}m jugadas</value></data>
   <data name="PlaytimeLastPlayed" xml:space="preserve"><value>{0}h {1}m · última vez {2}</value></data>
   <data name="NoPlaytimeData" xml:space="preserve"><value>Sin datos de tiempo</value></data>
+  <data name="LastLaunched" xml:space="preserve"><value>Último lanzamiento {0}</value></data>
   <data name="SettingsTitle" xml:space="preserve"><value>Ajustes</value></data>
   <data name="SettingsWindowTitle" xml:space="preserve"><value>Ajustes de OpenGameHUB</value></data>
   <data name="SettingsDescription" xml:space="preserve"><value>Configura integraciones opcionales. Los juegos instalados se detectan sin API.</value></data>
