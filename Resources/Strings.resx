@@ -342,11 +342,11 @@
   <data name="EmbeddedBrowserReady" xml:space="preserve"><value>Complete sign-in in the browser above.</value></data>
   <data name="EmbeddedBrowserCaptured" xml:space="preserve"><value>Sign-in captured. Finishing setup...</value></data>
   <data name="EmbeddedBrowserInitFailed" xml:space="preserve"><value>Could not start embedded browser: {0}</value></data>
-  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>Embedded browser is unavailable. Install the Microsoft Edge WebView2 runtime or use the manual steps below.</value></data>
+  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>Embedded browser is unavailable. Install the Microsoft Edge WebView2 runtime to connect accounts.</value></data>
   <data name="EpicAuthCompleted" xml:space="preserve"><value>Epic account connected. Refresh your library.</value></data>
   <data name="EpicAuthCancelled" xml:space="preserve"><value>Epic sign-in was cancelled.</value></data>
   <data name="EpicAuthStartedFallback" xml:space="preserve"><value>Epic sign-in opened in an external window. After completing it, refresh your library.</value></data>
-  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in with embedded browser</value></data>
+  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
 </root>

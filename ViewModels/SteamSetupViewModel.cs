@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -27,7 +26,7 @@ public partial class SteamSetupViewModel : ViewModelBase
 
     public bool IsSteamInstalled => SteamLocalAccountReader.IsSteamInstalled;
 
-    public bool CanUseEmbeddedBrowser => EmbeddedBrowserService.IsAvailable;
+    public bool CanSignInWithBrowser => EmbeddedBrowserService.IsAvailable;
 
     [ObservableProperty]
     private string _steamApiKey = string.Empty;
@@ -77,7 +76,7 @@ public partial class SteamSetupViewModel : ViewModelBase
         return Task.CompletedTask;
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanRunSignInWithBrowser))]
     private async Task SignInWithBrowserAsync()
     {
         if (_ownerWindow is null)
@@ -86,18 +85,13 @@ public partial class SteamSetupViewModel : ViewModelBase
             return;
         }
 
-        if (!EmbeddedBrowserService.IsAvailable)
-        {
-            StatusMessage = Loc.T("EmbeddedBrowserRuntimeMissing");
-            OpenApiKeyPage();
-            return;
-        }
-
         IsBusy = true;
         StatusMessage = Loc.T("EmbeddedBrowserLoading");
 
         try
         {
+            EmbeddedBrowserService.EnsureAvailable();
+
             var captured = await EmbeddedBrowserService.ShowCaptureAsync<SteamBrowserCaptureResult>(
                 new SteamAuthCaptureStrategy(),
                 _ownerWindow);
@@ -127,33 +121,16 @@ public partial class SteamSetupViewModel : ViewModelBase
 
             StatusMessage = Loc.T("EmbeddedBrowserSteamWaitingForKey");
         }
+        catch (Exception ex)
+        {
+            StatusMessage = ex.Message;
+        }
         finally
         {
             IsBusy = false;
             TestAndSaveCommand.NotifyCanExecuteChanged();
+            SignInWithBrowserCommand.NotifyCanExecuteChanged();
         }
-    }
-
-    [RelayCommand]
-    private void OpenApiKeyPage()
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = SteamAuthCaptureStrategy.LoginUrl,
-                UseShellExecute = true
-            });
-        }
-        catch
-        {
-            // Fallback without a shell: hand the URL to explorer as a discrete argument.
-            var psi = new ProcessStartInfo { FileName = "explorer.exe", UseShellExecute = false };
-            psi.ArgumentList.Add(SteamAuthCaptureStrategy.LoginUrl);
-            Process.Start(psi);
-        }
-
-        StatusMessage = Loc.T("SteamSetupApiKeyInstructions");
     }
 
     [RelayCommand(CanExecute = nameof(CanTestConnection))]
@@ -195,8 +172,11 @@ public partial class SteamSetupViewModel : ViewModelBase
         {
             IsBusy = false;
             TestAndSaveCommand.NotifyCanExecuteChanged();
+            SignInWithBrowserCommand.NotifyCanExecuteChanged();
         }
     }
+
+    private bool CanRunSignInWithBrowser() => !IsBusy && CanSignInWithBrowser;
 
     private bool CanTestConnection() =>
         !IsBusy
@@ -207,7 +187,11 @@ public partial class SteamSetupViewModel : ViewModelBase
 
     partial void OnSteamIdChanged(string value) => TestAndSaveCommand.NotifyCanExecuteChanged();
 
-    partial void OnIsBusyChanged(bool value) => TestAndSaveCommand.NotifyCanExecuteChanged();
+    partial void OnIsBusyChanged(bool value)
+    {
+        TestAndSaveCommand.NotifyCanExecuteChanged();
+        SignInWithBrowserCommand.NotifyCanExecuteChanged();
+    }
 
     [RelayCommand]
     private void Cancel() => RequestClose?.Invoke();

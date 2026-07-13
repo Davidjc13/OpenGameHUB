@@ -1,10 +1,7 @@
-using System.Diagnostics;
 using Avalonia.Controls;
 using OpenGameHUB.Infrastructure.Browser;
 using OpenGameHUB.Services.Auth;
 using OpenGameHUB.Services.Configuration;
-using OpenGameHUB.ViewModels;
-using OpenGameHUB.Views;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -14,7 +11,11 @@ internal static class XboxAuthService
     {
         var session = XboxAccountClient.CreateOAuthSession();
 
-        var authorizationCode = await TryCaptureAuthorizationCodeAsync(session, ownerWindow);
+        EmbeddedBrowserService.EnsureAvailable();
+        var authorizationCode = await EmbeddedBrowserService.ShowCaptureAsync<string>(
+            new XboxAuthCaptureStrategy(session),
+            ownerWindow);
+
         if (string.IsNullOrWhiteSpace(authorizationCode))
             throw new InvalidOperationException(Loc.T("XboxAuthCancelled"));
 
@@ -23,42 +24,6 @@ internal static class XboxAuthService
         await client.CompleteLoginAsync(authorizationCode, session.CodeVerifier);
         var gamertag = await client.GetGamertagAsync();
         XboxAuthHelper.PersistProfile(settings, gamertag);
-    }
-
-    private static async Task<string?> TryCaptureAuthorizationCodeAsync(
-        XboxOAuthSession session,
-        Window ownerWindow)
-    {
-        if (EmbeddedBrowserService.IsAvailable)
-        {
-            return await EmbeddedBrowserService.ShowCaptureAsync<string>(
-                new XboxAuthCaptureStrategy(session),
-                ownerWindow);
-        }
-
-        return await SignInWithPasteFallbackAsync(session, ownerWindow);
-    }
-
-    private static async Task<string?> SignInWithPasteFallbackAsync(
-        XboxOAuthSession session,
-        Window ownerWindow)
-    {
-        Process.Start(new ProcessStartInfo(session.AuthorizeUrl)
-        {
-            UseShellExecute = true
-        });
-
-        var viewModel = new XboxPasteAuthViewModel();
-        var window = new XboxPasteAuthWindow(viewModel);
-        await window.ShowDialog(ownerWindow);
-
-        var redirectUrl = viewModel.RedirectUrl.Trim();
-
-        // The pasted URL must be the Microsoft redirect and carry our state.
-        if (!IsExpectedRedirect(redirectUrl) || !IsMatchingState(redirectUrl, session.State))
-            return null;
-
-        return TryExtractAuthorizationCode(redirectUrl);
     }
 
     internal static bool IsExpectedRedirect(string? url) =>

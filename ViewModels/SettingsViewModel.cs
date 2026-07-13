@@ -54,9 +54,10 @@ public partial class SettingsViewModel : ViewModelBase
 
     public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
 
-    public bool CanConnectXbox => !IsXboxConnected;
+    public bool CanConnectXbox => !IsXboxConnected && EmbeddedBrowserService.IsAvailable;
 
-    public bool CanConnectEpic => LegendaryClient.IsAvailable() && !IsEpicConnected;
+    public bool CanConnectEpic =>
+        LegendaryClient.IsAvailable() && !IsEpicConnected && EmbeddedBrowserService.IsAvailable;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
 
@@ -238,40 +239,11 @@ public partial class SettingsViewModel : ViewModelBase
         try
         {
             StatusMessage = Loc.T("PreparingEpicLibrary");
-            using var downloadCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            await LegendaryBootstrap.EnsureInstalledAsync(null, downloadCts.Token);
-            LegendaryClient.InvalidateExecutableCache();
-
-            if (!LegendaryClient.IsAvailable())
-            {
-                StatusMessage = Loc.T("EpicHelperUnavailable");
-                return;
-            }
-
-            if (EmbeddedBrowserService.IsAvailable)
-            {
-                var authCode = await EmbeddedBrowserService.ShowCaptureAsync<string>(
-                    new EpicAuthCaptureStrategy(),
-                    GetOwnerWindow());
-
-                if (string.IsNullOrWhiteSpace(authCode))
-                {
-                    StatusMessage = Loc.T("EpicAuthCancelled");
-                    return;
-                }
-
-                using var authCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-                await LegendaryClient.RunAuthWithCodeAsync(authCode, authCts.Token);
-                EpicAuthHelper.PersistFromLegendary(_settingsService);
-                RefreshEpicStatus();
-                OnPropertyChanged(nameof(IsEpicConnected));
-                OnPropertyChanged(nameof(CanConnectEpic));
-                StatusMessage = Loc.T("EpicAuthCompleted");
-                return;
-            }
-
-            LegendaryClient.RunAuth();
-            StatusMessage = Loc.T("EpicAuthStartedFallback");
+            await EpicAuthService.SignInAsync(_settingsService, GetOwnerWindow());
+            RefreshEpicStatus();
+            OnPropertyChanged(nameof(IsEpicConnected));
+            OnPropertyChanged(nameof(CanConnectEpic));
+            StatusMessage = Loc.T("EpicAuthCompleted");
         }
         catch (Exception ex)
         {

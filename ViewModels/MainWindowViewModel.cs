@@ -597,11 +597,22 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                LegendaryClient.RunAuth();
+                CancelScheduledStatusClear();
+                StatusText = Loc.T("PreparingEpicLibrary");
+                await EpicAuthService.SignInAsync(_libraryService.Settings, GetMainWindow());
+                await RefreshLibraryCommand.ExecuteAsync(null);
+                StatusText = Loc.T("EpicAuthCompleted");
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
             }
-            catch
+            catch (Exception ex)
             {
-                // optional
+                AppDiagnostics.ReportError(
+                    area: nameof(MainWindowViewModel),
+                    operation: nameof(OfferLegendaryPromptIfNeededAsync),
+                    exception: ex,
+                    platform: Platform.Epic);
+                StatusText = Loc.T("EpicConnectFailed", ex.Message);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
             }
         }
         else if (viewModel.Choice == LegendaryPromptChoice.OpenGuide)

@@ -9,13 +9,18 @@ internal static class EmbeddedBrowserService
 {
     public static bool IsAvailable => WebView2Runtime.IsAvailable();
 
+    public static void EnsureAvailable()
+    {
+        if (!IsAvailable)
+            throw new InvalidOperationException(Loc.T("EmbeddedBrowserRuntimeMissing"));
+    }
+
     public static async Task<T?> ShowCaptureAsync<T>(
         IAuthCaptureStrategy strategy,
         Window owner,
         Func<object, T?>? convert = null) where T : class
     {
-        if (!IsAvailable)
-            return null;
+        EnsureAvailable();
 
         var profilePath = WebView2AuthProfile.CreateSessionFolder();
         try
