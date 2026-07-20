@@ -158,6 +158,7 @@ public partial class SteamSetupViewModel : ViewModelBase
                 IgdbClientSecret = current.IgdbClientSecret,
                 SteamGridDbApiKey = current.SteamGridDbApiKey,
                 CoverQualityMode = current.CoverQualityMode,
+                UiFontScale = current.UiFontScale,
                 DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
                 DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
                 DismissLegendaryPrompt = current.DismissLegendaryPrompt,

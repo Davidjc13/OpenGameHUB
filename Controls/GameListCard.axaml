@@ -43,7 +43,7 @@
                            MaxHeight="40"
                            TextTrimming="CharacterEllipsis"/>
                 <TextBlock Text="{Binding InstallStatus}"
-                           FontSize="11"
+                           FontSize="{DynamicResource FontSizeListMeta}"
                            Classes="text-status"/>
             </StackPanel>
 

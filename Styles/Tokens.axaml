@@ -76,4 +76,24 @@
     <Thickness x:Key="ThicknessWindowMargin">20</Thickness>
     <Thickness x:Key="ThicknessSectionGap">0,0,0,20</Thickness>
 
+    <!-- Typography (overridden at runtime by UiFontScaleService) -->
+    <x:Double x:Key="FontSizeBadge">10</x:Double>
+    <x:Double x:Key="FontSizeListMeta">11</x:Double>
+    <x:Double x:Key="FontSizeCaption">12</x:Double>
+    <x:Double x:Key="FontSizeLabel">13</x:Double>
+    <x:Double x:Key="FontSizeBody">14</x:Double>
+    <x:Double x:Key="FontSizeSubtitle">16</x:Double>
+    <x:Double x:Key="FontSizeIcon">16</x:Double>
+    <x:Double x:Key="FontSizeTitle">18</x:Double>
+    <x:Double x:Key="FontSizeHeadingMd">22</x:Double>
+    <x:Double x:Key="FontSizeHeadingLg">24</x:Double>
+    <x:Double x:Key="FontSizeHeadingXl">28</x:Double>
+
+    <x:Double x:Key="LineHeightCaption">16</x:Double>
+    <x:Double x:Key="LineHeightLabel">18</x:Double>
+    <x:Double x:Key="LineHeightBody">20</x:Double>
+    <x:Double x:Key="LineHeightBodyLoose">21</x:Double>
+    <x:Double x:Key="LineHeightTitle">24</x:Double>
+    <x:Double x:Key="LineHeightHeadingXl">34</x:Double>
+
 </ResourceDictionary>

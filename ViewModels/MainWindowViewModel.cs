@@ -39,6 +39,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         Loc.Service.Initialize(_libraryService.Settings.Current.Language);
         Loc.Service.LanguageChanged += OnLanguageChanged;
+        UiFontScaleService.Apply(_libraryService.Settings.Current.UiFontScale);
 
         Games = new ObservableCollection<GameItemViewModel>();
         PlatformFilters = new ObservableCollection<PlatformFilterItem>();
@@ -1323,6 +1324,7 @@ public partial class MainWindowViewModel : ViewModelBase
         var previousQuality = CoverQualityMode;
         CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        UiFontScaleService.Apply(_libraryService.Settings.Current.UiFontScale);
         OnPropertyChanged(nameof(ShowDetailCover));
         if (previousQuality != CoverQualityMode)
             ReleaseAllGameCovers();

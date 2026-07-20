@@ -315,6 +315,13 @@
   <data name="CoverQualityLow" xml:space="preserve"><value>Low quality (less memory)</value></data>
   <data name="CoverQualityHigh" xml:space="preserve"><value>High quality</value></data>
   <data name="CoverQualityHelp" xml:space="preserve"><value>Low uses smaller images and fewer downloads. None disables all cover art to save memory.</value></data>
+  <data name="UiFontScaleSection" xml:space="preserve"><value>Text size</value></data>
+  <data name="UiFontScaleExtraSmall" xml:space="preserve"><value>Extra small</value></data>
+  <data name="UiFontScaleSmall" xml:space="preserve"><value>Small</value></data>
+  <data name="UiFontScaleNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="UiFontScaleLarge" xml:space="preserve"><value>Large</value></data>
+  <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra large</value></data>
+  <data name="UiFontScaleHelp" xml:space="preserve"><value>Adjusts text size across the app. Useful for readability on high-DPI or large screens.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>

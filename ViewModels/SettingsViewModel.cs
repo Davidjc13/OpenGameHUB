@@ -34,9 +34,11 @@ public partial class SettingsViewModel : ViewModelBase
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
         SelectedCoverQuality = current.CoverQualityMode;
+        SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
+        UiFontScaleOptions = BuildUiFontScaleOptions();
         Updates = new SettingsUpdatesViewModel(statusMessage => StatusMessage = statusMessage);
         RefreshSteamStatus();
         RefreshEpicStatus();
@@ -104,6 +106,27 @@ public partial class SettingsViewModel : ViewModelBase
     public IReadOnlyList<CoverQualityOption> CoverQualityOptions { get; }
 
     [ObservableProperty]
+    private UiFontScale _selectedUiFontScale = UiFontScale.Normal;
+
+    partial void OnSelectedUiFontScaleChanged(UiFontScale value) =>
+        OnPropertyChanged(nameof(SelectedUiFontScaleOption));
+
+    public UiFontScaleOption? SelectedUiFontScaleOption
+    {
+        get => UiFontScaleOptions.FirstOrDefault(option => option.Scale == SelectedUiFontScale);
+        set
+        {
+            if (value is null || value.Scale == SelectedUiFontScale)
+                return;
+
+            SelectedUiFontScale = value.Scale;
+            OnPropertyChanged(nameof(SelectedUiFontScaleOption));
+        }
+    }
+
+    public IReadOnlyList<UiFontScaleOption> UiFontScaleOptions { get; }
+
+    [ObservableProperty]
     private string _selectedLanguage = "en";
 
     partial void OnSelectedLanguageChanged(string value) =>
@@ -167,6 +190,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             CoverQualityMode = current.CoverQualityMode,
+            UiFontScale = current.UiFontScale,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -391,6 +415,7 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
             CoverQualityMode = SelectedCoverQuality,
+            UiFontScale = SelectedUiFontScale,
             LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
@@ -401,6 +426,7 @@ public partial class SettingsViewModel : ViewModelBase
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);
+        UiFontScaleService.Apply(_settingsService.Current.UiFontScale);
         StatusMessage = Loc.T("SettingsSaved");
         RequestClose?.Invoke();
     }
@@ -414,8 +440,19 @@ public partial class SettingsViewModel : ViewModelBase
         new(CoverQualityMode.Low, Loc.T("CoverQualityLow")),
         new(CoverQualityMode.High, Loc.T("CoverQualityHigh"))
     ];
+
+    private static IReadOnlyList<UiFontScaleOption> BuildUiFontScaleOptions() =>
+    [
+        new(UiFontScale.ExtraSmall, Loc.T("UiFontScaleExtraSmall")),
+        new(UiFontScale.Small, Loc.T("UiFontScaleSmall")),
+        new(UiFontScale.Normal, Loc.T("UiFontScaleNormal")),
+        new(UiFontScale.Large, Loc.T("UiFontScaleLarge")),
+        new(UiFontScale.ExtraLarge, Loc.T("UiFontScaleExtraLarge"))
+    ];
 }
 
 public sealed record LanguageOption(string Code, string Label);
 
 public sealed record CoverQualityOption(CoverQualityMode Mode, string Label);
+
+public sealed record UiFontScaleOption(UiFontScale Scale, string Label);

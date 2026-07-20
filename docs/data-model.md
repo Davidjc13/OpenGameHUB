@@ -66,7 +66,8 @@ Persisted by `SettingsService`: preferences in `settings.json`; `SteamApiKey`, `
 | `IgdbClientId` | IGDB covers |
 | `IgdbClientSecret` | IGDB covers (encrypted on disk) |
 | `SteamGridDbApiKey` | Alternative covers (encrypted on disk) |
-| `ShowGridCovers` | Grid covers vs detail panel only |
+| `CoverQualityMode` | `None` / `Low` / `High` cover download quality |
+| `UiFontScale` | `ExtraSmall` / `Small` / `Normal` / `Large` / `ExtraLarge` UI text size |
 | `LibraryViewMode` | `Grid` or `List` library layout |
 | `DismissSteamApiKeyPrompt` | Do not show Steam prompt again |
 | `DismissEaLibraryPrompt` | Do not show EA prompt again |

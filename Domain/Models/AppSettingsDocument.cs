@@ -9,6 +9,7 @@ internal sealed class AppSettingsDocument
     public string SteamId { get; set; } = string.Empty;
     public string IgdbClientId { get; set; } = string.Empty;
     public CoverQualityMode CoverQualityMode { get; set; } = CoverQualityMode.Low;
+    public UiFontScale UiFontScale { get; set; } = UiFontScale.Normal;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
@@ -24,6 +25,7 @@ internal sealed class AppSettingsDocument
             SteamId = settings.SteamId,
             IgdbClientId = settings.IgdbClientId,
             CoverQualityMode = settings.CoverQualityMode,
+            UiFontScale = settings.UiFontScale,
             LibraryViewMode = settings.LibraryViewMode,
             DismissSteamApiKeyPrompt = settings.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = settings.DismissEaLibraryPrompt,
@@ -40,6 +42,7 @@ internal sealed class AppSettingsDocument
             SteamId = SteamId,
             IgdbClientId = IgdbClientId,
             CoverQualityMode = CoverQualityMode,
+            UiFontScale = UiFontScale,
             LibraryViewMode = LibraryViewMode,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,

@@ -106,6 +106,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string DisplaySection => Loc.T("DisplaySection");
     public string CoverQualitySection => Loc.T("CoverQualitySection");
     public string CoverQualityHelp => Loc.T("CoverQualityHelp");
+    public string UiFontScaleSection => Loc.T("UiFontScaleSection");
+    public string UiFontScaleHelp => Loc.T("UiFontScaleHelp");
     public string CoverArtHelp => Loc.T("CoverArtHelp");
     public string SteamApiKeyPlaceholder => Loc.T("SteamApiKeyPlaceholder");
     public string SteamIdPlaceholder => Loc.T("SteamIdPlaceholder");

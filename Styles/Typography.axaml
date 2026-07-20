@@ -2,38 +2,38 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style Selector="TextBlock.heading-xl">
-        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingXl}"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="LineHeight" Value="34"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightHeadingXl}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-lg">
-        <Setter Property="FontSize" Value="24"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingLg}"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-md">
-        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingMd}"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-sm">
-        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-panel">
-        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-subtitle">
-        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeSubtitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
     </Style>
@@ -43,14 +43,14 @@
     </Style>
 
     <Style Selector="TextBlock.text-secondary">
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="LineHeight" Value="20"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightBody}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-body">
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="LineHeight" Value="21"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightBodyLoose}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
     </Style>
 
@@ -63,9 +63,9 @@
     </Style>
 
     <Style Selector="TextBlock.text-label">
-        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLabel}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="18"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
     </Style>
 
@@ -74,18 +74,18 @@
     </Style>
 
     <Style Selector="TextBlock.text-status">
-        <Setter Property="FontSize" Value="12"/>
-        <Setter Property="LineHeight" Value="16"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightCaption}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextStatus}"/>
     </Style>
 
     <Style Selector="TextBlock.text-help">
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-caption">
-        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
     </Style>
 
@@ -100,33 +100,33 @@
     </Style>
 
     <Style Selector="TextBlock.card-title">
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="18"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.card-title-lg">
-        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.pagination-label">
-        <Setter Property="FontSize" Value="13"/>
-        <Setter Property="LineHeight" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLabel}"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.detail-title">
-        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="LineHeight" Value="24"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightTitle}"/>
         <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.badge-label">
-        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBadge}"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="White"/>
     </Style>

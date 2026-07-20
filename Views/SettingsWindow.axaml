@@ -104,6 +104,22 @@
                                Classes="text-help"
                                TextWrapping="Wrap"/>
 
+                    <TextBlock Text="{Binding Strings.UiFontScaleSection}"
+                               Classes="text-label"
+                               Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding UiFontScaleOptions}"
+                              SelectedItem="{Binding SelectedUiFontScaleOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:UiFontScaleOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{Binding Strings.UiFontScaleHelp}"
+                               Classes="text-help"
+                               TextWrapping="Wrap"/>
+
                     <TextBlock Text="{Binding Strings.CoverArtSection}"
                                Classes="text-label"
                                Margin="0,8,0,0"/>

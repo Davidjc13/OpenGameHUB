@@ -315,6 +315,13 @@
   <data name="CoverQualityLow" xml:space="preserve"><value>Calidad baja (menos memoria)</value></data>
   <data name="CoverQualityHigh" xml:space="preserve"><value>Calidad alta</value></data>
   <data name="CoverQualityHelp" xml:space="preserve"><value>Baja usa imágenes más pequeñas y menos descargas. Sin portadas desactiva todo el arte para ahorrar memoria.</value></data>
+  <data name="UiFontScaleSection" xml:space="preserve"><value>Tamaño del texto</value></data>
+  <data name="UiFontScaleExtraSmall" xml:space="preserve"><value>Extra pequeña</value></data>
+  <data name="UiFontScaleSmall" xml:space="preserve"><value>Pequeña</value></data>
+  <data name="UiFontScaleNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="UiFontScaleLarge" xml:space="preserve"><value>Grande</value></data>
+  <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra grande</value></data>
+  <data name="UiFontScaleHelp" xml:space="preserve"><value>Ajusta el tamaño del texto en toda la aplicación. Útil para mejorar la legibilidad en pantallas grandes o de alta densidad.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
