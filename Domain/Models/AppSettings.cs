@@ -10,6 +10,7 @@ public sealed class AppSettings
     public string SteamGridDbApiKey { get; set; } = string.Empty;
     public CoverQualityMode CoverQualityMode { get; set; } = CoverQualityMode.Low;
     public UiFontScale UiFontScale { get; set; } = UiFontScale.Normal;
+    public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
@@ -41,6 +42,7 @@ public sealed class AppSettings
             SteamGridDbApiKey = SteamGridDbApiKey,
             CoverQualityMode = CoverQualityMode,
             UiFontScale = UiFontScale,
+            ThemeMode = ThemeMode,
             LibraryViewMode = LibraryViewMode,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,

@@ -68,6 +68,7 @@ Persisted by `SettingsService`: preferences in `settings.json`; `SteamApiKey`, `
 | `SteamGridDbApiKey` | Alternative covers (encrypted on disk) |
 | `CoverQualityMode` | `None` / `Low` / `High` cover download quality |
 | `UiFontScale` | `ExtraSmall` / `Small` / `Normal` / `Large` / `ExtraLarge` UI text size |
+| `ThemeMode` | `System` / `Light` / `Dark` (default `System`) |
 | `LibraryViewMode` | `Grid` or `List` library layout |
 | `DismissSteamApiKeyPrompt` | Do not show Steam prompt again |
 | `DismissEaLibraryPrompt` | Do not show EA prompt again |

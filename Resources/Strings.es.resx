@@ -310,6 +310,11 @@
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Más tarde</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Portadas (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Visualización</value></data>
+  <data name="ThemeModeSection" xml:space="preserve"><value>Tema</value></data>
+  <data name="ThemeModeSystem" xml:space="preserve"><value>Predeterminado del sistema</value></data>
+  <data name="ThemeModeLight" xml:space="preserve"><value>Claro</value></data>
+  <data name="ThemeModeDark" xml:space="preserve"><value>Oscuro</value></data>
+  <data name="ThemeModeHelp" xml:space="preserve"><value>El predeterminado del sistema sigue la preferencia claro/oscuro de Windows.</value></data>
   <data name="CoverQualitySection" xml:space="preserve"><value>Calidad de portadas</value></data>
   <data name="CoverQualityNone" xml:space="preserve"><value>Sin portadas</value></data>
   <data name="CoverQualityLow" xml:space="preserve"><value>Calidad baja (menos memoria)</value></data>

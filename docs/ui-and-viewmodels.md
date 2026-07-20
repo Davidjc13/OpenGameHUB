@@ -64,7 +64,7 @@ Sections:
 - Language
 - Steam Web API (opens `SteamSetupWindow`)
 - Epic (connect/disconnect async)
-- Display (`CoverQualityMode`, `UiFontScale`, library view mode)
+- Display (`ThemeMode`, `CoverQualityMode`, `UiFontScale`, library view mode)
 - Covers (IGDB, SteamGridDB)
 - Updates (`AppUpdateService`)
 - Developer (`DevModeService`, if enabled)

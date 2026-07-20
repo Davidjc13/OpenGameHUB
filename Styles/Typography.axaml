@@ -5,124 +5,124 @@
         <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingXl}"/>
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightHeadingXl}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-lg">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingLg}"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-md">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingMd}"/>
         <Setter Property="FontWeight" Value="Bold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-sm">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-panel">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.heading-subtitle">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeSubtitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextLabel}"/>
     </Style>
 
     <Style Selector="TextBlock.text-primary">
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-secondary">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightBody}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-body">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightBodyLoose}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-tertiary">
-        <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextTertiary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-muted">
-        <Setter Property="Foreground" Value="{StaticResource BrushTextMuted}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextMuted}"/>
     </Style>
 
     <Style Selector="TextBlock.text-label">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeLabel}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextLabel}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextLabel}"/>
     </Style>
 
     <Style Selector="TextBlock.text-sidebar">
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
     </Style>
 
     <Style Selector="TextBlock.text-status">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightCaption}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextStatus}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextStatus}"/>
     </Style>
 
     <Style Selector="TextBlock.text-help">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextTertiary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextTertiary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-caption">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.text-banner">
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextBanner}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextBanner}"/>
     </Style>
 
     <Style Selector="TextBlock.text-dev">
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextDev}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextDev}"/>
     </Style>
 
     <Style Selector="TextBlock.card-title">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.card-title-lg">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.pagination-label">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeLabel}"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
     </Style>
 
     <Style Selector="TextBlock.detail-title">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="LineHeight" Value="{DynamicResource LineHeightTitle}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
 
     <Style Selector="TextBlock.badge-label">

@@ -4,7 +4,7 @@
 
 | Layer | Technology | Reason |
 |-------|------------|--------|
-| UI | Avalonia 12 + Fluent | Desktop UI in .NET; consistent dark theme |
+| UI | Avalonia 12 + Fluent | Desktop UI in .NET; light/dark themes (system default) |
 | MVVM | CommunityToolkit.Mvvm | Commands, `ObservableProperty`, little boilerplate |
 | Persistence | SQLite + Dapper | Single local file, no server |
 | Game detection | GameLib.NET + GameFinder | Mature ecosystem for PC launchers |
@@ -19,7 +19,7 @@ Domain and infrastructure are separated from platform integrations and UI servic
 ```
 Domain/
 ├── Models/          # UnifiedGame, AppSettings, LaunchSpec, …
-└── Enums/           # Platform, CoverQualityMode, UiFontScale, SortOption, …
+└── Enums/           # Platform, CoverQualityMode, UiFontScale, ThemeMode, SortOption, …
 
 Infrastructure/
 ├── Database/        # GameDatabase (SQLite + Dapper)

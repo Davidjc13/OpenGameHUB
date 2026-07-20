@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OpenGameHUB.ViewModels"
         xmlns:controls="using:OpenGameHUB.Controls"
@@ -219,7 +219,7 @@
                         <Border Grid.Row="2"
                                 Margin="0,16,0,0"
                                 Padding="0,12,0,0"
-                                BorderBrush="{StaticResource BrushBorder}"
+                                BorderBrush="{DynamicResource BrushBorder}"
                                 BorderThickness="0,1,0,0">
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <Button Grid.Column="0"

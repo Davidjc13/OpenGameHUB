@@ -88,6 +88,22 @@
                     <TextBlock Text="{Binding Strings.DisplaySection}"
                                Classes="text-label"
                                Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding Strings.ThemeModeSection}"
+                               Classes="text-label"
+                               Margin="0,8,0,0"/>
+                    <ComboBox ItemsSource="{Binding ThemeModeOptions}"
+                              SelectedItem="{Binding SelectedThemeModeOption}"
+                              HorizontalAlignment="Stretch">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ThemeModeOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{Binding Strings.ThemeModeHelp}"
+                               Classes="text-help"
+                               TextWrapping="Wrap"/>
+
                     <TextBlock Text="{Binding Strings.CoverQualitySection}"
                                Classes="text-label"
                                Margin="0,8,0,0"/>

@@ -59,6 +59,7 @@ public partial class SteamApiKeyPromptViewModel : ViewModelBase
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             CoverQualityMode = current.CoverQualityMode,
             UiFontScale = current.UiFontScale,
+            ThemeMode = current.ThemeMode,
             DismissSteamApiKeyPrompt = true,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,

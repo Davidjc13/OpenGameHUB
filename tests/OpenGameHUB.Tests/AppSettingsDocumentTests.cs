@@ -15,6 +15,7 @@ public sealed class AppSettingsDocumentTests
             IgdbClientId = "igdb",
             CoverQualityMode = CoverQualityMode.High,
             UiFontScale = UiFontScale.ExtraLarge,
+            ThemeMode = ThemeMode.Light,
             EpicAccountId = "epic"
         };
 
@@ -32,5 +33,6 @@ public sealed class AppSettingsDocumentTests
         Assert.Equal("steam-key", roundTrip.SteamApiKey);
         Assert.Equal(CoverQualityMode.High, roundTrip.CoverQualityMode);
         Assert.Equal(UiFontScale.ExtraLarge, roundTrip.UiFontScale);
+        Assert.Equal(ThemeMode.Light, roundTrip.ThemeMode);
     }
 }

@@ -35,10 +35,12 @@ public partial class SettingsViewModel : ViewModelBase
         SteamGridDbApiKey = current.SteamGridDbApiKey;
         SelectedCoverQuality = current.CoverQualityMode;
         SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
+        SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
         UiFontScaleOptions = BuildUiFontScaleOptions();
+        ThemeModeOptions = BuildThemeModeOptions();
         Updates = new SettingsUpdatesViewModel(statusMessage => StatusMessage = statusMessage);
         RefreshSteamStatus();
         RefreshEpicStatus();
@@ -127,6 +129,27 @@ public partial class SettingsViewModel : ViewModelBase
     public IReadOnlyList<UiFontScaleOption> UiFontScaleOptions { get; }
 
     [ObservableProperty]
+    private ThemeMode _selectedThemeMode = ThemeMode.System;
+
+    partial void OnSelectedThemeModeChanged(ThemeMode value) =>
+        OnPropertyChanged(nameof(SelectedThemeModeOption));
+
+    public ThemeModeOption? SelectedThemeModeOption
+    {
+        get => ThemeModeOptions.FirstOrDefault(option => option.Mode == SelectedThemeMode);
+        set
+        {
+            if (value is null || value.Mode == SelectedThemeMode)
+                return;
+
+            SelectedThemeMode = value.Mode;
+            OnPropertyChanged(nameof(SelectedThemeModeOption));
+        }
+    }
+
+    public IReadOnlyList<ThemeModeOption> ThemeModeOptions { get; }
+
+    [ObservableProperty]
     private string _selectedLanguage = "en";
 
     partial void OnSelectedLanguageChanged(string value) =>
@@ -191,6 +214,7 @@ public partial class SettingsViewModel : ViewModelBase
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             CoverQualityMode = current.CoverQualityMode,
             UiFontScale = current.UiFontScale,
+            ThemeMode = current.ThemeMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -416,6 +440,7 @@ public partial class SettingsViewModel : ViewModelBase
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
             CoverQualityMode = SelectedCoverQuality,
             UiFontScale = SelectedUiFontScale,
+            ThemeMode = SelectedThemeMode,
             LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
@@ -427,6 +452,7 @@ public partial class SettingsViewModel : ViewModelBase
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);
         UiFontScaleService.Apply(_settingsService.Current.UiFontScale);
+        ThemeModeService.Apply(_settingsService.Current.ThemeMode);
         StatusMessage = Loc.T("SettingsSaved");
         RequestClose?.Invoke();
     }
@@ -449,6 +475,13 @@ public partial class SettingsViewModel : ViewModelBase
         new(UiFontScale.Large, Loc.T("UiFontScaleLarge")),
         new(UiFontScale.ExtraLarge, Loc.T("UiFontScaleExtraLarge"))
     ];
+
+    private static IReadOnlyList<ThemeModeOption> BuildThemeModeOptions() =>
+    [
+        new(ThemeMode.System, Loc.T("ThemeModeSystem")),
+        new(ThemeMode.Light, Loc.T("ThemeModeLight")),
+        new(ThemeMode.Dark, Loc.T("ThemeModeDark"))
+    ];
 }
 
 public sealed record LanguageOption(string Code, string Label);
@@ -456,3 +489,5 @@ public sealed record LanguageOption(string Code, string Label);
 public sealed record CoverQualityOption(CoverQualityMode Mode, string Label);
 
 public sealed record UiFontScaleOption(UiFontScale Scale, string Label);
+
+public sealed record ThemeModeOption(ThemeMode Mode, string Label);

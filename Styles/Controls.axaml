@@ -2,14 +2,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Style Selector="Button.primary">
-        <Setter Property="Background" Value="{StaticResource BrushAccent}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushAccent}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="14,8"/>
         <Setter Property="CornerRadius" Value="6"/>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource BrushAccentHover}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushAccentHover}"/>
     </Style>
 
     <Style Selector="ScrollViewer.dialogScroll">
@@ -20,7 +20,7 @@
     </Style>
 
     <Style Selector="CheckBox.sidebar">
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
     </Style>
 
     <Style Selector="ListBox.sidebar-list">
@@ -30,7 +30,7 @@
 
     <Style Selector="ListBox.sidebar-list TextBlock">
         <Setter Property="Padding" Value="8,6"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
@@ -50,13 +50,13 @@
 
     <Style Selector="ListBox.sidebar-list-platforms TextBlock">
         <Setter Property="Padding" Value="8,5"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
     <Style Selector="ListBox.sidebar-list-collections TextBlock">
         <Setter Property="Padding" Value="8,5"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
     </Style>
 
@@ -71,13 +71,13 @@
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="Background" Value="{StaticResource BrushBgInput}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgInput}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Foreground" Value="{StaticResource BrushTextSidebar}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
     </Style>
     <Style Selector="Button.sidebar-icon:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource BrushBgCard}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgCard}"/>
     </Style>
 
 </Styles>
