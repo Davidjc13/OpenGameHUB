@@ -15,14 +15,14 @@ public partial class GameListCard : UserControl
     private void OnCardPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is GameItemViewModel game && GetMainViewModel() is { } vm)
-            vm.SelectGameCommand.Execute(game);
+            vm.Library.SelectGameCommand.Execute(game);
     }
 
     private void OnGameDoubleTapped(object? sender, TappedEventArgs e)
     {
         if (DataContext is GameItemViewModel game && GetMainViewModel() is { } vm)
         {
-            vm.LaunchGameCommand.Execute(game);
+            vm.Library.LaunchGameCommand.Execute(game);
             e.Handled = true;
         }
     }
@@ -30,7 +30,7 @@ public partial class GameListCard : UserControl
     private void OnPlayClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is GameItemViewModel game && GetMainViewModel() is { } vm)
-            vm.LaunchGameCommand.Execute(game);
+            vm.Library.LaunchGameCommand.Execute(game);
 
         e.Handled = true;
     }

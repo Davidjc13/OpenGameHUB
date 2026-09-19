@@ -59,9 +59,10 @@ Program.Main [STAThread]
 
 MainWindowViewModel (constructor):
   1. Initialize language (LocalizationService)
-  2. LoadCachedGames()     → immediate read from library.db
-  3. RefreshLibraryAsync() → full scan in background
-  4. CheckForAppUpdateOnStartupAsync() → notice if new release (installed builds only)
+  2. Wire child ViewModels: Updates, Onboarding, Sidebar, Library
+  3. Library.LoadCachedGames() → immediate read from library.db
+  4. RefreshLibraryAsync()     → full scan in background + onboarding prompts
+  5. Updates checks for app update on startup (installed builds only)
 ```
 
 **Why load cache before scanning:** the user sees their library when opening the app even if scanning takes several seconds (network, legendary, many launchers).
@@ -147,13 +148,10 @@ Cloud providers run in individual `try/catch`: if EA or Ubisoft fail, the rest c
 ## Flow: launch or install a game
 
 ```
-MainWindowViewModel.LaunchSelectedGame
+MainWindowLibraryViewModel.LaunchSelectedGame
 │
-├─ Epic special case (not installed):
-│   LaunchSpec.Kind == "protocol"
-│   + Epic Launcher installed
-│   → EpicLauncherClient.StartInstall(url)
-│   → App does NOT wait for download (message and continues)
+├─ GameInstallOrchestrator.TryStartInstallAsync (Epic/Riot/Rockstar/Xbox/EA)
+│   → platform-specific install UI; EA shows manual notice dialog
 │
 └─ Otherwise → GameLibraryService.LaunchGame
      ├─ If not installed: GetInstallLaunchAttempts from cloud provider

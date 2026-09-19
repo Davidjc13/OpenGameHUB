@@ -26,7 +26,7 @@ public partial class MainWindow : Window
         if (DataContext is not MainWindowViewModel vm || sender is not ScrollViewer scrollViewer)
             return;
 
-        vm.UpdateLibraryViewport(scrollViewer.Bounds.Width, scrollViewer.Bounds.Height);
+        vm.Library.UpdateLibraryViewport(scrollViewer.Bounds.Width, scrollViewer.Bounds.Height);
     }
 
     private void QueueViewportUpdate()
@@ -34,7 +34,7 @@ public partial class MainWindow : Window
         Dispatcher.UIThread.Post(() =>
         {
             if (DataContext is MainWindowViewModel vm)
-                vm.UpdateLibraryViewport(GamesScrollViewer.Bounds.Width, GamesScrollViewer.Bounds.Height);
+                vm.Library.UpdateLibraryViewport(GamesScrollViewer.Bounds.Width, GamesScrollViewer.Bounds.Height);
         }, DispatcherPriority.Loaded);
     }
 
@@ -44,8 +44,8 @@ public partial class MainWindow : Window
             return;
 
         var text = textBox.Text ?? string.Empty;
-        if (viewModel.SearchText != text)
-            viewModel.SearchText = text;
+        if (viewModel.Sidebar.SearchText != text)
+            viewModel.Sidebar.SearchText = text;
     }
 
     private void OnCollectionMembershipClick(object? sender, RoutedEventArgs e)
@@ -53,10 +53,10 @@ public partial class MainWindow : Window
         if (sender is not CheckBox checkBox
             || checkBox.DataContext is not CollectionMembershipItem item
             || DataContext is not MainWindowViewModel vm
-            || vm.SelectedGame is null)
+            || vm.Library.SelectedGame is null)
             return;
 
-        vm.ToggleGameInCollection(vm.SelectedGame, item.CollectionId);
+        vm.Sidebar.ToggleGameInCollection(vm.Library.SelectedGame, item.CollectionId);
         e.Handled = true;
     }
 
@@ -74,19 +74,19 @@ public partial class MainWindow : Window
         if (collectionItem is null || !collectionItem.IsUserCollection)
             return;
 
-        vm.SelectedLibraryCollection = collectionItem;
+        vm.Sidebar.SelectedLibraryCollection = collectionItem;
 
         var menu = new ContextMenu { MaxWidth = 200 };
         menu.Items.Add(new MenuItem
         {
             Header = vm.Strings.RenameCollection,
-            Command = vm.RenameCollectionCommand
+            Command = vm.Sidebar.RenameCollectionCommand
         });
         menu.Items.Add(new Separator());
         menu.Items.Add(new MenuItem
         {
             Header = vm.Strings.DeleteCollection,
-            Command = vm.DeleteCollectionCommand
+            Command = vm.Sidebar.DeleteCollectionCommand
         });
 
         menu.Open(listBox);

@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:OpenGameHUB.ViewModels"
+        xmlns:main="using:OpenGameHUB.ViewModels.MainWindow"
         xmlns:controls="using:OpenGameHUB.Controls"
         xmlns:primitives="using:Avalonia.Controls.Primitives"
         x:Class="OpenGameHUB.Views.MainWindow"
@@ -38,7 +39,7 @@
                     VerticalAlignment="Center"
                     Content="{Binding Strings.RefreshLibrary}"
                     Command="{Binding RefreshLibraryCommand}"
-                    IsEnabled="{Binding !IsRefreshing}"/>
+                    IsEnabled="{Binding !Library.IsRefreshing}"/>
         </Grid>
 
         <Border Grid.Row="1"
@@ -74,7 +75,7 @@
 
         <Grid Grid.Row="2"
               Margin="{StaticResource ThicknessSectionGap}"
-              IsVisible="{Binding IsRefreshing}">
+              IsVisible="{Binding Library.IsRefreshing}">
             <ProgressBar Height="4"
                          IsIndeterminate="True"
                          VerticalAlignment="Center"/>
@@ -88,17 +89,17 @@
                              Name="SearchBox"
                              Classes="search-input"
                              PlaceholderText="{Binding Strings.SearchPlaceholder}"
-                             Text="{Binding SearchText, Mode=TwoWay}"
+                             Text="{Binding Sidebar.SearchText, Mode=TwoWay}"
                              TextChanged="OnSearchTextChanged"/>
 
                     <StackPanel Grid.Row="1" Spacing="6">
                         <TextBlock Text="{Binding Strings.Sort}"
                                    Classes="text-label"/>
-                        <ComboBox ItemsSource="{Binding SortOptions}"
-                                  SelectedItem="{Binding SelectedSortOption}"
+                        <ComboBox ItemsSource="{Binding Sidebar.SortOptions}"
+                                  SelectedItem="{Binding Sidebar.SelectedSortOption}"
                                   HorizontalAlignment="Stretch">
                             <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="vm:SortOptionItem">
+                                <DataTemplate x:DataType="main:SortOptionItem">
                                     <TextBlock Text="{Binding Label}"/>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
@@ -112,11 +113,11 @@
                                Classes="text-label"/>
 
                     <ListBox Grid.Row="4"
-                             ItemsSource="{Binding PlatformFilters}"
-                             SelectedItem="{Binding SelectedPlatformFilter}"
+                             ItemsSource="{Binding Sidebar.PlatformFilters}"
+                             SelectedItem="{Binding Sidebar.SelectedPlatformFilter}"
                              Classes="sidebar-list-platforms">
                         <ListBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:PlatformFilterItem">
+                            <DataTemplate x:DataType="main:PlatformFilterItem">
                                 <TextBlock Text="{Binding Label}"/>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -133,13 +134,13 @@
                                 Classes="sidebar-icon"
                                 Content="+"
                                 ToolTip.Tip="{Binding Strings.NewCollection}"
-                                Command="{Binding CreateCollectionCommand}"/>
+                                Command="{Binding Sidebar.CreateCollectionCommand}"/>
                     </Grid>
 
                     <ListBox Grid.Row="7"
                              x:Name="LibraryCollectionsListBox"
-                             ItemsSource="{Binding LibraryCollections}"
-                             SelectedItem="{Binding SelectedLibraryCollection}"
+                             ItemsSource="{Binding Sidebar.LibraryCollections}"
+                             SelectedItem="{Binding Sidebar.SelectedLibraryCollection}"
                              Classes="sidebar-list-collections"
                              ContextRequested="OnLibraryCollectionContextRequested">
                         <ListBox.ItemTemplate>
@@ -169,13 +170,13 @@
                                 <Button Classes="sidebar-icon"
                                         Content="+"
                                         ToolTip.Tip="{Binding Strings.AddCustomGame}"
-                                        Command="{Binding AddCustomGameCommand}"/>
+                                        Command="{Binding Sidebar.AddCustomGameCommand}"/>
                                 <Button Content="{Binding Strings.ViewGrid}"
-                                        Command="{Binding SetGridViewCommand}"
-                                        Classes.primary="{Binding IsGridView}"/>
+                                        Command="{Binding Library.SetGridViewCommand}"
+                                        Classes.primary="{Binding Library.IsGridView}"/>
                                 <Button Content="{Binding Strings.ViewList}"
-                                        Command="{Binding SetListViewCommand}"
-                                        Classes.primary="{Binding IsListView}"/>
+                                        Command="{Binding Library.SetListViewCommand}"
+                                        Classes.primary="{Binding Library.IsListView}"/>
                             </StackPanel>
                         </Grid>
 
@@ -185,12 +186,12 @@
                                       VerticalScrollBarVisibility="Auto"
                                       SizeChanged="OnGamesViewportSizeChanged">
                             <Panel>
-                                <ItemsControl ItemsSource="{Binding Games}"
-                                              IsVisible="{Binding !IsListView}">
+                                <ItemsControl ItemsSource="{Binding Library.Games}"
+                                              IsVisible="{Binding !Library.IsListView}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <primitives:UniformGrid Columns="{Binding GridColumns}"
-                                                                    Rows="{Binding GridRows}"/>
+                                            <primitives:UniformGrid Columns="{Binding Library.GridColumns}"
+                                                                    Rows="{Binding Library.GridRows}"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
@@ -200,8 +201,8 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <ItemsControl ItemsSource="{Binding Games}"
-                                              IsVisible="{Binding IsListView}">
+                                <ItemsControl ItemsSource="{Binding Library.Games}"
+                                              IsVisible="{Binding Library.IsListView}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <StackPanel Spacing="10"/>
@@ -224,16 +225,16 @@
                             <Grid ColumnDefinitions="Auto,*,Auto">
                                 <Button Grid.Column="0"
                                         Content="{Binding Strings.PreviousPage}"
-                                        Command="{Binding PreviousPageCommand}"/>
+                                        Command="{Binding Library.PreviousPageCommand}"/>
                                 <TextBlock Grid.Column="1"
                                            VerticalAlignment="Center"
                                            HorizontalAlignment="Center"
                                            TextAlignment="Center"
                                            Classes="pagination-label"
-                                           Text="{Binding GamesCountLabel}"/>
+                                           Text="{Binding Library.GamesCountLabel}"/>
                                 <Button Grid.Column="2"
                                         Content="{Binding Strings.NextPage}"
-                                        Command="{Binding NextPageCommand}"/>
+                                        Command="{Binding Library.NextPageCommand}"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -255,38 +256,38 @@
                                 <Border Width="200"
                                         Height="300"
                                         Classes="cover-frame-lg"
-                                        IsVisible="{Binding ShowDetailCover}">
-                                    <Image Source="{Binding SelectedGame.CoverImage}"
+                                        IsVisible="{Binding Library.ShowDetailCover}">
+                                    <Image Source="{Binding Library.SelectedGame.CoverImage}"
                                            Stretch="Uniform"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
-                                           IsVisible="{Binding SelectedGame.HasCover}"/>
+                                           IsVisible="{Binding Library.SelectedGame.HasCover}"/>
                                 </Border>
 
-                                <TextBlock Text="{Binding SelectedGameTitle}"
+                                <TextBlock Text="{Binding Library.SelectedGameTitle}"
                                            Classes="detail-title"
                                            TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding SelectedGame.InstallStatus, TargetNullValue=''}"
+                                <TextBlock Text="{Binding Library.SelectedGame.InstallStatus, TargetNullValue=''}"
                                            Classes="text-body"/>
-                                <TextBlock Text="{Binding SelectedGame.InstallPath, TargetNullValue=''}"
+                                <TextBlock Text="{Binding Library.SelectedGame.InstallPath, TargetNullValue=''}"
                                            TextWrapping="Wrap"
                                            Classes="text-help"
                                            Margin="0,0,0,4"/>
                                 <StackPanel Spacing="10">
                                     <Button Classes="primary"
-                                            Content="{Binding SelectedGameActionLabel}"
+                                            Content="{Binding Library.SelectedGameActionLabel}"
                                             HorizontalAlignment="Stretch"
-                                            Command="{Binding LaunchSelectedGameCommand}"/>
+                                            Command="{Binding Library.LaunchSelectedGameCommand}"/>
                                     <Button Content="{Binding Strings.ToggleFavorite}"
                                             HorizontalAlignment="Stretch"
-                                            Command="{Binding ToggleFavoriteCommand}"
-                                            CommandParameter="{Binding SelectedGame}"/>
+                                            Command="{Binding Library.ToggleFavoriteCommand}"
+                                            CommandParameter="{Binding Library.SelectedGame}"/>
 
                                     <StackPanel Spacing="8"
-                                                IsVisible="{Binding ShowDetailCollections}">
+                                                IsVisible="{Binding Sidebar.ShowDetailCollections}">
                                         <TextBlock Text="{Binding Strings.AddToCollection}"
                                                    Classes="text-label"/>
-                                        <ItemsControl ItemsSource="{Binding DetailCollectionMemberships}">
+                                        <ItemsControl ItemsSource="{Binding Sidebar.DetailCollectionMemberships}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate x:DataType="vm:CollectionMembershipItem">
                                                     <CheckBox Content="{Binding Name}"
@@ -300,11 +301,11 @@
 
                                     <Button Content="{Binding Strings.ChangeCover}"
                                             HorizontalAlignment="Stretch"
-                                            Command="{Binding ChangeCustomCoverCommand}"/>
+                                            Command="{Binding Library.ChangeCustomCoverCommand}"/>
                                     <Button Content="{Binding Strings.ResetCover}"
                                             HorizontalAlignment="Stretch"
-                                            Command="{Binding ResetCustomCoverCommand}"
-                                            IsVisible="{Binding SelectedGameHasCustomCover}"/>
+                                            Command="{Binding Library.ResetCustomCoverCommand}"
+                                            IsVisible="{Binding Library.SelectedGameHasCustomCover}"/>
                                 </StackPanel>
                             </StackPanel>
                         </ScrollViewer>

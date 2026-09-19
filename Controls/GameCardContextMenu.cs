@@ -8,10 +8,10 @@ internal static class GameCardContextMenu
 {
     public static void Show(Control host, GameItemViewModel game, ContextRequestedEventArgs e)
     {
-        if (TopLevel.GetTopLevel(host)?.DataContext is not MainWindowViewModel vm || !vm.HasUserCollections)
+        if (TopLevel.GetTopLevel(host)?.DataContext is not MainWindowViewModel vm || !vm.Sidebar.HasUserCollections)
             return;
 
-        var collections = vm.GetContextMenuCollections(game);
+        var collections = vm.Sidebar.GetContextMenuCollections(game);
         if (collections.Count == 0)
             return;
 
@@ -25,7 +25,7 @@ internal static class GameCardContextMenu
                 Header = item.Name,
                 ToggleType = MenuItemToggleType.CheckBox,
                 IsChecked = item.IsMember,
-                Command = vm.ToggleGameInCollectionCommand,
+                Command = vm.Sidebar.ToggleGameInCollectionCommand,
                 CommandParameter = new CollectionToggleRequest(game, item.CollectionId)
             });
         }
