@@ -10,22 +10,18 @@
         MinHeight="220"
         SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
-        Background="#10131A">
+        Classes="app-window">
 
     <Grid Margin="24"
           RowDefinitions="*,Auto">
         <StackPanel Spacing="12">
             <TextBlock Text="{Binding Strings.EaManualInstallNoticeTitle}"
-                       FontSize="22"
-                       FontWeight="Bold"
-                       Foreground="#F4F7FF"/>
+                       Classes="heading-md"/>
             <TextBlock Text="{Binding GameTitle}"
-                       FontSize="16"
-                       FontWeight="SemiBold"
-                       Foreground="#D7DFF1"
+                       Classes="heading-subtitle"
                        TextWrapping="Wrap"/>
             <TextBlock Text="{Binding Message}"
-                       Foreground="#9AA6BF"
+                       Classes="text-secondary"
                        TextWrapping="Wrap"/>
         </StackPanel>
 

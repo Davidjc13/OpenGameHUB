@@ -11,6 +11,7 @@ using OpenGameHUB.Localization;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Rockstar;
+using OpenGameHUB.Services.Games;
 using OpenGameHUB.Views;
 
 namespace OpenGameHUB.ViewModels;
@@ -31,19 +32,26 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _pendingDevRelaunch;
     private bool _pendingDevClearDatabase;
     private bool _suppressCoverLoading = true;
+    private bool _suppressSortOptionChanged;
+    private SortOption? _userSelectedSort;
 
     public MainWindowViewModel()
     {
         Loc.Service.Initialize(_libraryService.Settings.Current.Language);
         Loc.Service.LanguageChanged += OnLanguageChanged;
+        UiFontScaleService.Apply(_libraryService.Settings.Current.UiFontScale);
+        ThemeModeService.Apply(_libraryService.Settings.Current.ThemeMode);
 
         Games = new ObservableCollection<GameItemViewModel>();
         PlatformFilters = new ObservableCollection<PlatformFilterItem>();
         SortOptions = new ObservableCollection<SortOptionItem>();
+        LibraryCollections = new ObservableCollection<LibraryCollectionItem>();
+        DetailCollectionMemberships = new ObservableCollection<CollectionMembershipItem>();
         Strings = new LocalizedStrings();
 
         RebuildSortOptions();
         RebuildPlatformFilters();
+        RebuildLibraryCollections();
 
         CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
@@ -59,6 +67,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public ObservableCollection<GameItemViewModel> Games { get; }
     public ObservableCollection<PlatformFilterItem> PlatformFilters { get; }
     public ObservableCollection<SortOptionItem> SortOptions { get; }
+    public ObservableCollection<LibraryCollectionItem> LibraryCollections { get; }
+    public ObservableCollection<CollectionMembershipItem> DetailCollectionMemberships { get; }
     public LocalizedStrings Strings { get; }
     public MainWindowUpdatesViewModel Updates { get; }
 
@@ -84,10 +94,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private SortOptionItem? _selectedSortOption;
 
     [ObservableProperty]
-    private bool _showFavoritesOnly;
+    private LibraryCollectionItem? _selectedLibraryCollection;
 
-    [ObservableProperty]
-    private bool _showInstalledOnly;
+    public bool CanManageSelectedCollection =>
+        SelectedLibraryCollection?.IsUserCollection == true;
+
+    public bool HasUserCollections => _libraryService.Collections.UserCollections.Count > 0;
+
+    public bool ShowDetailCollections => HasUserCollections && SelectedGame is not null;
 
     [ObservableProperty]
     private CoverQualityMode _coverQualityMode = CoverQualityMode.Low;
@@ -95,13 +109,70 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isListView;
 
+    [ObservableProperty]
+    private int _gridColumns = 4;
+
+    [ObservableProperty]
+    private int _gridRows = 3;
+
+    private int _effectivePageSize;
+    private double _libraryViewportWidth;
+    private double _libraryViewportHeight;
+
     public bool IsGridView => !IsListView;
 
     public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
 
     private CoverQualityProfile CoverProfile => CoverQualitySettings.Get(CoverQualityMode);
 
-    private int PageSize => CoverProfile.PageSize;
+    private int PageSize => _effectivePageSize > 0
+        ? _effectivePageSize
+        : (IsListView ? CoverProfile.PageSize : Math.Max(1, GridColumns * GridRows));
+
+    public void UpdateLibraryViewport(double width, double height)
+    {
+        if (width >= 10 && height >= 10)
+        {
+            _libraryViewportWidth = width;
+            _libraryViewportHeight = height;
+        }
+
+        width = _libraryViewportWidth;
+        height = _libraryViewportHeight;
+        if (width < 10 || height < 10)
+            return;
+
+        var newPageSize = IsListView
+            ? LibraryGridMetrics.ListPageSizeFromHeight(height)
+            : LibraryGridMetrics.Calculate(width, height).PageSize;
+
+        if (!IsListView)
+        {
+            var metrics = LibraryGridMetrics.Calculate(width, height);
+            GridColumns = metrics.Columns;
+            GridRows = metrics.Rows;
+        }
+
+        if (newPageSize == _effectivePageSize)
+            return;
+
+        _effectivePageSize = newPageSize;
+        NotifyPaginationChanged();
+
+        if (CurrentPage > TotalPages)
+            CurrentPage = TotalPages;
+
+        ApplyCurrentPage();
+    }
+
+    private void NotifyPaginationChanged()
+    {
+        OnPropertyChanged(nameof(TotalPages));
+        OnPropertyChanged(nameof(CanGoPrevious));
+        OnPropertyChanged(nameof(CanGoNext));
+        PreviousPageCommand.NotifyCanExecuteChanged();
+        NextPageCommand.NotifyCanExecuteChanged();
+    }
 
     public bool SelectedGameHasCustomCover => SelectedGame?.HasCustomCover == true;
 
@@ -143,9 +214,19 @@ public partial class MainWindowViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value) => ApplyFilter();
     partial void OnSelectedPlatformFilterChanged(PlatformFilterItem? value) => ApplyFilter();
-    partial void OnSelectedSortOptionChanged(SortOptionItem? value) => ApplyFilter();
-    partial void OnShowFavoritesOnlyChanged(bool value) => ApplyFilter();
-    partial void OnShowInstalledOnlyChanged(bool value) => ApplyFilter();
+    partial void OnSelectedSortOptionChanged(SortOptionItem? value)
+    {
+        if (_suppressSortOptionChanged)
+            return;
+
+        _userSelectedSort = value?.Option;
+        ApplyFilter();
+    }
+    partial void OnSelectedLibraryCollectionChanged(LibraryCollectionItem? value)
+    {
+        OnPropertyChanged(nameof(CanManageSelectedCollection));
+        ApplyFilter();
+    }
 
     partial void OnCoverQualityModeChanged(CoverQualityMode value)
     {
@@ -164,6 +245,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsGridView));
         PersistLibraryViewMode();
+        UpdateLibraryViewport(_libraryViewportWidth, _libraryViewportHeight);
         ApplyCurrentPage();
     }
 
@@ -198,6 +280,8 @@ public partial class MainWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
+        OnPropertyChanged(nameof(ShowDetailCollections));
+        RefreshDetailCollectionMemberships();
     }
 
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
@@ -234,8 +318,11 @@ public partial class MainWindowViewModel : ViewModelBase
                 _previousSelectedGame = null;
 
                 _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                ApplyGameMembership();
                 _suppressCoverLoading = false;
                 RebuildPlatformFilters();
+                RebuildLibraryCollections();
+                RebuildSortOptions();
                 ApplyFilter();
 
                 var epicHint = IsEpicCloudAvailable ? Loc.T("EpicCloudHint") : string.Empty;
@@ -522,11 +609,22 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             try
             {
-                LegendaryClient.RunAuth();
+                CancelScheduledStatusClear();
+                StatusText = Loc.T("PreparingEpicLibrary");
+                await EpicAuthService.SignInAsync(_libraryService.Settings, GetMainWindow());
+                await RefreshLibraryCommand.ExecuteAsync(null);
+                StatusText = Loc.T("EpicAuthCompleted");
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
             }
-            catch
+            catch (Exception ex)
             {
-                // optional
+                AppDiagnostics.ReportError(
+                    area: nameof(MainWindowViewModel),
+                    operation: nameof(OfferLegendaryPromptIfNeededAsync),
+                    exception: ex,
+                    platform: Platform.Epic);
+                StatusText = Loc.T("EpicConnectFailed", ex.Message);
+                ScheduleStatusClear(TimeSpan.FromSeconds(8));
             }
         }
         else if (viewModel.Choice == LegendaryPromptChoice.OpenGuide)
@@ -663,6 +761,10 @@ public partial class MainWindowViewModel : ViewModelBase
             }
 
             _libraryService.LaunchGame(SelectedGame.Source);
+            SelectedGame.RefreshLaunchState();
+            if (_userSelectedSort is null)
+                RebuildSortOptions();
+            ApplyFilter();
             StatusText = SelectedGame.Source.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
                 : Loc.T("StartingInstallLaunch", SelectedGame.Title);
@@ -827,6 +929,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
         game.IsFavorite = !game.IsFavorite;
         _libraryService.ToggleFavorite(game.Source);
+        RebuildLibraryCollections();
+        ApplyFilter();
         StatusText = game.IsFavorite
             ? Loc.T("AddedToFavorites", game.Title)
             : Loc.T("RemovedFromFavorites", game.Title);
@@ -840,12 +944,241 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
 
         _allGames = cached.Select(g => new GameItemViewModel(g)).ToList();
+        ApplyGameMembership();
         RebuildPlatformFilters();
+        RebuildLibraryCollections();
+        RebuildSortOptions();
         ApplyFilter();
         _suppressCoverLoading = false;
         ApplyVisibleCovers();
         StatusText = Loc.T("GamesInCache", _allGames.Count);
     }
+
+    private void ApplyGameMembership()
+    {
+        var collections = _libraryService.Collections;
+        foreach (var game in _allGames)
+            game.SetCollectionIds(collections.GetCollectionIdsForGame(game.Source.Id));
+    }
+
+    private void RebuildLibraryCollections()
+    {
+        var selectedKind = SelectedLibraryCollection?.Kind ?? LibraryViewKind.All;
+        var selectedCollectionId = SelectedLibraryCollection?.CollectionId;
+
+        LibraryCollections.Clear();
+
+        var favoriteCount = _allGames.Count(g => g.IsFavorite);
+        var installedCount = _allGames.Count(g => g.Source.IsInstalled);
+
+        LibraryCollections.Add(new LibraryCollectionItem(
+            LibraryViewKind.All,
+            Loc.T("AllGames", _allGames.Count),
+            null));
+        LibraryCollections.Add(new LibraryCollectionItem(
+            LibraryViewKind.Favorites,
+            Loc.T("FavoritesCount", favoriteCount),
+            null));
+        LibraryCollections.Add(new LibraryCollectionItem(
+            LibraryViewKind.Installed,
+            Loc.T("InstalledCount", installedCount),
+            null));
+
+        foreach (var collection in _libraryService.Collections.UserCollections)
+        {
+            var count = _libraryService.Collections.GetCollectionGameCount(collection.Id);
+            LibraryCollections.Add(new LibraryCollectionItem(
+                LibraryViewKind.UserCollection,
+                Loc.T("CollectionWithCount", collection.Name, count),
+                collection.Id));
+        }
+
+        SelectedLibraryCollection =
+            LibraryCollections.FirstOrDefault(item =>
+                item.Kind == selectedKind
+                && (item.Kind != LibraryViewKind.UserCollection
+                    || string.Equals(item.CollectionId, selectedCollectionId, StringComparison.Ordinal)))
+            ?? LibraryCollections[0];
+
+        OnPropertyChanged(nameof(HasUserCollections));
+        OnPropertyChanged(nameof(CanManageSelectedCollection));
+        OnPropertyChanged(nameof(ShowDetailCollections));
+        RefreshDetailCollectionMemberships();
+    }
+
+    private void RefreshDetailCollectionMemberships()
+    {
+        DetailCollectionMemberships.Clear();
+        if (SelectedGame is null)
+            return;
+
+        foreach (var collection in _libraryService.Collections.UserCollections)
+        {
+            DetailCollectionMemberships.Add(new CollectionMembershipItem(
+                collection.Id,
+                collection.Name,
+                SelectedGame.IsInCollection(collection.Id)));
+        }
+    }
+
+    private LibraryViewState BuildLibraryViewState()
+    {
+        var selected = SelectedLibraryCollection;
+        if (selected is null || selected.Kind == LibraryViewKind.All)
+            return new LibraryViewState(LibraryViewKind.All);
+
+        return selected.Kind == LibraryViewKind.UserCollection
+            ? new LibraryViewState(LibraryViewKind.UserCollection, selected.CollectionId)
+            : new LibraryViewState(selected.Kind);
+    }
+
+    private async Task<string?> PromptCollectionNameAsync(string title, string prompt, string initialName = "")
+    {
+        var viewModel = new CollectionNameDialogViewModel(title, prompt, initialName);
+        var window = new CollectionNameDialog { DataContext = viewModel };
+        await ShowDialogAsync(window);
+        return viewModel.Confirmed ? viewModel.Name.Trim() : null;
+    }
+
+    [RelayCommand]
+    private async Task AddCustomGameAsync()
+    {
+        var viewModel = new AddCustomGameDialogViewModel(_libraryService, GetMainWindow);
+        var window = new AddCustomGameDialog { DataContext = viewModel };
+        await ShowDialogAsync(window);
+        if (!viewModel.Confirmed || viewModel.CreatedGame is null)
+            return;
+
+        var game = viewModel.CreatedGame;
+        if (_allGames.Any(item => string.Equals(item.Source.Id, game.Id, StringComparison.Ordinal)))
+            return;
+
+        var item = new GameItemViewModel(game);
+        item.SetCollectionIds(_libraryService.Collections.GetCollectionIdsForGame(game.Id));
+        _allGames.Add(item);
+
+        RebuildPlatformFilters();
+        RebuildSortOptions();
+        ApplyFilter();
+        SelectedGame = item;
+        StatusText = Loc.T("CustomGameAdded", game.Title);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private async Task CreateCollectionAsync()
+    {
+        var name = await PromptCollectionNameAsync(
+            Loc.T("NewCollection"),
+            Loc.T("CollectionNamePrompt"));
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        var collection = _libraryService.Collections.Create(name);
+        RebuildLibraryCollections();
+        SelectedLibraryCollection = LibraryCollections.FirstOrDefault(item =>
+            item.Kind == LibraryViewKind.UserCollection
+            && string.Equals(item.CollectionId, collection.Id, StringComparison.Ordinal));
+        StatusText = Loc.T("CollectionCreated", collection.Name);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private async Task RenameCollectionAsync()
+    {
+        if (SelectedLibraryCollection?.IsUserCollection != true
+            || string.IsNullOrWhiteSpace(SelectedLibraryCollection.CollectionId))
+            return;
+
+        var current = _libraryService.Collections.UserCollections
+            .FirstOrDefault(c => c.Id == SelectedLibraryCollection.CollectionId);
+        if (current is null)
+            return;
+
+        var name = await PromptCollectionNameAsync(
+            Loc.T("RenameCollection"),
+            Loc.T("CollectionNamePrompt"),
+            current.Name);
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        _libraryService.Collections.Rename(current.Id, name);
+        RebuildLibraryCollections();
+        SelectedLibraryCollection = LibraryCollections.FirstOrDefault(item =>
+            item.Kind == LibraryViewKind.UserCollection
+            && string.Equals(item.CollectionId, current.Id, StringComparison.Ordinal));
+        StatusText = Loc.T("CollectionRenamed", name);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private async Task DeleteCollectionAsync()
+    {
+        if (SelectedLibraryCollection?.IsUserCollection != true
+            || string.IsNullOrWhiteSpace(SelectedLibraryCollection.CollectionId))
+            return;
+
+        var current = _libraryService.Collections.UserCollections
+            .FirstOrDefault(c => c.Id == SelectedLibraryCollection.CollectionId);
+        if (current is null)
+            return;
+
+        var viewModel = new CollectionConfirmDialogViewModel(
+            Loc.T("DeleteCollection"),
+            Loc.T("DeleteCollectionConfirm", current.Name));
+        var window = new CollectionConfirmDialog { DataContext = viewModel };
+        await ShowDialogAsync(window);
+        if (!viewModel.Confirmed)
+            return;
+
+        _libraryService.Collections.Delete(current.Id);
+        ApplyGameMembership();
+        RebuildLibraryCollections();
+        ApplyFilter();
+        StatusText = Loc.T("CollectionDeleted", current.Name);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    [RelayCommand]
+    private void ToggleGameInCollection(CollectionToggleRequest? request)
+    {
+        if (request is null)
+            return;
+
+        ToggleGameInCollection(request.Game, request.CollectionId);
+    }
+
+    public void ToggleGameInCollection(GameItemViewModel game, string collectionId)
+    {
+        var collection = _libraryService.Collections.UserCollections
+            .FirstOrDefault(c => c.Id == collectionId);
+        if (collection is null)
+            return;
+
+        var wasMember = game.IsInCollection(collectionId);
+        if (wasMember)
+            _libraryService.Collections.RemoveGame(collectionId, game.Source.Id);
+        else
+            _libraryService.Collections.AddGame(collectionId, game.Source.Id);
+
+        game.SetCollectionMembership(collectionId, !wasMember);
+        RebuildLibraryCollections();
+        ApplyFilter();
+        RefreshDetailCollectionMemberships();
+
+        StatusText = wasMember
+            ? Loc.T("RemovedFromCollection", game.Title, collection.Name)
+            : Loc.T("AddedToCollection", game.Title, collection.Name);
+        ScheduleStatusClear(TimeSpan.FromSeconds(4));
+    }
+
+    public IReadOnlyList<CollectionMembershipItem> GetContextMenuCollections(GameItemViewModel game) =>
+        _libraryService.Collections.UserCollections
+            .Select(collection => new CollectionMembershipItem(
+                collection.Id,
+                collection.Name,
+                game.IsInCollection(collection.Id)))
+            .ToList();
 
     private void RebuildPlatformFilters()
     {
@@ -864,43 +1197,35 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private void RebuildSortOptions()
     {
-        var selected = SelectedSortOption?.Option;
+        var selected = _userSelectedSort ?? LibraryFilterPipeline.ResolveDefaultSort(_allGames);
         SortOptions.Clear();
+        SortOptions.Add(new SortOptionItem(Loc.T("SortLastPlayedDesc"), SortOption.LastPlayedDesc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortTitleAsc"), SortOption.TitleAsc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortTitleDesc"), SortOption.TitleDesc));
         SortOptions.Add(new SortOptionItem(Loc.T("SortPlatform"), SortOption.Platform));
         SortOptions.Add(new SortOptionItem(Loc.T("SortInstalledFirst"), SortOption.InstalledFirst));
         SortOptions.Add(new SortOptionItem(Loc.T("SortPlaytimeDesc"), SortOption.PlaytimeDesc));
+
+        _suppressSortOptionChanged = true;
         SelectedSortOption = SortOptions.FirstOrDefault(s => s.Option == selected) ?? SortOptions[0];
+        _suppressSortOptionChanged = false;
     }
 
     private void ApplyFilter()
     {
-        var query = SearchText.Trim();
-        IEnumerable<GameItemViewModel> filtered = _allGames;
+        var view = BuildLibraryViewState();
+        IReadOnlySet<string>? collectionGameIds = null;
+        if (view.Kind == LibraryViewKind.UserCollection && view.UserCollectionId is not null)
+            collectionGameIds = _libraryService.Collections.GetGameIdsForCollection(view.UserCollectionId);
 
-        if (SelectedPlatformFilter?.Platform is Platform platform)
-            filtered = filtered.Where(g => g.Platform == platform);
+        _filteredGames = LibraryFilterPipeline.Apply(
+            _allGames,
+            view,
+            SelectedPlatformFilter?.Platform,
+            SearchText,
+            _userSelectedSort ?? LibraryFilterPipeline.ResolveDefaultSort(_allGames),
+            collectionGameIds);
 
-        if (ShowFavoritesOnly)
-            filtered = filtered.Where(g => g.IsFavorite);
-
-        if (ShowInstalledOnly)
-            filtered = filtered.Where(g => g.Source.IsInstalled);
-
-        if (!string.IsNullOrWhiteSpace(query))
-            filtered = filtered.Where(g => GameSearchHelper.MatchesTitle(g.Title, query));
-
-        filtered = (SelectedSortOption?.Option ?? SortOption.TitleAsc) switch
-        {
-            SortOption.TitleDesc => filtered.OrderByDescending(g => g.Title, StringComparer.OrdinalIgnoreCase),
-            SortOption.Platform => filtered.OrderBy(g => g.Platform).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
-            SortOption.InstalledFirst => filtered.OrderByDescending(g => g.Source.IsInstalled).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
-            SortOption.PlaytimeDesc => filtered.OrderByDescending(g => g.Source.PlaytimeMinutes).ThenBy(g => g.Title, StringComparer.OrdinalIgnoreCase),
-            _ => filtered.OrderBy(g => g.Title, StringComparer.OrdinalIgnoreCase)
-        };
-
-        _filteredGames = filtered.ToList();
         CurrentPage = 1;
         ApplyCurrentPage();
 
@@ -924,7 +1249,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
         GamesCountLabel = _filteredGames.Count == 0
             ? Loc.T("ShowingGamesCount", 0)
-            : Loc.T("ShowingGamesPage", Games.Count, _filteredGames.Count, CurrentPage, TotalPages);
+            : Loc.T("ShowingGamesPage", CurrentPage, TotalPages, Games.Count, _filteredGames.Count);
 
         ApplyVisibleCovers();
     }
@@ -991,6 +1316,7 @@ public partial class MainWindowViewModel : ViewModelBase
         Strings.Refresh();
         RebuildSortOptions();
         RebuildPlatformFilters();
+        RebuildLibraryCollections();
         Updates.RefreshLocalizedText();
 
         foreach (var game in _allGames)
@@ -999,6 +1325,8 @@ public partial class MainWindowViewModel : ViewModelBase
         var previousQuality = CoverQualityMode;
         CoverQualityMode = _libraryService.Settings.Current.CoverQualityMode;
         IsListView = _libraryService.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        UiFontScaleService.Apply(_libraryService.Settings.Current.UiFontScale);
+        ThemeModeService.Apply(_libraryService.Settings.Current.ThemeMode);
         OnPropertyChanged(nameof(ShowDetailCover));
         if (previousQuality != CoverQualityMode)
             ReleaseAllGameCovers();

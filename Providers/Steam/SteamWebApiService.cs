@@ -31,7 +31,6 @@ public sealed class SteamWebApiService
                 continue;
 
             game.PlaytimeMinutes = steamStats.PlaytimeMinutes;
-            game.LastPlayed = steamStats.LastPlayed;
         }
     }
 
@@ -66,7 +65,6 @@ public sealed class SteamWebApiService
                 continue;
 
             game.PlaytimeMinutes = steamStats.PlaytimeMinutes;
-            game.LastPlayed = steamStats.LastPlayed;
         }
     }
 
@@ -164,7 +162,6 @@ public sealed class SteamWebApiService
         Title = entry.Name,
         IsInstalled = false,
         PlaytimeMinutes = entry.PlaytimeMinutes,
-        LastPlayed = entry.LastPlayed,
         CatalogCoverUrl = GetCoverUrl(entry.AppId),
         LaunchSpec = LaunchSpec.Protocol($"steam://install/{entry.AppId}")
     };

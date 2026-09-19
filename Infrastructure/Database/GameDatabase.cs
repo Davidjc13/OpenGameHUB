@@ -10,8 +10,13 @@ public sealed class GameDatabase : IDisposable
     private readonly SqliteConnection _connection;
 
     public GameDatabase()
+        : this(null)
     {
-        var dbPath = Path.Combine(
+    }
+
+    internal GameDatabase(string? databasePath)
+    {
+        var dbPath = databasePath ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "OpenGameHUB",
             "library.db");
@@ -19,6 +24,7 @@ public sealed class GameDatabase : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
         _connection = new SqliteConnection($"Data Source={dbPath}");
         _connection.Open();
+        _connection.Execute("PRAGMA foreign_keys = ON;");
         Initialize();
         Migrate();
     }
@@ -31,6 +37,26 @@ public sealed class GameDatabase : IDisposable
             _connection.Execute(
                 "ALTER TABLE games ADD COLUMN custom_cover INTEGER NOT NULL DEFAULT 0");
         }
+
+        _connection.Execute("""
+            CREATE TABLE IF NOT EXISTS collections (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                sort_order INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS collection_games (
+                collection_id TEXT NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+                game_id TEXT NOT NULL,
+                added_at TEXT NOT NULL,
+                PRIMARY KEY (collection_id, game_id)
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_collection_games_game
+                ON collection_games(game_id);
+            """);
     }
 
     private void Initialize()
@@ -157,6 +183,10 @@ public sealed class GameDatabase : IDisposable
                 "SELECT id, custom_cover FROM games WHERE custom_cover = 1")
             .ToDictionary(x => x.Id, x => x.HasCustomCover == 1, StringComparer.Ordinal);
 
+        var existingLastPlayed = _connection.Query<(string Id, string LastPlayed)>(
+                "SELECT id, last_played FROM games WHERE last_played IS NOT NULL AND last_played != ''")
+            .ToDictionary(x => x.Id, x => DateTime.Parse(x.LastPlayed), StringComparer.Ordinal);
+
         foreach (var game in list)
         {
             game.IsFavorite = favorites.TryGetValue(game.Id, out var fav) && fav
@@ -176,13 +206,128 @@ public sealed class GameDatabase : IDisposable
             var cachedCover = CoverPathHelper.ResolveExistingPath(game);
             if (cachedCover is not null)
                 game.CoverPath = cachedCover;
+
+            if (existingLastPlayed.TryGetValue(game.Id, out var lastPlayed))
+                game.LastPlayed = lastPlayed;
         }
 
         UpsertGames(list);
 
         var scannedIds = list.Select(g => g.Id).ToArray();
         _connection.Execute("DELETE FROM games WHERE id NOT IN @Ids", new { Ids = scannedIds });
+        PurgeOrphanCollectionGames();
     }
+
+    public IReadOnlyList<UserCollection> GetUserCollections()
+    {
+        const string sql = """
+            SELECT id AS Id, name AS Name, sort_order AS SortOrder
+            FROM collections
+            ORDER BY sort_order, name COLLATE NOCASE
+            """;
+
+        return _connection.Query<CollectionRow>(sql)
+            .Select(row => row.ToUserCollection())
+            .ToList();
+    }
+
+    public UserCollection CreateCollection(string name)
+    {
+        var now = DateTime.UtcNow.ToString("O");
+        var maxOrder = _connection.ExecuteScalar<int?>("SELECT MAX(sort_order) FROM collections") ?? -1;
+        var collection = new UserCollection(Guid.NewGuid().ToString("N"), name.Trim(), maxOrder + 1);
+
+        _connection.Execute(
+            """
+            INSERT INTO collections (id, name, sort_order, created_at, updated_at)
+            VALUES (@Id, @Name, @SortOrder, @CreatedAt, @UpdatedAt)
+            """,
+            new
+            {
+                collection.Id,
+                collection.Name,
+                collection.SortOrder,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+
+        return collection;
+    }
+
+    public void RenameCollection(string id, string name)
+    {
+        _connection.Execute(
+            """
+            UPDATE collections
+            SET name = @Name, updated_at = @UpdatedAt
+            WHERE id = @Id
+            """,
+            new { Id = id, Name = name.Trim(), UpdatedAt = DateTime.UtcNow.ToString("O") });
+    }
+
+    public void DeleteCollection(string id) =>
+        _connection.Execute("DELETE FROM collections WHERE id = @Id", new { Id = id });
+
+    public void AddGameToCollection(string collectionId, string gameId)
+    {
+        _connection.Execute(
+            """
+            INSERT OR IGNORE INTO collection_games (collection_id, game_id, added_at)
+            VALUES (@CollectionId, @GameId, @AddedAt)
+            """,
+            new
+            {
+                CollectionId = collectionId,
+                GameId = gameId,
+                AddedAt = DateTime.UtcNow.ToString("O")
+            });
+    }
+
+    public void RemoveGameFromCollection(string collectionId, string gameId) =>
+        _connection.Execute(
+            """
+            DELETE FROM collection_games
+            WHERE collection_id = @CollectionId AND game_id = @GameId
+            """,
+            new { CollectionId = collectionId, GameId = gameId });
+
+    public Dictionary<string, HashSet<string>> GetMembershipIndex()
+    {
+        var rows = _connection.Query<(string CollectionId, string GameId)>(
+            "SELECT collection_id, game_id FROM collection_games");
+
+        var index = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (var (collectionId, gameId) in rows)
+        {
+            if (!index.TryGetValue(gameId, out var set))
+            {
+                set = new HashSet<string>(StringComparer.Ordinal);
+                index[gameId] = set;
+            }
+
+            set.Add(collectionId);
+        }
+
+        return index;
+    }
+
+    public HashSet<string> GetCollectionGameIds(string collectionId)
+    {
+        var ids = _connection.Query<string>(
+            "SELECT game_id FROM collection_games WHERE collection_id = @CollectionId",
+            new { CollectionId = collectionId });
+
+        return ids.ToHashSet(StringComparer.Ordinal);
+    }
+
+    public int GetCollectionGameCount(string collectionId) =>
+        _connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM collection_games WHERE collection_id = @CollectionId",
+            new { CollectionId = collectionId });
+
+    internal void PurgeOrphanCollectionGames() =>
+        _connection.Execute(
+            "DELETE FROM collection_games WHERE game_id NOT IN (SELECT id FROM games)");
 
     private static string FavoriteKey(int platform, string platformGameId, string? installPath) =>
         $"{platform}|{NormalizePath(installPath) ?? platformGameId}";
@@ -206,6 +351,21 @@ public sealed class GameDatabase : IDisposable
         public string name { get; init; } = string.Empty;
     }
 
+    public void RecordLauncherLaunch(string id, DateTime launchedAt)
+    {
+        _connection.Execute(
+            """
+            UPDATE games
+            SET last_played = @LastPlayed
+            WHERE id = @Id
+            """,
+            new
+            {
+                Id = id,
+                LastPlayed = launchedAt.ToString("O")
+            });
+    }
+
     public void UpdatePlaytime(string id, int playtimeMinutes, DateTime? lastPlayed)
     {
         _connection.Execute(
@@ -226,7 +386,15 @@ public sealed class GameDatabase : IDisposable
     public void PersistPlaytimes(IEnumerable<UnifiedGame> games)
     {
         foreach (var game in games)
-            UpdatePlaytime(game.Id, game.PlaytimeMinutes, game.LastPlayed);
+        {
+            _connection.Execute(
+                """
+                UPDATE games
+                SET playtime_minutes = @PlaytimeMinutes
+                WHERE id = @Id
+                """,
+                new { Id = game.Id, PlaytimeMinutes = game.PlaytimeMinutes });
+        }
     }
 
     public void SetFavorite(string id, bool isFavorite)
@@ -240,6 +408,15 @@ public sealed class GameDatabase : IDisposable
         string.IsNullOrWhiteSpace(path)
             ? string.Empty
             : Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+    private sealed class CollectionRow
+    {
+        public string Id { get; init; } = "";
+        public string Name { get; init; } = "";
+        public int SortOrder { get; init; }
+
+        public UserCollection ToUserCollection() => new(Id, Name, SortOrder);
+    }
 
     private sealed class GameRow
     {

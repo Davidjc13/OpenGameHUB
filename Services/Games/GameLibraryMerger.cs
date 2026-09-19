@@ -113,6 +113,7 @@ internal static class GameLibraryMerger
         Platform.Rockstar => 70,
         Platform.GamePass => 68,
         Platform.Epic => 60,
+        Platform.Custom => 10,
         _ => 0
     };
 }
