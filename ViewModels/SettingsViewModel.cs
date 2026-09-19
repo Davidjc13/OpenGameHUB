@@ -65,6 +65,8 @@ public partial class SettingsViewModel : ViewModelBase
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
 
+    public string DiagnosticsHelp => Loc.T("DiagnosticsHelp", AppLog.LogFilePath);
+
     public LocalizedStrings Strings { get; }
     public SettingsUpdatesViewModel Updates { get; }
 
@@ -366,6 +368,9 @@ public partial class SettingsViewModel : ViewModelBase
         _onDevClearLocalDatabase?.Invoke();
         StatusMessage = Loc.T("DevClearLocalDatabaseDone");
     }
+
+    [RelayCommand]
+    private void OpenLogsFolder() => AppLog.OpenLogDirectory();
 
     private void RefreshEpicStatus()
     {

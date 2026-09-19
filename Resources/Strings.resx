@@ -308,6 +308,18 @@
   <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Update {0} is available.</value></data>
   <data name="AppUpdateInstallNow" xml:space="preserve"><value>Install update</value></data>
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Later</value></data>
+  <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="DiagnosticsHelp" xml:space="preserve"><value>If OpenGameHUB misbehaves, share the log file with support. Logs are stored at: {0}</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encountered a fatal error</value></data>
+  <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB must close because of an unexpected error.
+
+Error: {1}
+
+Details were saved to:
+{0}
+
+You can share this log file when reporting the issue.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
   <data name="ThemeModeSection" xml:space="preserve"><value>Theme</value></data>

@@ -54,7 +54,12 @@ See [project-structure.md](project-structure.md) for a full guide to layers, dat
 
 ```
 Program.Main [STAThread]
+  ├─ AppLog.Initialize() → %LocalAppData%\OpenGameHUB\logs\app.log
+  ├─ AppCrashHandlers.RegisterGlobalHandlers()
+  │    ├─ AppDomain.UnhandledException
+  │    └─ TaskScheduler.UnobservedTaskException
   └─ App.OnFrameworkInitializationCompleted
+       ├─ AppCrashHandlers.RegisterUiThreadHandler()
        └─ MainWindow { DataContext = MainWindowViewModel }
 
 MainWindowViewModel (constructor):
@@ -64,6 +69,8 @@ MainWindowViewModel (constructor):
   4. RefreshLibraryAsync()     → full scan in background + onboarding prompts
   5. Updates checks for app update on startup (installed builds only)
 ```
+
+Persistent logs live at `%LocalAppData%\OpenGameHUB\logs\app.log`. `AppDiagnostics.ReportError` and Avalonia's `.LogToTrace()` output go through the same file listener. Fatal unhandled exceptions show a native dialog with the log path; users can also open the logs folder from Settings → Diagnostics.
 
 **Why load cache before scanning:** the user sees their library when opening the app even if scanning takes several seconds (network, legendary, many launchers).
 

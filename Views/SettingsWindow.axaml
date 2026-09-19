@@ -172,6 +172,15 @@
                                  IsVisible="{Binding Updates.IsUpdateBusy}"
                                  Height="4"/>
 
+                    <TextBlock Text="{Binding Strings.DiagnosticsSection}"
+                               Classes="text-label"
+                               Margin="0,8,0,0"/>
+                    <TextBlock Text="{Binding DiagnosticsHelp}"
+                               Classes="text-help"
+                               TextWrapping="Wrap"/>
+                    <Button Content="{Binding Strings.OpenLogsFolder}"
+                            Command="{Binding OpenLogsFolderCommand}"/>
+
                     <Border Classes="dev-panel"
                             IsVisible="{Binding IsDevModeEnabled}">
                         <StackPanel Spacing="10">
