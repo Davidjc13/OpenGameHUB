@@ -131,7 +131,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (cached.Count == 0)
             return;
 
-        _allGames = cached.Select(g => new GameItemViewModel(g)).ToList();
+        _allGames = GameItemViewModelFactory.CreateGrouped(cached);
         ApplyGameMembership();
         _sidebar.RebuildAll(_allGames);
         ApplyFilter();
@@ -297,7 +297,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                 SelectedGame = null;
                 _previousSelectedGame = null;
 
-                _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                _allGames = GameItemViewModelFactory.CreateGrouped(games);
                 ApplyGameMembership();
                 _suppressCoverLoading = false;
                 _sidebar.RebuildAll(_allGames);
@@ -370,7 +370,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
         try
         {
-            var installResult = await _installOrchestrator.TryStartInstallAsync(SelectedGame.Source);
+            var launchTarget = await ResolveInstallLaunchTargetAsync(SelectedGame);
+            if (launchTarget is null)
+                return;
+
+            var installResult = await _installOrchestrator.TryStartInstallAsync(launchTarget);
             switch (installResult.Outcome)
             {
                 case GameInstallOutcome.InstallStarted:
@@ -386,12 +390,12 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                     return;
             }
 
-            _library.LaunchGame(SelectedGame.Source);
+            _library.LaunchGame(launchTarget);
             SelectedGame.RefreshLaunchState();
             if (!_sidebar.HasUserSelectedSort)
                 _sidebar.RebuildSortOptions();
             ApplyFilter();
-            _setStatusText(SelectedGame.Source.IsInstalled
+            _setStatusText(launchTarget.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
                 : Loc.T("StartingInstallLaunch", SelectedGame.Title));
         }
@@ -847,7 +851,18 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     {
         var collections = _library.Collections;
         foreach (var game in _allGames)
-            game.SetCollectionIds(collections.GetCollectionIdsForGame(game.Source.Id));
+        {
+            var collectionIds = new HashSet<string>(
+                collections.GetCollectionIdsForGame(game.Source.Id),
+                StringComparer.Ordinal);
+            foreach (var alternate in game.Source.AlternateListings)
+            {
+                foreach (var collectionId in collections.GetCollectionIdsForGame(alternate.Id))
+                    collectionIds.Add(collectionId);
+            }
+
+            game.SetCollectionIds(collectionIds);
+        }
     }
 
     private void ReleaseAllGameCovers()
@@ -882,6 +897,21 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var viewModel = new EaManualInstallNoticeViewModel(gameTitle);
         var window = new EaManualInstallNoticeWindow(viewModel);
         await _showDialogAsync(window);
+    }
+
+    private async Task<UnifiedGame?> ResolveInstallLaunchTargetAsync(GameItemViewModel selectedGame)
+    {
+        if (selectedGame.Source.IsInstalled)
+            return selectedGame.Source;
+
+        var installTargets = selectedGame.GetUninstalledInstallTargets();
+        if (installTargets.Count <= 1)
+            return installTargets.FirstOrDefault() ?? selectedGame.Source;
+
+        var viewModel = new StoreInstallChoiceDialogViewModel(selectedGame.Title, installTargets);
+        var window = new StoreInstallChoiceDialog { DataContext = viewModel };
+        await _showDialogAsync(window);
+        return viewModel.Confirmed ? viewModel.SelectedGame : null;
     }
 
     private static async Task RunOnUiThreadAsync(Action action)

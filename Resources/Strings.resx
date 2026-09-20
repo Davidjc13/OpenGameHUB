@@ -398,6 +398,8 @@ You can share this log file when reporting the issue.</value></data>
   <data name="CustomGameAdded" xml:space="preserve"><value>Added {0} to your library.</value></data>
   <data name="Accept" xml:space="preserve"><value>Accept</value></data>
   <data name="ManageGame" xml:space="preserve"><value>Manage game</value></data>
+  <data name="ChooseInstallStoreTitle" xml:space="preserve"><value>Choose store</value></data>
+  <data name="ChooseInstallStoreMessage" xml:space="preserve"><value>Where do you want to install {0}?</value></data>
   <data name="OpenInstallFolder" xml:space="preserve"><value>Open install folder</value></data>
   <data name="ViewInStore" xml:space="preserve"><value>View in store</value></data>
   <data name="UninstallGame" xml:space="preserve"><value>Uninstall</value></data>

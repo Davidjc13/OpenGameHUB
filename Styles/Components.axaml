@@ -21,6 +21,12 @@
         <Setter Property="HorizontalAlignment" Value="Left"/>
     </Style>
 
+    <Style Selector="Border.also-on-badge">
+        <Setter Property="Background" Value="{DynamicResource BrushBgPanel}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
     <Style Selector="Border.game-cover-area">
         <Setter Property="Background" Value="{DynamicResource BrushBgCover}"/>
         <Setter Property="ClipToBounds" Value="True"/>

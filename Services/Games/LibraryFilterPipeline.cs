@@ -20,14 +20,14 @@ public static class LibraryFilterPipeline
         IEnumerable<GameItemViewModel> filtered = games;
 
         if (platform is Platform selectedPlatform)
-            filtered = filtered.Where(g => g.Platform == selectedPlatform);
+            filtered = filtered.Where(g => g.MatchesPlatform(selectedPlatform));
 
         filtered = view.Kind switch
         {
             LibraryViewKind.Favorites => filtered.Where(g => g.IsFavorite),
             LibraryViewKind.Installed => filtered.Where(g => g.Source.IsInstalled),
             LibraryViewKind.UserCollection when userCollectionGameIds is not null =>
-                filtered.Where(g => userCollectionGameIds.Contains(g.Source.Id)),
+                filtered.Where(g => g.MatchesAnyGameId(userCollectionGameIds)),
             _ => filtered
         };
 
