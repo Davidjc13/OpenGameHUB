@@ -163,7 +163,9 @@ public sealed class SteamWebApiService
         IsInstalled = false,
         PlaytimeMinutes = entry.PlaytimeMinutes,
         CatalogCoverUrl = GetCoverUrl(entry.AppId),
-        LaunchSpec = LaunchSpec.Protocol($"steam://install/{entry.AppId}")
+        LaunchSpec = ProtocolUri.TrySteamInstall(entry.AppId, out var installUrl)
+            ? LaunchSpec.Protocol(installUrl)
+            : LaunchSpec.None
     };
 
     public sealed record SteamOwnedGameEntry(

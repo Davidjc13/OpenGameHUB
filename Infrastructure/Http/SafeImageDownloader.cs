@@ -59,7 +59,7 @@ internal sealed class SafeImageDownloader
             return false;
 
         if (uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
-            return uri.Host.Length > 0;
+            return CoverImageHostPolicy.IsHostAllowed(uri.Host);
 
         if (uri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
             return uri.IsLoopback

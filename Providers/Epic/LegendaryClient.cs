@@ -560,7 +560,9 @@ public sealed record LegendaryCatalogEntry(
         if (string.IsNullOrWhiteSpace(CatalogNamespace) || string.IsNullOrWhiteSpace(CatalogItemId))
             return null;
 
-        return $"com.epicgames.launcher://apps/{CatalogNamespace}%3A{CatalogItemId}%3A{AppName}?action=install";
+        return ProtocolUri.TryEpicCatalogInstall(CatalogNamespace, CatalogItemId, AppName, out var url)
+            ? url
+            : null;
     }
 }
 

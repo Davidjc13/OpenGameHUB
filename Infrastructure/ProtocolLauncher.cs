@@ -6,6 +6,8 @@ internal static class ProtocolLauncher
 {
     public static void Start(string url)
     {
+        ProtocolUri.EnsureLaunchable(url);
+
         try
         {
             StartProcess(url, useShellExecute: true);
@@ -45,7 +47,8 @@ internal static class ProtocolLauncher
             UseShellExecute = useShellExecute
         };
 
-        if (Process.Start(psi) is null)
+        var process = Process.Start(psi);
+        if (process is null && !useShellExecute)
             throw new InvalidOperationException(Loc.T("ProcessStartFailed", fileName));
     }
 }

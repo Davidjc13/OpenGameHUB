@@ -60,8 +60,9 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
             if (installedTitles.Contains(titleKey))
                 continue;
 
-            var protocolUrl = entry.BuildInstallProtocolUrl()
-                ?? $"com.epicgames.launcher://apps/{entry.AppName}?action=install";
+            var protocolUrl = entry.BuildInstallProtocolUrl();
+            if (protocolUrl is null)
+                ProtocolUri.TryEpicInstall(entry.AppName, out protocolUrl);
 
             var coverUrl = EpicCatalogReader.GetCoverUrl(entry.AppName, entry.AppTitle);
             var game = new UnifiedGame
@@ -72,7 +73,9 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
                 Title = entry.AppTitle,
                 IsInstalled = false,
                 CatalogCoverUrl = coverUrl,
-                LaunchSpec = LaunchSpec.Protocol(protocolUrl)
+                LaunchSpec = protocolUrl is not null
+                    ? LaunchSpec.Protocol(protocolUrl)
+                    : LaunchSpec.None
             };
 
             if (!GameEntryFilter.IsExcluded(game))
@@ -92,11 +95,15 @@ public sealed class EpicCloudLibraryProvider : ICloudLibraryProvider
 
         var appName = game.PlatformGameId;
         yield return () => LegendaryClient.RunInstall(appName);
-        yield return () => ProtocolLauncher.Start($"com.epicgames.launcher://apps/{appName}?action=install");
 
-        var epicLauncher = LegendaryClient.FindEpicLauncherExecutable();
-        if (epicLauncher is not null)
-            yield return () => StartLauncherArgs(epicLauncher, $"com.epicgames.launcher://apps/{appName}?action=install");
+        if (ProtocolUri.TryEpicInstall(appName, out var installUrl))
+        {
+            yield return () => ProtocolLauncher.Start(installUrl);
+
+            var epicLauncher = LegendaryClient.FindEpicLauncherExecutable();
+            if (epicLauncher is not null)
+                yield return () => StartLauncherArgs(epicLauncher, installUrl);
+        }
 
         yield return () => LegendaryClient.RunLaunch(appName);
     }

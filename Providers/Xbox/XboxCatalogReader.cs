@@ -1,5 +1,6 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Providers.Xbox;
 
@@ -24,9 +25,12 @@ internal static class XboxCatalogReader
 
     public static LaunchSpec BuildInstallLaunchSpec(XboxCatalogEntry entry)
     {
-        if (!string.IsNullOrWhiteSpace(entry.StoreProductId))
-            return LaunchSpec.Protocol($"msxbox://game/?productId={entry.StoreProductId}");
+        if (ProtocolUri.TryXboxProduct(entry.StoreProductId, out var xboxUrl))
+            return LaunchSpec.Protocol(xboxUrl);
 
-        return LaunchSpec.Protocol($"ms-windows-store://pdp/?PFN={Uri.EscapeDataString(entry.Pfn)}");
+        if (ProtocolUri.TryStorePfn(entry.Pfn, out var pfnUrl))
+            return LaunchSpec.Protocol(pfnUrl);
+
+        return LaunchSpec.None;
     }
 }

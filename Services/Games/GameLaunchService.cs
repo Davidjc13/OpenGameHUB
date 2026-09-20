@@ -83,12 +83,12 @@ internal sealed class GameLaunchService
                 attempts.Add(() => StartProcess(steamExe, $"-applaunch {appId}", Path.GetDirectoryName(steamExe)));
         }
 
-        if (game.Platform == Platform.Ea
-            && game.IsInstalled
-            && !string.IsNullOrWhiteSpace(game.PlatformGameId))
+        if (game.Platform == Platform.Ea && game.IsInstalled)
         {
-            attempts.Add(() => StartProtocol($"link2ea://launchgame/contentids/{game.PlatformGameId}"));
-            attempts.Add(() => StartProtocol($"origin2://game/launch?offerIds={game.PlatformGameId}"));
+            if (ProtocolUri.TryEaLaunch(game.PlatformGameId, out var eaUrl))
+                attempts.Add(() => StartProtocol(eaUrl));
+            if (ProtocolUri.TryOriginLaunch(game.PlatformGameId, out var originUrl))
+                attempts.Add(() => StartProtocol(originUrl));
         }
 
         if (!string.IsNullOrWhiteSpace(game.InstallPath) && Directory.Exists(game.InstallPath))
@@ -144,10 +144,7 @@ internal sealed class GameLaunchService
             hideWindow: hideWindow);
     }
 
-    private static void StartProtocol(string url)
-    {
-        StartProcess(url, null, null, useShellExecute: true);
-    }
+    private static void StartProtocol(string url) => ProtocolLauncher.Start(url);
 
     private static void StartProcess(
         string fileName,

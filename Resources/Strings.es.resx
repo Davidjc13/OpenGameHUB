@@ -352,6 +352,7 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="CannotDetermineLaunch" xml:space="preserve"><value>No se pudo determinar cómo lanzar {0}.</value></data>
   <data name="ExecutableNotFound" xml:space="preserve"><value>No se encontró el ejecutable: {0}</value></data>
   <data name="InvalidLaunchFormat" xml:space="preserve"><value>Formato de lanzamiento inválido.</value></data>
+  <data name="InvalidProtocolUrl" xml:space="preserve"><value>Esta URL de lanzamiento no es un protocolo de juego compatible.</value></data>
   <data name="LauncherNotFound" xml:space="preserve"><value>No se encontró el launcher: {0}</value></data>
   <data name="ProcessStartFailed" xml:space="preserve"><value>No se pudo iniciar el proceso para {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>No se pudo ejecutar legendary.</value></data>

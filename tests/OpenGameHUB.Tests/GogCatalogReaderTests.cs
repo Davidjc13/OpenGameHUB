@@ -22,6 +22,13 @@ public sealed class GogCatalogReaderTests
     }
 
     [Fact]
+    public void BuildInstallProtocolUrl_rejects_unsafe_release_key()
+    {
+        Assert.Throws<InvalidOperationException>(
+            () => GogCatalogReader.BuildInstallProtocolUrl("abc/../evil&calc"));
+    }
+
+    [Fact]
     public void MatchesInstalledGame_matches_by_gog_id()
     {
         var game = TestGames.Create("gog:1", Platform.Gog, "Game", platformGameId: "42");

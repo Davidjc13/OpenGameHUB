@@ -11,4 +11,22 @@ public sealed class LegendaryClientTests
     {
         Assert.Equal(expected, LegendaryClient.IsLegendaryExecutable(path));
     }
+
+    [Fact]
+    public void BuildInstallProtocolUrl_encodes_catalog_identifiers()
+    {
+        var entry = new LegendaryCatalogEntry("Fortnite", "Fortnite", "fn", "itemId");
+
+        Assert.Equal(
+            "com.epicgames.launcher://apps/fn%3AitemId%3AFortnite?action=install",
+            entry.BuildInstallProtocolUrl());
+    }
+
+    [Fact]
+    public void BuildInstallProtocolUrl_rejects_unsafe_app_name()
+    {
+        var entry = new LegendaryCatalogEntry("Fortnite?action=uninstall", "Fortnite", "fn", "itemId");
+
+        Assert.Null(entry.BuildInstallProtocolUrl());
+    }
 }

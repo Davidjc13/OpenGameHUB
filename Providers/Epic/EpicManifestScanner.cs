@@ -116,7 +116,9 @@ internal static class EpicManifestScanner
         if (!string.IsNullOrWhiteSpace(executable) && File.Exists(executable))
             return LaunchSpec.Executable(executable);
 
-        return LaunchSpec.Protocol($"com.epicgames.launcher://apps/{appName}?action=launch&silent=true");
+        return ProtocolUri.TryEpicLaunch(appName, out var url)
+            ? LaunchSpec.Protocol(url)
+            : LaunchSpec.None;
     }
 
     private static string? FindBestExecutable(string installPath)

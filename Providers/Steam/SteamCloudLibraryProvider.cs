@@ -45,14 +45,15 @@ public sealed class SteamCloudLibraryProvider : ICloudLibraryProvider
         if (game.Platform != Platform.Steam || game.IsInstalled)
             yield break;
 
-        if (!int.TryParse(game.PlatformGameId, out var appId))
+        if (!int.TryParse(game.PlatformGameId, out var appId)
+            || !ProtocolUri.TrySteamInstall(appId, out var installUrl))
             yield break;
 
-        yield return () => ProtocolLauncher.Start($"steam://install/{appId}");
+        yield return () => ProtocolLauncher.Start(installUrl);
 
         var steamExe = FindSteamExecutable();
         if (steamExe is not null)
-            yield return () => StartLauncherArgs(steamExe, $"steam://install/{appId}");
+            yield return () => StartLauncherArgs(steamExe, installUrl);
     }
 
     private static string? FindSteamExecutable()

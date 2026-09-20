@@ -191,17 +191,7 @@ internal static class EpicLauncherClient
             throw new InvalidOperationException(Loc.T("ProcessStartFailed", launcherExe));
     }
 
-    private static void StartProtocol(string url)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = url,
-            UseShellExecute = true
-        };
-
-        // ShellExecute hands protocol URIs to the launcher and often returns null on success.
-        Process.Start(psi);
-    }
+    private static void StartProtocol(string url) => ProtocolLauncher.Start(url);
 
     /// <summary>
     /// Watches Epic's launcher log for a reference to the requested app, which appears once

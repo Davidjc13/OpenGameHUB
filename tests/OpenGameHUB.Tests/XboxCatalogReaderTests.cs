@@ -46,4 +46,19 @@ public sealed class XboxCatalogReaderTests
         var spec = XboxCatalogReader.BuildInstallLaunchSpec(entry);
         Assert.Contains("PFN=", spec.Value);
     }
+
+    [Fact]
+    public void BuildInstallLaunchSpec_rejects_unsafe_identifiers()
+    {
+        var entry = new XboxCatalogEntry
+        {
+            Pfn = @"Microsoft.Halo_8\..\..\x&calc",
+            Title = "Halo",
+            StoreProductId = "9NTL0QDWZ4FS?redirect=ms-msdt:foo"
+        };
+
+        var spec = XboxCatalogReader.BuildInstallLaunchSpec(entry);
+
+        Assert.Equal(LaunchSpec.None, spec);
+    }
 }

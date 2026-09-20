@@ -352,6 +352,7 @@ You can share this log file when reporting the issue.</value></data>
   <data name="CannotDetermineLaunch" xml:space="preserve"><value>Could not determine how to launch {0}.</value></data>
   <data name="ExecutableNotFound" xml:space="preserve"><value>Executable not found: {0}</value></data>
   <data name="InvalidLaunchFormat" xml:space="preserve"><value>Invalid launch format.</value></data>
+  <data name="InvalidProtocolUrl" xml:space="preserve"><value>This launch URL is not a supported game protocol.</value></data>
   <data name="LauncherNotFound" xml:space="preserve"><value>Launcher not found: {0}</value></data>
   <data name="ProcessStartFailed" xml:space="preserve"><value>Could not start process for {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>Could not run legendary.</value></data>

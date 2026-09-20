@@ -53,11 +53,15 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
             if (!string.IsNullOrWhiteSpace(entry.InstallPath) && Directory.Exists(entry.InstallPath))
                 continue;
 
-            var protocolUrl = GogCatalogReader.BuildInstallProtocolUrl(entry.ReleaseKey);
+            var protocolUrl = ProtocolUri.TryGogOpenGameView(entry.ReleaseKey, out var builtUrl)
+                ? builtUrl
+                : null;
             var launchArgs = GogCatalogReader.BuildLaunchArguments(entry.GogId, install: true);
             var launchSpec = clientExe is not null
                 ? LaunchSpec.LauncherArgs(clientExe, launchArgs)
-                : LaunchSpec.Protocol(protocolUrl);
+                : protocolUrl is not null
+                    ? LaunchSpec.Protocol(protocolUrl)
+                    : LaunchSpec.None;
 
             var game = new UnifiedGame
             {
@@ -88,7 +92,8 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
             yield break;
 
         var releaseKey = TryGetReleaseKey(game.Id) ?? $"gog_{gogId}";
-        yield return () => ProtocolLauncher.Start(GogCatalogReader.BuildInstallProtocolUrl(releaseKey));
+        if (ProtocolUri.TryGogOpenGameView(releaseKey, out var protocolUrl))
+            yield return () => ProtocolLauncher.Start(protocolUrl);
 
         var clientExe = GogCatalogReader.FindGalaxyClientExecutable();
         if (clientExe is not null)
