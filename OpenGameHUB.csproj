@@ -36,6 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="third-party\legendary\manifest.json" />
+    <EmbeddedResource Include="third-party\legendary\manifest.json"
+                      LogicalName="OpenGameHUB.third-party.legendary.manifest.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.5" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.5" />
