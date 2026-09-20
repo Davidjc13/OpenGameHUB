@@ -47,21 +47,34 @@ internal static class ProtocolUri
         return true;
     }
 
-    public static bool TrySteamInstall(int appId, [NotNullWhen(true)] out string url)
-    {
-        url = string.Empty;
-        if (appId <= 0)
-            return false;
+    public static bool TrySteamInstall(int appId, [NotNullWhen(true)] out string url) =>
+        TrySteamAction(appId, "install", out url);
 
-        url = $"steam://install/{appId}";
-        return true;
-    }
+    public static bool TrySteamStore(int appId, [NotNullWhen(true)] out string url) =>
+        TrySteamAction(appId, "store", out url);
+
+    public static bool TrySteamUninstall(int appId, [NotNullWhen(true)] out string url) =>
+        TrySteamAction(appId, "uninstall", out url);
 
     public static bool TryEpicInstall(string? appName, [NotNullWhen(true)] out string url) =>
         TryEpicApp(appName, action: "install", silent: false, out url);
 
     public static bool TryEpicLaunch(string? appName, [NotNullWhen(true)] out string url) =>
         TryEpicApp(appName, action: "launch", silent: true, out url);
+
+    public static bool TryEpicUninstall(string? appName, [NotNullWhen(true)] out string url) =>
+        TryEpicApp(appName, action: "uninstall", silent: false, out url);
+
+    public static bool TryEpicStore(string? appName, [NotNullWhen(true)] out string url)
+    {
+        url = string.Empty;
+        appName = appName?.Trim();
+        if (!IsCatalogToken(appName))
+            return false;
+
+        url = $"com.epicgames.launcher://store/product/{appName}";
+        return true;
+    }
 
     public static bool TryEpicCatalogInstall(
         string? catalogNamespace,
@@ -101,6 +114,25 @@ internal static class ProtocolUri
             return false;
 
         return TryUplayInstall(parsed, out url);
+    }
+
+    public static bool TryUplayUninstall(uint uplayId, [NotNullWhen(true)] out string url)
+    {
+        url = string.Empty;
+        if (uplayId == 0)
+            return false;
+
+        url = $"uplay://uninstall/{uplayId}";
+        return true;
+    }
+
+    public static bool TryUplayUninstall(string? uplayId, [NotNullWhen(true)] out string url)
+    {
+        url = string.Empty;
+        if (!uint.TryParse(uplayId, out var parsed))
+            return false;
+
+        return TryUplayUninstall(parsed, out url);
     }
 
     public static bool TryGogOpenGameView(string? releaseKey, [NotNullWhen(true)] out string url)
@@ -196,6 +228,16 @@ internal static class ProtocolUri
     {
         if (!IsLaunchable(url))
             throw new InvalidOperationException(Loc.T("InvalidProtocolUrl"));
+    }
+
+    private static bool TrySteamAction(int appId, string action, [NotNullWhen(true)] out string url)
+    {
+        url = string.Empty;
+        if (appId <= 0)
+            return false;
+
+        url = $"steam://{action}/{appId}";
+        return true;
     }
 
     private static bool TryEpicApp(string? appName, string action, bool silent, [NotNullWhen(true)] out string url)

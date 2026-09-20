@@ -26,7 +26,9 @@
             [OpenGameHUB]OpenGameHUB.Providers.Steam.SteamLocalLibraryReader,
             [OpenGameHUB]OpenGameHUB.Providers.Rockstar.RockstarCoverUrls,
             [OpenGameHUB]OpenGameHUB.Providers.Xbox.XboxCatalogReader,
-            [OpenGameHUB]OpenGameHUB.Infrastructure.ProtocolUri
+            [OpenGameHUB]OpenGameHUB.Infrastructure.ProtocolUri,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameLibraryActions,
+            [OpenGameHUB]OpenGameHUB.Services.Games.CustomGameService
           </Include>
           <Threshold>70</Threshold>
           <ThresholdType>line</ThresholdType>

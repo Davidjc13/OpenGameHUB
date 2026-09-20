@@ -62,12 +62,25 @@
                        Text="{Binding InstallStatus}"
                        Classes="text-status"/>
 
-            <Button Grid.Row="3"
-                    Margin="12,10,12,12"
-                    Classes="primary"
-                    HorizontalAlignment="Stretch"
-                    Content="{Binding ActionLabel}"
-                    Click="OnPlayClick"/>
+            <Grid Grid.Row="3"
+                  ColumnDefinitions="*,Auto"
+                  Margin="12,10,12,12"
+                  ColumnSpacing="6">
+                <Button Grid.Column="0"
+                        Classes="primary"
+                        MinWidth="0"
+                        HorizontalAlignment="Stretch"
+                        Content="{Binding ActionLabel}"
+                        Click="OnPlayClick"/>
+                <Button Grid.Column="1"
+                        Classes="manage-icon"
+                        ToolTip.Tip="{Binding ManageGameLabel}"
+                        Click="OnManageClick">
+                    <PathIcon Width="16"
+                              Height="16"
+                              Data="{StaticResource GeometrySettings}"/>
+                </Button>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

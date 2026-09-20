@@ -35,6 +35,14 @@ public partial class GameListCard : UserControl
         e.Handled = true;
     }
 
+    private void OnManageClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is GameItemViewModel game && sender is Control host)
+            GameCardContextMenu.TryShow(host, game);
+
+        e.Handled = true;
+    }
+
     private void OnContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         if (DataContext is GameItemViewModel game)

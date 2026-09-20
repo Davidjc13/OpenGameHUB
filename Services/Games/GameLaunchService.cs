@@ -46,6 +46,24 @@ internal sealed class GameLaunchService
                 : string.Join(" | ", errors));
     }
 
+    public void Execute(LaunchSpec spec)
+    {
+        switch (spec.Kind)
+        {
+            case "executable":
+                StartExecutable(spec.Value, workingDirectory: null);
+                return;
+            case "launcher-args":
+                StartLauncherArgs(spec.Value, workingDirectory: null);
+                return;
+            case "protocol":
+                StartProtocol(spec.Value);
+                return;
+            default:
+                throw new InvalidOperationException(Loc.T("NoLaunchMethod"));
+        }
+    }
+
     private List<Action> BuildLaunchAttempts(UnifiedGame game)
     {
         var attempts = new List<Action>();

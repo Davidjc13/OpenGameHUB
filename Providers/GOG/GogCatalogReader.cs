@@ -160,6 +160,33 @@ internal static class GogCatalogReader
         return $"/command=runGame /gameId={gogId} /path=\"{installPath}\"";
     }
 
+    public static string BuildUninstallArguments(long gogId) =>
+        $"/command=uninstall /gameId={gogId}";
+
+    public static string? TryGetReleaseKey(UnifiedGame game)
+    {
+        var fromId = TryGetReleaseKeyFromGameId(game.Id);
+        if (!string.IsNullOrWhiteSpace(fromId))
+            return fromId;
+
+        return long.TryParse(game.PlatformGameId, out var gogId) && gogId > 0
+            ? $"gog_{gogId}"
+            : null;
+    }
+
+    public static string? TryGetReleaseKeyFromGameId(string? id)
+    {
+        const string prefix = "gog:catalog:";
+        if (string.IsNullOrWhiteSpace(id) || !id.StartsWith(prefix, StringComparison.Ordinal))
+            return null;
+
+        var payload = id[prefix.Length..];
+        var separator = payload.IndexOf('@');
+        return separator >= 0 && separator < payload.Length - 1
+            ? payload[(separator + 1)..]
+            : null;
+    }
+
     private static List<GogCatalogEntry> QueryEntries(
         string databasePath,
         string sql,

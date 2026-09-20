@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using OpenGameHUB.Controls;
 using OpenGameHUB.ViewModels;
 
 namespace OpenGameHUB.Views;
@@ -105,6 +106,17 @@ public partial class MainWindow : Window
         }
 
         return null;
+    }
+
+    private void OnManageGameClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm
+            || vm.Library.SelectedGame is null
+            || sender is not Control host)
+            return;
+
+        GameCardContextMenu.TryShow(host, vm.Library.SelectedGame);
+        e.Handled = true;
     }
 
     private async void OnInstallAppUpdateClick(object? sender, RoutedEventArgs e)

@@ -47,12 +47,23 @@
                            Classes="text-status"/>
             </StackPanel>
 
-            <Button Grid.Column="2"
-                    Classes="primary"
-                    MinWidth="88"
-                    VerticalAlignment="Center"
-                    Content="{Binding ActionLabel}"
-                    Click="OnPlayClick"/>
+            <StackPanel Grid.Column="2"
+                        Orientation="Horizontal"
+                        Spacing="6"
+                        VerticalAlignment="Center">
+                <Button Classes="primary"
+                        MinWidth="88"
+                        Content="{Binding ActionLabel}"
+                        Click="OnPlayClick"/>
+                <Button Classes="manage-icon"
+                        MinHeight="36"
+                        ToolTip.Tip="{Binding ManageGameLabel}"
+                        Click="OnManageClick">
+                    <PathIcon Width="16"
+                              Height="16"
+                              Data="{StaticResource GeometrySettings}"/>
+                </Button>
+            </StackPanel>
         </Grid>
     </Border>
 </UserControl>
