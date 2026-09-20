@@ -81,13 +81,17 @@ internal static class GameLibraryMerger
             return installPath;
 
         if (game.Id.StartsWith("ea:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("ea:path:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("ubisoft:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("gog:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("gog:path:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("steam:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:legendary:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("epic:manifest:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("rockstar:catalog:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("gamepass:path:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("rockstar:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("riot:catalog:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }
@@ -95,12 +99,15 @@ internal static class GameLibraryMerger
         return MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant();
     }
 
-    private static UnifiedGame PickPreferredDuplicate(IEnumerable<UnifiedGame> group) =>
+    internal static UnifiedGame PickPreferred(IEnumerable<UnifiedGame> group) =>
         group
             .OrderByDescending(g => g.IsInstalled)
             .ThenByDescending(g => GetPlatformPriority(g.Platform))
             .ThenBy(g => g.Id, StringComparer.Ordinal)
             .First();
+
+    private static UnifiedGame PickPreferredDuplicate(IEnumerable<UnifiedGame> group) =>
+        PickPreferred(group);
 
     private static int GetPlatformPriority(Platform platform) => platform switch
     {

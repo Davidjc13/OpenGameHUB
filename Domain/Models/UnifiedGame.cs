@@ -16,5 +16,7 @@ public sealed class UnifiedGame
     public DateTime? LastPlayed { get; set; }
     public bool IsFavorite { get; set; }
     public required LaunchSpec LaunchSpec { get; init; }
+    public IReadOnlyList<UnifiedGame> AlternateListings { get; init; } = [];
     public string PlatformLabel => PlatformLabels.Get(Platform);
+    public bool HasAlternateListings => AlternateListings.Count > 0;
 }

@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:OpenGameHUB.ViewModels"
+             x:Name="RootCard"
              xmlns:conv="using:OpenGameHUB.Converters"
              x:Class="OpenGameHUB.Controls.GameGridCard"
              x:DataType="vm:GameItemViewModel"
@@ -18,7 +19,7 @@
         <Grid RowDefinitions="*,Auto,Auto,Auto">
             <Border Grid.Row="0"
                     Classes="game-cover-area"
-                    MinHeight="120">
+                    MinHeight="{Binding CoverHeight, ElementName=RootCard}">
                 <Panel>
                     <Panel IsVisible="{Binding DisplayGridCover}">
                         <Image Source="{Binding CoverImage}"
@@ -45,11 +46,18 @@
             </Border>
 
             <StackPanel Grid.Row="1" Margin="12,10,12,0" Spacing="4">
-                <Border Classes="platform-badge"
-                        Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
-                    <TextBlock Text="{Binding PlatformLabel}"
-                               Classes="badge-label"/>
-                </Border>
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Classes="platform-badge"
+                            Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
+                        <TextBlock Text="{Binding PlatformLabel}"
+                                   Classes="badge-label"/>
+                    </Border>
+                    <Border Classes="platform-badge also-on-badge"
+                            IsVisible="{Binding HasAlsoOnBadge}">
+                        <TextBlock Text="{Binding AlsoOnLabel}"
+                                   Classes="badge-label"/>
+                    </Border>
+                </StackPanel>
                 <TextBlock Text="{Binding Title}"
                            Classes="card-title"
                            TextWrapping="Wrap"

@@ -383,6 +383,7 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Se canceló el inicio de sesión de Steam.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Credenciales de Steam capturadas. Probando conexión...</value></data>
   <data name="AddCustomGame" xml:space="preserve"><value>Añadir juego personalizado</value></data>
+  <data name="AddCustomGameShort" xml:space="preserve"><value>Añadir juego</value></data>
   <data name="AddCustomGameTitle" xml:space="preserve"><value>Añadir juego personalizado</value></data>
   <data name="AddCustomGamePrompt" xml:space="preserve"><value>Selecciona un programa instalado o busca un archivo ejecutable.</value></data>
   <data name="AddCustomGameSearchPlaceholder" xml:space="preserve"><value>Buscar programas instalados...</value></data>
@@ -398,6 +399,9 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="CustomGameAdded" xml:space="preserve"><value>{0} se añadió a tu biblioteca.</value></data>
   <data name="Accept" xml:space="preserve"><value>Aceptar</value></data>
   <data name="ManageGame" xml:space="preserve"><value>Gestionar partida</value></data>
+  <data name="GridCardSize" xml:space="preserve"><value>Tamaño tarjetas</value></data>
+  <data name="ChooseInstallStoreTitle" xml:space="preserve"><value>Elegir tienda</value></data>
+  <data name="ChooseInstallStoreMessage" xml:space="preserve"><value>¿Desde qué tienda quieres instalar {0}?</value></data>
   <data name="OpenInstallFolder" xml:space="preserve"><value>Abrir carpeta de instalación</value></data>
   <data name="ViewInStore" xml:space="preserve"><value>Ver en la tienda</value></data>
   <data name="UninstallGame" xml:space="preserve"><value>Desinstalar</value></data>
