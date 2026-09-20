@@ -2,6 +2,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Infrastructure.Security;
 using OpenGameHUB.Services.Updates;
 
 namespace OpenGameHUB.ViewModels;
@@ -155,6 +156,19 @@ public partial class MainWindowUpdatesViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             // optional
+        }
+        catch (IntegrityVerificationException ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowUpdatesViewModel),
+                operation: "InstallUpdateAsync",
+                exception: ex,
+                details: _pendingAppUpdate?.TagName);
+            _setStatusText(ex.Message);
+            IsAppUpdateInstalling = false;
+            AppUpdateProgress = 0;
+            InstallUpdateCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(CanInstallAppUpdate));
         }
         catch (Exception ex)
         {

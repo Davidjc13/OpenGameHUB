@@ -6,8 +6,6 @@ namespace OpenGameHUB.Providers.Epic;
 
 internal static class LegendaryBootstrap
 {
-    private const string DownloadUrl = "https://github.com/derrod/legendary/releases/latest/download/legendary.exe";
-
     private static readonly HttpClient HttpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(90)
@@ -32,9 +30,15 @@ internal static class LegendaryBootstrap
     public static bool IsManagedOrBundledAvailable() =>
         File.Exists(ManagedExecutablePath) || BundledExecutablePath is not null;
 
-    public static async Task<bool> EnsureInstalledAsync(
+    public static Task<bool> EnsureInstalledAsync(
         IProgress<string>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        EnsureInstalledAsync(HttpClient, progress, cancellationToken);
+
+    internal static async Task<bool> EnsureInstalledAsync(
+        HttpClient http,
+        IProgress<string>? progress,
+        CancellationToken cancellationToken)
     {
         if (IsManagedOrBundledAvailable())
             return true;
@@ -44,24 +48,23 @@ internal static class LegendaryBootstrap
         try
         {
             Directory.CreateDirectory(ToolsDirectory);
+            var tempPath = ManagedExecutablePath + ".download";
+            TryDeleteIfExists(tempPath);
 
-            using var response = await HttpClient.GetAsync(
-                DownloadUrl,
+            var manifest = LegendaryManifest.Current;
+            using var response = await http.GetAsync(
+                manifest.DownloadUrl,
                 HttpCompletionOption.ResponseHeadersRead,
                 cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            await using var remote = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var tempPath = ManagedExecutablePath + ".download";
+            await using (var remote = await response.Content.ReadAsStreamAsync(cancellationToken))
             await using (var local = File.Create(tempPath))
             {
                 await remote.CopyToAsync(local, cancellationToken);
             }
 
-            if (File.Exists(ManagedExecutablePath))
-                File.Delete(ManagedExecutablePath);
-
-            File.Move(tempPath, ManagedExecutablePath);
+            PromoteVerifiedDownload(tempPath, ManagedExecutablePath, manifest);
             LegendaryClient.InvalidateExecutableCache();
             return true;
         }
@@ -76,6 +79,23 @@ internal static class LegendaryBootstrap
             TryDeleteIfExists(ManagedExecutablePath + ".download");
             return false;
         }
+    }
+
+    internal static void PromoteVerifiedDownload(
+        string tempPath,
+        string destinationPath,
+        LegendaryManifest manifest)
+    {
+        manifest.VerifyFile(tempPath);
+
+        var directory = Path.GetDirectoryName(destinationPath);
+        if (!string.IsNullOrWhiteSpace(directory))
+            Directory.CreateDirectory(directory);
+
+        if (File.Exists(destinationPath))
+            File.Delete(destinationPath);
+
+        File.Move(tempPath, destinationPath);
     }
 
     private static void TryDeleteIfExists(string path)

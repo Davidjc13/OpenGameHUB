@@ -58,7 +58,7 @@ Run before pushing — CI executes the same suite on every push and pull request
 
 | Area | Tests |
 |------|-------|
-| `ReleaseVersionComparer` / `AppUpdateService.IsNewer` | Alpha/beta/stable ordering, `0.0.10` vs `0.0.9-1` |
+| `ReleaseVersionComparer` / `AppUpdateService` | Version ordering, installer checksum sidecar mapping and SHA-256 verify |
 | `GameLibraryMerger` / `GameSearchHelper` / `GameEntryFilter` | Merge, search, junk filtering |
 | `MetadataSearchHelper` / `CoverPathHelper` / `SafeImageValidator` | Covers and image validation |
 | `EaLogCatalogReader` / `SteamLocalLibraryReader` | Log and VDF parsers |
@@ -99,4 +99,4 @@ Integration tests against real launchers belong in `tools/Diag` or `tools/Launch
 5. On **pull requests**, post/update a sticky comment with `Summary.txt`
 6. Upload `coverage-report` artifact (HTML + Cobertura)
 
-**Publish** (`needs: ci`, tags only) — installer + GitHub Release.
+**Publish** (`needs: ci`, tags only) — installer, optional Authenticode signature, SHA-256 sidecar, GitHub Release.

@@ -74,7 +74,7 @@ This code would not compile/run on Linux without a full replacement.
 - Output: `dist/OpenGameHUB-Setup-{version}.exe`
 - Per-user install (`PrivilegesRequired=lowest`)
 
-Build script: `build-installer.ps1` (PowerShell + `dotnet publish` + ISCC).
+Build script: `build-installer.ps1` (PowerShell + `dotnet publish` + optional Authenticode + ISCC + `scripts/write-installer-checksum.ps1`).
 
 ## legendary on Windows
 

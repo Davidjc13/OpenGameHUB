@@ -35,9 +35,11 @@ Search order (`LegendaryClient.FindExecutable`):
 4. `where legendary` on PATH
 5. Known paths (pip, pipx, `.local/bin`, etc.)
 
-If missing, `LegendaryBootstrap.EnsureInstalledAsync` downloads from:
+If missing, `LegendaryBootstrap.EnsureInstalledAsync` downloads the **pinned** Windows build from `third-party/legendary/manifest.json` (currently legendary 0.21.1). The file is written to a `.download` path, then `LegendaryManifest.VerifyFile` checks size and SHA-256 against the embedded hash **before** moving it to `%LocalAppData%\OpenGameHUB\tools\legendary.exe`. A mismatch aborts the install and leaves the managed path unused.
 
-`https://github.com/derrod/legendary/releases/latest/download/legendary.exe`
+`scripts/fetch-legendary.ps1` uses the same pinned URL and hash when bundling `legendary.exe` into the installer.
+
+To bump legendary, update `third-party/legendary/manifest.json` (`version`, `downloadUrl`, `sha256`, `sizeBytes`) after verifying the upstream release.
 
 **Why bundled .exe:** Windows users without Python can use the app without installing legendary manually.
 

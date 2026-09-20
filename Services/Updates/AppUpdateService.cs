@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using OpenGameHUB.Infrastructure.Security;
 
 namespace OpenGameHUB.Services.Updates;
 
@@ -10,13 +11,15 @@ public sealed record AppReleaseInfo(
     string HtmlUrl,
     string DownloadUrl,
     string AssetName,
-    long AssetSizeBytes);
+    long AssetSizeBytes,
+    string? ChecksumDownloadUrl);
 
 public static class AppUpdateService
 {
     private const string Repository = "Davidjc13/OpenGameHUB";
     private const string ReleasesApiUrl = $"https://api.github.com/repos/{Repository}/releases?per_page=30";
     private const string InstallerAssetPrefix = "OpenGameHUB-Setup-";
+    private const string ChecksumAssetSuffix = ".sha256";
 
     public static readonly TimeSpan BackgroundCheckInterval = TimeSpan.FromHours(2);
 
@@ -62,7 +65,7 @@ public static class AppUpdateService
         return best;
     }
 
-    private static AppReleaseInfo? TryMapRelease(GitHubRelease release)
+    internal static AppReleaseInfo? TryMapRelease(GitHubRelease release)
     {
         if (string.IsNullOrWhiteSpace(release.TagName))
             return null;
@@ -76,12 +79,19 @@ public static class AppUpdateService
         if (asset is null)
             return null;
 
+        var checksumName = asset.Name + ChecksumAssetSuffix;
+        var checksumAsset = release.Assets?
+            .FirstOrDefault(a =>
+                string.Equals(a.Name, checksumName, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(a.BrowserDownloadUrl));
+
         return new AppReleaseInfo(
             release.TagName.Trim(),
             release.HtmlUrl ?? $"https://github.com/{Repository}/releases/tag/{release.TagName}",
             asset.BrowserDownloadUrl!,
             asset.Name,
-            asset.Size);
+            asset.Size,
+            checksumAsset?.BrowserDownloadUrl);
     }
 
     public static bool IsNewer(string latestTag, string currentVersion)
@@ -95,11 +105,21 @@ public static class AppUpdateService
         return ReleaseVersionComparer.Compare(latestTag, currentVersion) > 0;
     }
 
-    public static async Task<string> DownloadInstallerAsync(
+    public static Task<string> DownloadInstallerAsync(
         AppReleaseInfo release,
         IProgress<double>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        DownloadInstallerAsync(Http, release, progress, cancellationToken);
+
+    internal static async Task<string> DownloadInstallerAsync(
+        HttpClient http,
+        AppReleaseInfo release,
+        IProgress<double>? progress,
+        CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(release.ChecksumDownloadUrl))
+            throw new InvalidOperationException(Loc.T("AppUpdateChecksumMissing"));
+
         var directory = Path.Combine(
             Path.GetTempPath(),
             "OpenGameHUB",
@@ -120,7 +140,7 @@ public static class AppUpdateService
             }
         }
 
-        using var response = await Http.GetAsync(
+        using var response = await http.GetAsync(
             release.DownloadUrl,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken);
@@ -129,23 +149,51 @@ public static class AppUpdateService
 
         var totalBytes = response.Content.Headers.ContentLength ?? release.AssetSizeBytes;
         await using var input = await response.Content.ReadAsStreamAsync(cancellationToken);
-        await using var output = File.Create(targetPath);
-
-        var buffer = new byte[81920];
-        long downloaded = 0;
-        int read;
-
-        while ((read = await input.ReadAsync(buffer, cancellationToken)) > 0)
+        await using (var output = File.Create(targetPath))
         {
-            await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
-            downloaded += read;
+            var buffer = new byte[81920];
+            long downloaded = 0;
+            int read;
 
-            if (totalBytes > 0)
-                progress?.Report(Math.Clamp(downloaded / (double)totalBytes * 100d, 0d, 100d));
+            while ((read = await input.ReadAsync(buffer, cancellationToken)) > 0)
+            {
+                await output.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+                downloaded += read;
+
+                if (totalBytes > 0)
+                    progress?.Report(Math.Clamp(downloaded / (double)totalBytes * 100d, 0d, 99d));
+            }
+        }
+
+        try
+        {
+            var checksumContent = await DownloadChecksumSidecarAsync(
+                http,
+                release.ChecksumDownloadUrl,
+                cancellationToken);
+            VerifyInstallerChecksum(targetPath, checksumContent);
+        }
+        catch
+        {
+            TryDeleteIfExists(targetPath);
+            throw;
         }
 
         progress?.Report(100d);
         return targetPath;
+    }
+
+    internal static void VerifyInstallerChecksum(string installerPath, string checksumContent)
+    {
+        try
+        {
+            var expected = FileIntegrityVerifier.ParseSha256Sidecar(checksumContent);
+            FileIntegrityVerifier.VerifySha256(installerPath, expected);
+        }
+        catch (IntegrityVerificationException ex)
+        {
+            throw new IntegrityVerificationException(Loc.T("AppUpdateIntegrityFailed"), ex);
+        }
     }
 
     public static async Task DownloadAndInstallAsync(
@@ -221,6 +269,35 @@ public static class AppUpdateService
         return helperPath;
     }
 
+    private static async Task<string> DownloadChecksumSidecarAsync(
+        HttpClient http,
+        string checksumUrl,
+        CancellationToken cancellationToken)
+    {
+        using var response = await http.GetAsync(checksumUrl, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException(Loc.T("AppUpdateChecksumMissing"));
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(content))
+            throw new IntegrityVerificationException(Loc.T("AppUpdateChecksumMissing"));
+
+        return content;
+    }
+
+    private static void TryDeleteIfExists(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // optional cleanup
+        }
+    }
+
     private static string ResolveCurrentVersion()
     {
         var assembly = Assembly.GetExecutingAssembly();
@@ -248,7 +325,7 @@ public static class AppUpdateService
         return client;
     }
 
-    private sealed class GitHubRelease
+    internal sealed class GitHubRelease
     {
         [JsonPropertyName("tag_name")]
         public string TagName { get; set; } = string.Empty;
@@ -263,7 +340,7 @@ public static class AppUpdateService
         public List<GitHubAsset>? Assets { get; set; }
     }
 
-    private sealed class GitHubAsset
+    internal sealed class GitHubAsset
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;

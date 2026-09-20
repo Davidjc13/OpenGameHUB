@@ -308,6 +308,12 @@
   <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Hay una actualización disponible: {0}.</value></data>
   <data name="AppUpdateInstallNow" xml:space="preserve"><value>Instalar actualización</value></data>
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Más tarde</value></data>
+  <data name="AppUpdateChecksumMissing" xml:space="preserve"><value>No se pudo verificar la actualización porque falta el checksum SHA-256 en la release.</value></data>
+  <data name="AppUpdateIntegrityFailed" xml:space="preserve"><value>El instalador descargado no superó la verificación de integridad. Se canceló la actualización.</value></data>
+  <data name="IntegritySha256Mismatch" xml:space="preserve"><value>La comprobación de integridad de {0} falló: el SHA-256 no coincide.</value></data>
+  <data name="IntegritySizeMismatch" xml:space="preserve"><value>La comprobación de integridad de {0} falló: tamaño {1} bytes, se esperaban {2}.</value></data>
+  <data name="IntegrityChecksumEmpty" xml:space="preserve"><value>El archivo de checksum está vacío.</value></data>
+  <data name="IntegrityChecksumInvalid" xml:space="preserve"><value>El archivo de checksum no es un hash SHA-256 válido.</value></data>
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnóstico</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>Si OpenGameHUB falla, comparte el archivo de log con soporte. Los logs se guardan en: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir carpeta de logs</value></data>

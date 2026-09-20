@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Infrastructure.Security;
 using OpenGameHUB.Services.Updates;
 
 namespace OpenGameHUB.ViewModels;
@@ -124,6 +125,15 @@ public partial class SettingsUpdatesViewModel : ViewModelBase
         catch (OperationCanceledException)
         {
             // optional
+        }
+        catch (IntegrityVerificationException ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsUpdatesViewModel),
+                operation: "InstallUpdateAsync",
+                exception: ex,
+                details: _pendingRelease?.TagName);
+            _setStatusMessage(ex.Message);
         }
         catch (Exception ex)
         {

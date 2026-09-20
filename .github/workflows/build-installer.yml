@@ -118,6 +118,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -128,11 +129,17 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
       - name: Resolve version
         id: version
+        env:
+          GITHUB_REF_NAME_INPUT: ${{ github.ref_name }}
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
+          $version = $env:GITHUB_REF_NAME_INPUT
           $valid = $version -match '^(alpha-|beta-)' -or $version -match '^\d+\.\d+\.\d+$'
           if (-not $valid) {
             Write-Error "Tag '$version' does not match alpha-*, beta-*, or xx.yy.zz"
@@ -142,20 +149,119 @@ jobs:
           $prerelease = $version -match '^(alpha-|beta-)'
           "prerelease=$prerelease" >> $env:GITHUB_OUTPUT
 
-      - name: Build installer
+      - name: Detect code signing
+        id: signing
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_TRUSTED_SIGNING_ACCOUNT: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT }}
+          AZURE_TRUSTED_SIGNING_ENDPOINT: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_TRUSTED_SIGNING_PROFILE: ${{ secrets.AZURE_TRUSTED_SIGNING_PROFILE }}
+          AUTHENTICODE_PFX_BASE64: ${{ secrets.AUTHENTICODE_PFX_BASE64 }}
         shell: pwsh
-        run: .\build-installer.ps1 -AppVersion "${{ steps.version.outputs.version }}" -SkipWingetInstall
+        run: |
+          $azure = -not [string]::IsNullOrWhiteSpace($env:AZURE_CLIENT_ID) `
+            -and -not [string]::IsNullOrWhiteSpace($env:AZURE_TENANT_ID) `
+            -and -not [string]::IsNullOrWhiteSpace($env:AZURE_SUBSCRIPTION_ID) `
+            -and -not [string]::IsNullOrWhiteSpace($env:AZURE_TRUSTED_SIGNING_ACCOUNT) `
+            -and -not [string]::IsNullOrWhiteSpace($env:AZURE_TRUSTED_SIGNING_ENDPOINT) `
+            -and -not [string]::IsNullOrWhiteSpace($env:AZURE_TRUSTED_SIGNING_PROFILE)
+          $pfx = -not [string]::IsNullOrWhiteSpace($env:AUTHENTICODE_PFX_BASE64)
+          "azure=$azure" >> $env:GITHUB_OUTPUT
+          "pfx=$pfx" >> $env:GITHUB_OUTPUT
+          if ($azure) {
+            Write-Host "Code signing: Azure Trusted Signing"
+          } elseif ($pfx) {
+            Write-Host "Code signing: Authenticode PFX"
+          } else {
+            Write-Host "Code signing: not configured; installer will be unsigned"
+          }
+
+      - name: Publish application
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+        shell: pwsh
+        run: .\build-installer.ps1 -AppVersion $env:APP_VERSION -SkipWingetInstall -SkipSign -Stage Publish
+
+      - name: Azure login
+        if: steps.signing.outputs.azure == 'True'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign OpenGameHUB.exe (Azure Trusted Signing)
+        if: steps.signing.outputs.azure == 'True'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\publish\win-x64-release\OpenGameHUB.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Sign OpenGameHUB.exe (PFX)
+        if: steps.signing.outputs.azure != 'True' && steps.signing.outputs.pfx == 'True'
+        env:
+          AUTHENTICODE_PFX_BASE64: ${{ secrets.AUTHENTICODE_PFX_BASE64 }}
+          AUTHENTICODE_PFX_PASSWORD: ${{ secrets.AUTHENTICODE_PFX_PASSWORD }}
+        shell: pwsh
+        run: .\scripts\sign-authenticode.ps1 -Required -Files "$pwd\publish\win-x64-release\OpenGameHUB.exe"
+
+      - name: Build installer
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+        shell: pwsh
+        run: .\build-installer.ps1 -AppVersion $env:APP_VERSION -SkipWingetInstall -SkipSign -Stage Inno
+
+      - name: Sign installer (Azure Trusted Signing)
+        if: steps.signing.outputs.azure == 'True'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: ${{ secrets.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ secrets.AZURE_TRUSTED_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ secrets.AZURE_TRUSTED_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\dist
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Sign installer (PFX)
+        if: steps.signing.outputs.azure != 'True' && steps.signing.outputs.pfx == 'True'
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+          AUTHENTICODE_PFX_BASE64: ${{ secrets.AUTHENTICODE_PFX_BASE64 }}
+          AUTHENTICODE_PFX_PASSWORD: ${{ secrets.AUTHENTICODE_PFX_PASSWORD }}
+        shell: pwsh
+        run: |
+          $setup = Join-Path $pwd "dist\OpenGameHUB-Setup-$env:APP_VERSION.exe"
+          .\scripts\sign-authenticode.ps1 -Required -Files $setup
+
+      - name: Write installer checksum
+        env:
+          APP_VERSION: ${{ steps.version.outputs.version }}
+        shell: pwsh
+        run: .\build-installer.ps1 -AppVersion $env:APP_VERSION -SkipWingetInstall -SkipSign -Stage Checksum
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: OpenGameHUB-Setup-${{ steps.version.outputs.version }}
-          path: dist/OpenGameHUB-Setup-*.exe
+          path: |
+            dist/OpenGameHUB-Setup-*.exe
+            dist/OpenGameHUB-Setup-*.exe.sha256
           if-no-files-found: error
 
       - name: Attach installer to release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/OpenGameHUB-Setup-*.exe
+          files: |
+            dist/OpenGameHUB-Setup-*.exe
+            dist/OpenGameHUB-Setup-*.exe.sha256
           fail_on_unmatched_files: true
           prerelease: ${{ steps.version.outputs.prerelease == 'True' }}

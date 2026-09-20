@@ -308,6 +308,12 @@
   <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Update {0} is available.</value></data>
   <data name="AppUpdateInstallNow" xml:space="preserve"><value>Install update</value></data>
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Later</value></data>
+  <data name="AppUpdateChecksumMissing" xml:space="preserve"><value>Could not verify the update because the SHA-256 checksum is missing from the release.</value></data>
+  <data name="AppUpdateIntegrityFailed" xml:space="preserve"><value>The downloaded installer failed integrity verification. The update was cancelled.</value></data>
+  <data name="IntegritySha256Mismatch" xml:space="preserve"><value>Integrity check failed for {0}: SHA-256 does not match the expected value.</value></data>
+  <data name="IntegritySizeMismatch" xml:space="preserve"><value>Integrity check failed for {0}: size {1} bytes, expected {2}.</value></data>
+  <data name="IntegrityChecksumEmpty" xml:space="preserve"><value>The checksum file is empty.</value></data>
+  <data name="IntegrityChecksumInvalid" xml:space="preserve"><value>The checksum file is not a valid SHA-256 hash.</value></data>
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>If OpenGameHUB misbehaves, share the log file with support. Logs are stored at: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>

@@ -60,7 +60,7 @@ The installer:
 - Includes the Spanish language pack (`es/`)
 - Shows the GPL-3.0 license during setup
 
-Upload `dist/OpenGameHUB-Setup-1.0.0.exe` to your releases repo for distribution.
+Upload `dist/OpenGameHUB-Setup-1.0.0.exe` and `dist/OpenGameHUB-Setup-1.0.0.exe.sha256` to your releases repo for distribution. GitHub tag builds attach both files automatically.
 
 ## Configuration
 
