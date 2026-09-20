@@ -55,6 +55,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         Games = new ObservableCollection<GameItemViewModel>();
         CoverQualityMode = _library.Settings.Current.CoverQualityMode;
         IsListView = _library.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(_library.Settings.Current.GridCardSize);
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
@@ -81,9 +82,24 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     private int _gridRows = 3;
 
     [ObservableProperty]
+    private double _gridCardWidth = LibraryGridMetrics.PreferredCardWidth;
+
+    [ObservableProperty]
+    private double _gridCoverHeight = LibraryGridMetrics.PreferredCardWidth * LibraryGridMetrics.CoverAspect;
+
+    [ObservableProperty]
+    private double _gridCardSize = LibraryGridMetrics.DefaultPreferredCardWidth;
+
+    [ObservableProperty]
     private int _currentPage = 1;
 
     public bool IsGridView => !IsListView;
+
+    public double GridCardSizeMinimum => LibraryGridMetrics.MinPreferredCardWidth;
+
+    public double GridCardSizeMaximum => LibraryGridMetrics.MaxPreferredCardWidth;
+
+    public string GridCardSizeLabel => Loc.T("GridCardSize");
 
     public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
 
@@ -159,7 +175,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var previousQuality = CoverQualityMode;
         CoverQualityMode = _library.Settings.Current.CoverQualityMode;
         IsListView = _library.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(_library.Settings.Current.GridCardSize);
         OnPropertyChanged(nameof(ShowDetailCover));
+        OnPropertyChanged(nameof(GridCardSizeLabel));
         if (releaseCoversOnQualityChange && previousQuality != CoverQualityMode)
             ReleaseAllGameCovers();
         OnPropertyChanged(nameof(IsGridView));
@@ -190,27 +208,27 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (width < 10 || height < 10)
             return;
 
-        var newPageSize = IsListView
-            ? LibraryGridMetrics.ListPageSizeFromHeight(height)
-            : LibraryGridMetrics.Calculate(width, height).PageSize;
-
-        if (!IsListView)
+        if (IsListView)
         {
-            var metrics = LibraryGridMetrics.Calculate(width, height);
-            GridColumns = metrics.Columns;
-            GridRows = metrics.Rows;
+            ApplyListPageSize(height);
+            return;
         }
 
-        if (newPageSize == _effectivePageSize)
+        ApplyGridLayout(width, height);
+    }
+
+    partial void OnGridCardSizeChanged(double value)
+    {
+        var clamped = LibraryGridMetrics.ClampPreferredCardWidth(value);
+        if (Math.Abs(clamped - value) > 0.01)
+        {
+            GridCardSize = clamped;
             return;
+        }
 
-        _effectivePageSize = newPageSize;
-        NotifyPaginationChanged();
-
-        if (CurrentPage > TotalPages)
-            CurrentPage = TotalPages;
-
-        ApplyCurrentPage();
+        PersistGridCardSize();
+        if (_libraryViewportWidth >= 10 && _libraryViewportHeight >= 10)
+            ApplyGridLayout(_libraryViewportWidth, _libraryViewportHeight);
     }
 
     partial void OnCurrentPageChanged(int value)
@@ -881,6 +899,53 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var updated = current.Clone();
         updated.LibraryViewMode = mode;
         _library.Settings.Save(updated);
+    }
+
+    private void PersistGridCardSize()
+    {
+        var current = _library.Settings.Current;
+        if (Math.Abs(current.GridCardSize - GridCardSize) < 0.5)
+            return;
+
+        var updated = current.Clone();
+        updated.GridCardSize = GridCardSize;
+        _library.Settings.Save(updated);
+    }
+
+    private void ApplyListPageSize(double viewportHeight)
+    {
+        var newPageSize = LibraryGridMetrics.ListPageSizeFromHeight(viewportHeight);
+        if (newPageSize == _effectivePageSize)
+            return;
+
+        _effectivePageSize = newPageSize;
+        NotifyPaginationChanged();
+
+        if (CurrentPage > TotalPages)
+            CurrentPage = TotalPages;
+
+        ApplyCurrentPage();
+    }
+
+    private void ApplyGridLayout(double viewportWidth, double viewportHeight)
+    {
+        var metrics = LibraryGridMetrics.Calculate(viewportWidth, viewportHeight, GridCardSize);
+        GridColumns = metrics.Columns;
+        GridRows = metrics.Rows;
+        GridCardWidth = metrics.CardWidth;
+        GridCoverHeight = metrics.CoverHeight;
+
+        var pageSizeChanged = metrics.PageSize != _effectivePageSize;
+        if (pageSizeChanged)
+        {
+            _effectivePageSize = metrics.PageSize;
+            NotifyPaginationChanged();
+
+            if (CurrentPage > TotalPages)
+                CurrentPage = TotalPages;
+        }
+
+        ApplyCurrentPage();
     }
 
     private void NotifyPaginationChanged()

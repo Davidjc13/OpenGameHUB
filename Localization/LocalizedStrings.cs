@@ -127,6 +127,7 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string Save => Loc.T("Save");
     public string Accept => Loc.T("Accept");
     public string AddCustomGame => Loc.T("AddCustomGame");
+    public string AddCustomGameShort => Loc.T("AddCustomGameShort");
     public string AddCustomGameTitle => Loc.T("AddCustomGameTitle");
     public string AddCustomGamePrompt => Loc.T("AddCustomGamePrompt");
     public string AddCustomGameSearchPlaceholder => Loc.T("AddCustomGameSearchPlaceholder");

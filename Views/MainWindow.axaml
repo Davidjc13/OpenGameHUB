@@ -166,9 +166,29 @@
                                        Margin="0,0,12,0"/>
                             <StackPanel Grid.Column="1"
                                         Orientation="Horizontal"
-                                        Spacing="8">
-                                <Button Classes="sidebar-icon"
-                                        Content="+"
+                                        Spacing="8"
+                                        VerticalAlignment="Center">
+                                <Button Classes="manage-icon"
+                                        IsVisible="{Binding Library.IsGridView}"
+                                        ToolTip.Tip="{Binding Library.GridCardSizeLabel}">
+                                    <PathIcon Width="16"
+                                              Height="16"
+                                              Data="{StaticResource GeometryResize}"/>
+                                    <Button.Flyout>
+                                        <Flyout Placement="Bottom">
+                                            <StackPanel Spacing="10"
+                                                        Margin="14,10"
+                                                        MinWidth="220">
+                                                <TextBlock Text="{Binding Library.GridCardSizeLabel}"
+                                                           Classes="text-secondary"/>
+                                                <Slider Minimum="{Binding Library.GridCardSizeMinimum}"
+                                                        Maximum="{Binding Library.GridCardSizeMaximum}"
+                                                        Value="{Binding Library.GridCardSize}"/>
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                                <Button Content="{Binding Strings.AddCustomGameShort}"
                                         ToolTip.Tip="{Binding Strings.AddCustomGame}"
                                         Command="{Binding Sidebar.AddCustomGameCommand}"/>
                                 <Button Content="{Binding Strings.ViewGrid}"
@@ -185,13 +205,14 @@
                                       HorizontalScrollBarVisibility="Disabled"
                                       VerticalScrollBarVisibility="Auto"
                                       SizeChanged="OnGamesViewportSizeChanged">
-                            <Panel>
+                            <Grid MinWidth="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
                                 <ItemsControl ItemsSource="{Binding Library.Games}"
-                                              IsVisible="{Binding !Library.IsListView}">
+                                              IsVisible="{Binding !Library.IsListView}"
+                                              HorizontalAlignment="Stretch"
+                                              Width="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <primitives:UniformGrid Columns="{Binding Library.GridColumns}"
-                                                                    Rows="{Binding Library.GridRows}"/>
+                                            <controls:CenteredWrapPanel/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
@@ -214,7 +235,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                            </Panel>
+                            </Grid>
                         </ScrollViewer>
 
                         <Border Grid.Row="2"

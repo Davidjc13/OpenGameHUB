@@ -383,6 +383,7 @@ You can share this log file when reporting the issue.</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
   <data name="AddCustomGame" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGameShort" xml:space="preserve"><value>Add game</value></data>
   <data name="AddCustomGameTitle" xml:space="preserve"><value>Add custom game</value></data>
   <data name="AddCustomGamePrompt" xml:space="preserve"><value>Select an installed program or browse for an executable file.</value></data>
   <data name="AddCustomGameSearchPlaceholder" xml:space="preserve"><value>Search installed programs...</value></data>
@@ -398,6 +399,7 @@ You can share this log file when reporting the issue.</value></data>
   <data name="CustomGameAdded" xml:space="preserve"><value>Added {0} to your library.</value></data>
   <data name="Accept" xml:space="preserve"><value>Accept</value></data>
   <data name="ManageGame" xml:space="preserve"><value>Manage game</value></data>
+  <data name="GridCardSize" xml:space="preserve"><value>Card size</value></data>
   <data name="ChooseInstallStoreTitle" xml:space="preserve"><value>Choose store</value></data>
   <data name="ChooseInstallStoreMessage" xml:space="preserve"><value>Where do you want to install {0}?</value></data>
   <data name="OpenInstallFolder" xml:space="preserve"><value>Open install folder</value></data>
