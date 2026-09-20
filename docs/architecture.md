@@ -4,7 +4,7 @@
 
 | Layer | Technology | Reason |
 |-------|------------|--------|
-| UI | Avalonia 12 + Fluent | Desktop UI in .NET; consistent dark theme |
+| UI | Avalonia 12 + Fluent | Desktop UI in .NET; light/dark themes (system default) |
 | MVVM | CommunityToolkit.Mvvm | Commands, `ObservableProperty`, little boilerplate |
 | Persistence | SQLite + Dapper | Single local file, no server |
 | Game detection | GameLib.NET + GameFinder | Mature ecosystem for PC launchers |
@@ -19,7 +19,7 @@ Domain and infrastructure are separated from platform integrations and UI servic
 ```
 Domain/
 ├── Models/          # UnifiedGame, AppSettings, LaunchSpec, …
-└── Enums/           # Platform, CoverQualityMode, SortOption, …
+└── Enums/           # Platform, CoverQualityMode, UiFontScale, ThemeMode, SortOption, …
 
 Infrastructure/
 ├── Database/        # GameDatabase (SQLite + Dapper)
@@ -54,15 +54,23 @@ See [project-structure.md](project-structure.md) for a full guide to layers, dat
 
 ```
 Program.Main [STAThread]
+  ├─ AppLog.Initialize() → %LocalAppData%\OpenGameHUB\logs\app.log
+  ├─ AppCrashHandlers.RegisterGlobalHandlers()
+  │    ├─ AppDomain.UnhandledException
+  │    └─ TaskScheduler.UnobservedTaskException
   └─ App.OnFrameworkInitializationCompleted
+       ├─ AppCrashHandlers.RegisterUiThreadHandler()
        └─ MainWindow { DataContext = MainWindowViewModel }
 
 MainWindowViewModel (constructor):
   1. Initialize language (LocalizationService)
-  2. LoadCachedGames()     → immediate read from library.db
-  3. RefreshLibraryAsync() → full scan in background
-  4. CheckForAppUpdateOnStartupAsync() → notice if new release (installed builds only)
+  2. Wire child ViewModels: Updates, Onboarding, Sidebar, Library
+  3. Library.LoadCachedGames() → immediate read from library.db
+  4. RefreshLibraryAsync()     → full scan in background + onboarding prompts
+  5. Updates checks for app update on startup (installed builds only)
 ```
+
+Persistent logs live at `%LocalAppData%\OpenGameHUB\logs\app.log`. `AppDiagnostics.ReportError` and Avalonia's `.LogToTrace()` output go through the same file listener. Fatal unhandled exceptions show a native dialog with the log path; users can also open the logs folder from Settings → Diagnostics.
 
 **Why load cache before scanning:** the user sees their library when opening the app even if scanning takes several seconds (network, legendary, many launchers).
 
@@ -147,13 +155,10 @@ Cloud providers run in individual `try/catch`: if EA or Ubisoft fail, the rest c
 ## Flow: launch or install a game
 
 ```
-MainWindowViewModel.LaunchSelectedGame
+MainWindowLibraryViewModel.LaunchSelectedGame
 │
-├─ Epic special case (not installed):
-│   LaunchSpec.Kind == "protocol"
-│   + Epic Launcher installed
-│   → EpicLauncherClient.StartInstall(url)
-│   → App does NOT wait for download (message and continues)
+├─ GameInstallOrchestrator.TryStartInstallAsync (Epic/Riot/Rockstar/Xbox/EA)
+│   → platform-specific install UI; EA shows manual notice dialog
 │
 └─ Otherwise → GameLibraryService.LaunchGame
      ├─ If not installed: GetInstallLaunchAttempts from cloud provider

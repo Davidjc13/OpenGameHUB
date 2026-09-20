@@ -74,24 +74,21 @@ internal static class XboxInstallClient
     {
         var attempts = new List<Action>();
 
-        if (!string.IsNullOrWhiteSpace(storeProductId))
+        if (ProtocolUri.TryXboxProduct(storeProductId, out var xboxUrl))
         {
-            var productId = storeProductId.Trim();
-            attempts.Add(() => StartProtocol($"msxbox://game/?productId={productId}"));
-            attempts.Add(() => StartProtocol($"ms-windows-store://pdp/?ProductId={productId}"));
+            attempts.Add(() => ProtocolLauncher.Start(xboxUrl));
+            if (ProtocolUri.TryStoreProduct(storeProductId, out var storeUrl))
+                attempts.Add(() => ProtocolLauncher.Start(storeUrl));
         }
 
-        if (!string.IsNullOrWhiteSpace(packageFamilyName))
-        {
-            var pfn = packageFamilyName.Trim();
-            attempts.Add(() => StartProtocol($"ms-windows-store://pdp/?PFN={pfn}"));
-        }
+        if (ProtocolUri.TryStorePfn(packageFamilyName, out var pfnUrl))
+            attempts.Add(() => ProtocolLauncher.Start(pfnUrl));
 
         var xboxApp = FindXboxAppExecutable();
         if (xboxApp is not null)
             attempts.Add(() => StartXboxApp(xboxApp));
 
-        attempts.Add(() => StartProtocol("ms-windows-store://navigatetopage/?Id=Gaming"));
+        attempts.Add(() => ProtocolLauncher.Start(ProtocolUri.StoreGamingPage));
 
         return attempts;
     }
@@ -135,20 +132,6 @@ internal static class XboxInstallClient
 
         if (System.Diagnostics.Process.Start(psi) is null)
             throw new InvalidOperationException(Loc.T("ProcessStartFailed", xboxAppPath));
-    }
-
-    private static void StartProtocol(string url)
-    {
-        var psi = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = url,
-            UseShellExecute = true
-        };
-
-        // ShellExecute hands protocol URIs to the packaged Store/Xbox app and often
-        // returns null even on success, so we only rely on it throwing for real failures
-        // (e.g. an unregistered protocol raises a Win32Exception).
-        System.Diagnostics.Process.Start(psi);
     }
 
     internal static string? FindXboxAppExecutable()

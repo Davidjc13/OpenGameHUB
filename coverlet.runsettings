@@ -25,7 +25,8 @@
             [OpenGameHUB]OpenGameHUB.Providers.Epic.EpicKeyImageHelper,
             [OpenGameHUB]OpenGameHUB.Providers.Steam.SteamLocalLibraryReader,
             [OpenGameHUB]OpenGameHUB.Providers.Rockstar.RockstarCoverUrls,
-            [OpenGameHUB]OpenGameHUB.Providers.Xbox.XboxCatalogReader
+            [OpenGameHUB]OpenGameHUB.Providers.Xbox.XboxCatalogReader,
+            [OpenGameHUB]OpenGameHUB.Infrastructure.ProtocolUri
           </Include>
           <Threshold>70</Threshold>
           <ThresholdType>line</ThresholdType>

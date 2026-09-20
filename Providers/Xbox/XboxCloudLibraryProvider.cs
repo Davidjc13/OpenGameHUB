@@ -128,7 +128,6 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
                 Title = entry.Title,
                 IsInstalled = false,
                 PlaytimeMinutes = entry.PlaytimeMinutes ?? 0,
-                LastPlayed = entry.LastPlayed,
                 LaunchSpec = XboxCatalogReader.BuildInstallLaunchSpec(entry)
             };
 
@@ -159,19 +158,7 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
             && !string.IsNullOrWhiteSpace(game.LaunchSpec.Value)
             && game.LaunchSpec.Kind == "protocol")
         {
-            yield return () => StartProtocol(game.LaunchSpec.Value);
+            yield return () => ProtocolLauncher.Start(game.LaunchSpec.Value);
         }
-    }
-
-    private static void StartProtocol(string url)
-    {
-        var psi = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = url,
-            UseShellExecute = true
-        };
-
-        if (System.Diagnostics.Process.Start(psi) is null)
-            throw new InvalidOperationException(Loc.T("ProcessStartFailed", url));
     }
 }

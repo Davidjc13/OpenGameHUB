@@ -85,10 +85,11 @@
   <data name="ResettingCover" xml:space="preserve"><value>Resetting cover for {0}...</value></data>
   <data name="InvalidCoverImage" xml:space="preserve"><value>That file is not a supported cover image.</value></data>
   <data name="CoverUpdateFailedDetail" xml:space="preserve"><value>Could not update cover: {0}</value></data>
-  <data name="ShowingGamesCount" xml:space="preserve"><value>Showing {0} games</value></data>
-  <data name="ShowingGamesPage" xml:space="preserve"><value>{0} of {1} · page {2}/{3}</value></data>
+  <data name="ShowingGamesCount" xml:space="preserve"><value>No games match your filters</value></data>
+  <data name="ShowingGamesPage" xml:space="preserve"><value>Page {0} of {1} · showing {2} of {3} games</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
   <data name="NextPage" xml:space="preserve"><value>Next</value></data>
+  <data name="SortLastPlayedDesc" xml:space="preserve"><value>Recently played</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Name A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Name Z-A</value></data>
   <data name="SortPlatform" xml:space="preserve"><value>Platform</value></data>
@@ -182,6 +183,23 @@
   <data name="LaunchFailed" xml:space="preserve"><value>Could not launch: {0}</value></data>
   <data name="AddedToFavorites" xml:space="preserve"><value>Added to favorites: {0}</value></data>
   <data name="RemovedFromFavorites" xml:space="preserve"><value>Removed from favorites: {0}</value></data>
+  <data name="Collections" xml:space="preserve"><value>Collections</value></data>
+  <data name="AllGames" xml:space="preserve"><value>All games ({0})</value></data>
+  <data name="FavoritesCount" xml:space="preserve"><value>Favorites ({0})</value></data>
+  <data name="InstalledCount" xml:space="preserve"><value>Installed ({0})</value></data>
+  <data name="CollectionWithCount" xml:space="preserve"><value>{0} ({1})</value></data>
+  <data name="NewCollection" xml:space="preserve"><value>New collection</value></data>
+  <data name="RenameCollection" xml:space="preserve"><value>Rename</value></data>
+  <data name="DeleteCollection" xml:space="preserve"><value>Delete</value></data>
+  <data name="CollectionNamePrompt" xml:space="preserve"><value>Enter a name for the collection.</value></data>
+  <data name="CollectionNamePlaceholder" xml:space="preserve"><value>Collection name</value></data>
+  <data name="DeleteCollectionConfirm" xml:space="preserve"><value>Delete "{0}"? Games will stay in your library.</value></data>
+  <data name="AddToCollection" xml:space="preserve"><value>Add to collection</value></data>
+  <data name="AddedToCollection" xml:space="preserve"><value>Added {0} to {1}</value></data>
+  <data name="RemovedFromCollection" xml:space="preserve"><value>Removed {0} from {1}</value></data>
+  <data name="CollectionCreated" xml:space="preserve"><value>Collection created: {0}</value></data>
+  <data name="CollectionRenamed" xml:space="preserve"><value>Collection renamed to {0}</value></data>
+  <data name="CollectionDeleted" xml:space="preserve"><value>Collection deleted: {0}</value></data>
   <data name="GamesInCache" xml:space="preserve"><value>{0} games in cache</value></data>
   <data name="UnknownPath" xml:space="preserve"><value>Unknown path</value></data>
   <data name="NotInstalled" xml:space="preserve"><value>Not installed</value></data>
@@ -190,6 +208,7 @@
   <data name="PlaytimePlayed" xml:space="preserve"><value>{0}h {1}m played</value></data>
   <data name="PlaytimeLastPlayed" xml:space="preserve"><value>{0}h {1}m · last played {2}</value></data>
   <data name="NoPlaytimeData" xml:space="preserve"><value>No playtime data</value></data>
+  <data name="LastLaunched" xml:space="preserve"><value>Last launched {0}</value></data>
   <data name="SettingsTitle" xml:space="preserve"><value>Settings</value></data>
   <data name="SettingsWindowTitle" xml:space="preserve"><value>OpenGameHUB Settings</value></data>
   <data name="SettingsDescription" xml:space="preserve"><value>Configure optional integrations. Installed games are detected without an API.</value></data>
@@ -289,13 +308,37 @@
   <data name="AppUpdateBannerMessage" xml:space="preserve"><value>Update {0} is available.</value></data>
   <data name="AppUpdateInstallNow" xml:space="preserve"><value>Install update</value></data>
   <data name="AppUpdateDismissLater" xml:space="preserve"><value>Later</value></data>
+  <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="DiagnosticsHelp" xml:space="preserve"><value>If OpenGameHUB misbehaves, share the log file with support. Logs are stored at: {0}</value></data>
+  <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encountered a fatal error</value></data>
+  <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB must close because of an unexpected error.
+
+Error: {1}
+
+Details were saved to:
+{0}
+
+You can share this log file when reporting the issue.</value></data>
   <data name="CoverArtSection" xml:space="preserve"><value>Cover art (Epic, Ubisoft, Riot, etc.)</value></data>
   <data name="DisplaySection" xml:space="preserve"><value>Display</value></data>
+  <data name="ThemeModeSection" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeModeSystem" xml:space="preserve"><value>System default</value></data>
+  <data name="ThemeModeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeModeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="ThemeModeHelp" xml:space="preserve"><value>System default follows your Windows light/dark preference.</value></data>
   <data name="CoverQualitySection" xml:space="preserve"><value>Cover art quality</value></data>
   <data name="CoverQualityNone" xml:space="preserve"><value>No covers</value></data>
   <data name="CoverQualityLow" xml:space="preserve"><value>Low quality (less memory)</value></data>
   <data name="CoverQualityHigh" xml:space="preserve"><value>High quality</value></data>
   <data name="CoverQualityHelp" xml:space="preserve"><value>Low uses smaller images and fewer downloads. None disables all cover art to save memory.</value></data>
+  <data name="UiFontScaleSection" xml:space="preserve"><value>Text size</value></data>
+  <data name="UiFontScaleExtraSmall" xml:space="preserve"><value>Extra small</value></data>
+  <data name="UiFontScaleSmall" xml:space="preserve"><value>Small</value></data>
+  <data name="UiFontScaleNormal" xml:space="preserve"><value>Normal</value></data>
+  <data name="UiFontScaleLarge" xml:space="preserve"><value>Large</value></data>
+  <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra large</value></data>
+  <data name="UiFontScaleHelp" xml:space="preserve"><value>Adjusts text size across the app. Useful for readability on high-DPI or large screens.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
@@ -309,6 +352,7 @@
   <data name="CannotDetermineLaunch" xml:space="preserve"><value>Could not determine how to launch {0}.</value></data>
   <data name="ExecutableNotFound" xml:space="preserve"><value>Executable not found: {0}</value></data>
   <data name="InvalidLaunchFormat" xml:space="preserve"><value>Invalid launch format.</value></data>
+  <data name="InvalidProtocolUrl" xml:space="preserve"><value>This launch URL is not a supported game protocol.</value></data>
   <data name="LauncherNotFound" xml:space="preserve"><value>Launcher not found: {0}</value></data>
   <data name="ProcessStartFailed" xml:space="preserve"><value>Could not start process for {0}</value></data>
   <data name="CannotRunLegendary" xml:space="preserve"><value>Could not run legendary.</value></data>
@@ -325,11 +369,26 @@
   <data name="EmbeddedBrowserReady" xml:space="preserve"><value>Complete sign-in in the browser above.</value></data>
   <data name="EmbeddedBrowserCaptured" xml:space="preserve"><value>Sign-in captured. Finishing setup...</value></data>
   <data name="EmbeddedBrowserInitFailed" xml:space="preserve"><value>Could not start embedded browser: {0}</value></data>
-  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>Embedded browser is unavailable. Install the Microsoft Edge WebView2 runtime or use the manual steps below.</value></data>
+  <data name="EmbeddedBrowserRuntimeMissing" xml:space="preserve"><value>Embedded browser is unavailable. Install the Microsoft Edge WebView2 runtime to connect accounts.</value></data>
   <data name="EpicAuthCompleted" xml:space="preserve"><value>Epic account connected. Refresh your library.</value></data>
   <data name="EpicAuthCancelled" xml:space="preserve"><value>Epic sign-in was cancelled.</value></data>
   <data name="EpicAuthStartedFallback" xml:space="preserve"><value>Epic sign-in opened in an external window. After completing it, refresh your library.</value></data>
-  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in with embedded browser</value></data>
+  <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
+  <data name="AddCustomGame" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGameTitle" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGamePrompt" xml:space="preserve"><value>Select an installed program or browse for an executable file.</value></data>
+  <data name="AddCustomGameSearchPlaceholder" xml:space="preserve"><value>Search installed programs...</value></data>
+  <data name="BrowseExecutable" xml:space="preserve"><value>Browse...</value></data>
+  <data name="BrowseExecutableDialogTitle" xml:space="preserve"><value>Select executable</value></data>
+  <data name="ExecutableFilesFilter" xml:space="preserve"><value>Executable files</value></data>
+  <data name="CustomGameTitleLabel" xml:space="preserve"><value>Game title</value></data>
+  <data name="CustomGameTitlePlaceholder" xml:space="preserve"><value>Enter a display name</value></data>
+  <data name="CustomGameExecutablePlaceholder" xml:space="preserve"><value>No executable selected</value></data>
+  <data name="CustomGameTitleRequired" xml:space="preserve"><value>Enter a title for the game.</value></data>
+  <data name="CustomGameInvalidExecutable" xml:space="preserve"><value>Select a valid executable file.</value></data>
+  <data name="CustomGameAlreadyExists" xml:space="preserve"><value>{0} is already in your library.</value></data>
+  <data name="CustomGameAdded" xml:space="preserve"><value>Added {0} to your library.</value></data>
+  <data name="Accept" xml:space="preserve"><value>Accept</value></data>
 </root>

@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Browser;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.Views;
@@ -19,6 +20,8 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        AppCrashHandlers.RegisterUiThreadHandler();
+
         // Remove any auth browser profiles orphaned by a previous crash before doing anything else.
         WebView2AuthProfile.CleanupOrphanedProfiles();
 

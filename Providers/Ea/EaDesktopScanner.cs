@@ -228,8 +228,8 @@ internal static class EaDesktopScanner
         if (!string.IsNullOrWhiteSpace(executable) && File.Exists(executable))
             return LaunchSpec.Executable(executable);
 
-        if (!string.IsNullOrWhiteSpace(contentId))
-            return LaunchSpec.Protocol($"link2ea://launchgame/contentids/{contentId}");
+        if (ProtocolUri.TryEaLaunch(contentId, out var url))
+            return LaunchSpec.Protocol(url);
 
         var eaDesktop = FindEaDesktopExecutable();
         if (eaDesktop is not null)

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 
 namespace OpenGameHUB.Infrastructure;
@@ -14,13 +13,8 @@ internal static class AppDiagnostics
     {
         var platformLabel = platform?.ToString() ?? "n/a";
         var detailSuffix = string.IsNullOrWhiteSpace(details) ? string.Empty : $" | details={details}";
-        Trace.TraceError(
-            "[{0}] operation={1} platform={2} exception={3}: {4}{5}",
-            area,
-            operation,
-            platformLabel,
-            exception.GetType().Name,
-            exception.Message,
-            detailSuffix);
+        var message =
+            $"[{area}] operation={operation} platform={platformLabel} exception={exception.GetType().Name}: {exception.Message}{detailSuffix}{Environment.NewLine}{exception}";
+        AppLog.Error(message);
     }
 }

@@ -13,22 +13,29 @@
 | File | Responsibility |
 |------|----------------|
 | `MainWindow.axaml` | Paginated grid or list, filters, status bar, cover actions |
-| `MainWindowViewModel.cs` | Library, search, sort, launch, covers, view mode |
+| `MainWindowViewModel.cs` | Composition root: status bar, settings, wires child ViewModels |
+| `ViewModels/MainWindow/MainWindowLibraryViewModel.cs` | Refresh, pagination, covers, launch, selection (`Library.*`) |
+| `ViewModels/MainWindow/MainWindowSidebarViewModel.cs` | Search, filters, sort, collections (`Sidebar.*`) |
+| `ViewModels/MainWindow/MainWindowOnboardingViewModel.cs` | First-run prompts (Steam API, EA, Legendary) |
+| `MainWindowUpdatesViewModel.cs` | App update banner and install (`Updates.*`) |
 
-### Key flows in `MainWindowViewModel`
+`MainWindowViewModel` stays thin (~200 lines). Bindings use nested child ViewModels, e.g. `{Binding Library.Games}`, `{Binding Sidebar.SearchText}`.
 
-| Command | Action |
-|---------|--------|
-| `RefreshLibraryCommand` | `GameLibraryService.RefreshLibraryAsync` + update UI |
-| `LaunchSelectedGame` | Epic protocol case or `LaunchGame` |
-| `ChangeCustomCoverAsync` / `ResetCustomCoverAsync` | User cover override (detail panel) |
-| `SetGridView` / `SetListView` | Toggle `LibraryViewMode` (persisted) |
-| `OpenSettingsAsync` | Modal `SettingsWindow`; handles dev relaunch / clear DB |
-| `ToggleFavorite` | `GameLibraryService.ToggleFavorite` |
+### Key flows
+
+| Command / area | Where | Action |
+|----------------|-------|--------|
+| `RefreshLibraryCommand` | Main | Delegates to `Library`, then onboarding prompts |
+| `LaunchSelectedGame` | Library | `GameInstallOrchestrator` → `GameLibraryService.LaunchGame` |
+| `ChangeCustomCoverAsync` / `ResetCustomCoverAsync` | Library | User cover override (detail panel) |
+| `SetGridView` / `SetListView` | Library | Toggle `LibraryViewMode` (persisted) |
+| `OpenSettingsAsync` | Main | Modal `SettingsWindow`; dev relaunch / clear DB |
+| `ToggleFavorite` | Library | `GameLibraryService.ToggleFavorite` |
+| Collection CRUD | Sidebar | `UserCollectionService` via sidebar commands |
 
 ### Onboarding (first run)
 
-After refreshing the library, `OfferOnboardingPromptsAsync` may show in sequence:
+After refreshing the library, `MainWindowOnboardingViewModel.OfferPromptsIfNeededAsync` may show in sequence:
 
 1. `SteamApiKeyPromptWindow` — Steam API benefits
 2. `EaLibraryPromptWindow` — sync EA library
@@ -40,7 +47,7 @@ Each prompt has "Continue" and "Don't remind me again" → flags in `AppSettings
 
 ### Pagination
 
-`PageSize = 24` — avoids creating thousands of `GameItemViewModel` with covers at once. See [metadata-and-covers.md](metadata-and-covers.md) for `ApplyVisibleCovers` and memory behavior.
+Page size is derived from viewport and cover quality profile in `MainWindowLibraryViewModel` — avoids creating thousands of `GameItemViewModel` with covers at once. See [metadata-and-covers.md](metadata-and-covers.md) for `ApplyVisibleCovers` and memory behavior.
 
 ### Library layout
 
@@ -64,7 +71,7 @@ Sections:
 - Language
 - Steam Web API (opens `SteamSetupWindow`)
 - Epic (connect/disconnect async)
-- Display (`ShowGridCovers`, library view mode)
+- Display (`ThemeMode`, `CoverQualityMode`, `UiFontScale`, library view mode)
 - Covers (IGDB, SteamGridDB)
 - Updates (`AppUpdateService`)
 - Developer (`DevModeService`, if enabled)
@@ -97,4 +104,4 @@ Resolves `FooViewModel` → `FooView` by convention (namespace `OpenGameHUB.View
 
 Long operations (refresh, covers, update check) use `async` + `Dispatcher.UIThread.InvokeAsync` where needed to touch `ObservableCollection`.
 
-Cancellation: `_refreshCts`, `_coverCts` in `MainWindowViewModel` to avoid overlapping refreshes.
+Cancellation: `_refreshCts`, `_coverCts` in `MainWindowLibraryViewModel` to avoid overlapping refreshes.

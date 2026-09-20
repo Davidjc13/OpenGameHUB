@@ -142,11 +142,10 @@ internal sealed class XboxGamePassSubscriptionClient
         headers.Add("Authorization", $"XBL3.0 x={claim.uhs};{xsts.Token}");
     }
 
-    private static async Task<string> DefaultAuthenticateUserTokenAsync(
+    private async Task<string> DefaultAuthenticateUserTokenAsync(
         string accessToken,
         CancellationToken cancellationToken)
     {
-        using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         var authRequest = new XboxAuthenticateRequest
         {
             Properties = new XboxAuthenticateRequestProperties
@@ -168,7 +167,7 @@ internal sealed class XboxGamePassSubscriptionClient
         };
         authRequestMessage.Headers.Add("x-xbl-contract-version", "1");
 
-        using var authResponse = await httpClient.SendAsync(authRequestMessage, cancellationToken);
+        using var authResponse = await _httpClient.SendAsync(authRequestMessage, cancellationToken);
         authResponse.EnsureSuccessStatusCode();
 
         using var authDocument = JsonDocument.Parse(await authResponse.Content.ReadAsStringAsync(cancellationToken));

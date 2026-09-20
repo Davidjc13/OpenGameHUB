@@ -141,8 +141,13 @@ internal static class GogCatalogReader
         return gameTitle == entryTitle;
     }
 
-    public static string BuildInstallProtocolUrl(string releaseKey) =>
-        $"goggalaxy://openGameView/{releaseKey}";
+    public static string BuildInstallProtocolUrl(string releaseKey)
+    {
+        if (!ProtocolUri.TryGogOpenGameView(releaseKey, out var url))
+            throw new InvalidOperationException(Loc.T("InvalidProtocolUrl"));
+
+        return url;
+    }
 
     public static string BuildLaunchArguments(long gogId, string? installPath = null, bool install = false)
     {

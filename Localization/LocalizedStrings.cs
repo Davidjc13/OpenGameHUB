@@ -20,6 +20,14 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SelectGame => Loc.T("SelectGame");
     public string Play => Loc.T("Play");
     public string ToggleFavorite => Loc.T("ToggleFavorite");
+    public string Collections => Loc.T("Collections");
+    public string AllGames => Loc.T("AllGames");
+    public string NewCollection => Loc.T("NewCollection");
+    public string RenameCollection => Loc.T("RenameCollection");
+    public string DeleteCollection => Loc.T("DeleteCollection");
+    public string CollectionNamePrompt => Loc.T("CollectionNamePrompt");
+    public string CollectionNamePlaceholder => Loc.T("CollectionNamePlaceholder");
+    public string AddToCollection => Loc.T("AddToCollection");
     public string ViewGrid => Loc.T("ViewGrid");
     public string ViewList => Loc.T("ViewList");
     public string ChangeCover => Loc.T("ChangeCover");
@@ -94,10 +102,16 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppInstallUpdate => Loc.T("AppInstallUpdate");
     public string AppUpdateInstallNow => Loc.T("AppUpdateInstallNow");
     public string AppUpdateDismissLater => Loc.T("AppUpdateDismissLater");
+    public string DiagnosticsSection => Loc.T("DiagnosticsSection");
+    public string OpenLogsFolder => Loc.T("OpenLogsFolder");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
+    public string ThemeModeSection => Loc.T("ThemeModeSection");
+    public string ThemeModeHelp => Loc.T("ThemeModeHelp");
     public string CoverQualitySection => Loc.T("CoverQualitySection");
     public string CoverQualityHelp => Loc.T("CoverQualityHelp");
+    public string UiFontScaleSection => Loc.T("UiFontScaleSection");
+    public string UiFontScaleHelp => Loc.T("UiFontScaleHelp");
     public string CoverArtHelp => Loc.T("CoverArtHelp");
     public string SteamApiKeyPlaceholder => Loc.T("SteamApiKeyPlaceholder");
     public string SteamIdPlaceholder => Loc.T("SteamIdPlaceholder");
@@ -106,6 +120,15 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string SteamGridDbApiKeyOptional => Loc.T("SteamGridDbApiKeyOptional");
     public string Cancel => Loc.T("Cancel");
     public string Save => Loc.T("Save");
+    public string Accept => Loc.T("Accept");
+    public string AddCustomGame => Loc.T("AddCustomGame");
+    public string AddCustomGameTitle => Loc.T("AddCustomGameTitle");
+    public string AddCustomGamePrompt => Loc.T("AddCustomGamePrompt");
+    public string AddCustomGameSearchPlaceholder => Loc.T("AddCustomGameSearchPlaceholder");
+    public string BrowseExecutable => Loc.T("BrowseExecutable");
+    public string CustomGameTitleLabel => Loc.T("CustomGameTitleLabel");
+    public string CustomGameTitlePlaceholder => Loc.T("CustomGameTitlePlaceholder");
+    public string CustomGameExecutablePlaceholder => Loc.T("CustomGameExecutablePlaceholder");
     public string SteamSetupSignInWithBrowser => Loc.T("SteamSetupSignInWithBrowser");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));

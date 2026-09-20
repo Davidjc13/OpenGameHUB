@@ -121,7 +121,7 @@ public sealed class MetadataService
     public bool TrySetCustomCover(UnifiedGame game, string sourceImagePath)
     {
         var cachePath = CoverPathHelper.GetCachePath(game.Id);
-        if (!CoverImageProcessor.TryResizeToCacheFile(sourceImagePath, cachePath))
+        if (!CoverImageProcessor.TryNormalizeToCacheFile(sourceImagePath, cachePath))
             return false;
 
         game.CoverPath = cachePath;
@@ -179,6 +179,9 @@ public sealed class MetadataService
             return false;
         }
 
+        if (!game.HasCustomCover)
+            CoverImageProcessor.TryReNormalizeInPlace(existingPath);
+
         if (!string.Equals(game.CoverPath, existingPath, StringComparison.OrdinalIgnoreCase))
         {
             game.CoverPath = existingPath;
@@ -196,7 +199,7 @@ public sealed class MetadataService
         var cachePath = CoverPathHelper.GetCachePath(game.Id);
 
         var localCover = LocalCoverScanner.FindCover(game.InstallPath);
-        if (localCover is not null && TryCopyValidatedImage(localCover, cachePath))
+        if (localCover is not null && TryIngestCoverImage(localCover, cachePath))
             return cachePath;
 
         if (TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
@@ -219,32 +222,11 @@ public sealed class MetadataService
             return false;
         }
 
-        return File.Exists(catalogCoverUrl) && TryCopyValidatedImage(catalogCoverUrl, cachePath);
+        return File.Exists(catalogCoverUrl) && TryIngestCoverImage(catalogCoverUrl, cachePath);
     }
 
-    private static bool TryCopyValidatedImage(string sourcePath, string destinationPath)
-    {
-        if (!SafeImageValidator.IsValidImageFile(sourcePath))
-            return false;
-
-        try
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-            File.Copy(sourcePath, destinationPath, overwrite: true);
-            return SafeImageValidator.IsValidImageFile(destinationPath);
-        }
-        catch (Exception ex)
-        {
-            AppDiagnostics.ReportError(
-                area: nameof(MetadataService),
-                operation: "TryCopyValidatedImage",
-                exception: ex,
-                details: $"source={sourcePath}");
-            if (File.Exists(destinationPath))
-                File.Delete(destinationPath);
-            return false;
-        }
-    }
+    private static bool TryIngestCoverImage(string sourcePath, string cachePath) =>
+        CoverImageProcessor.TryNormalizeToCacheFile(sourcePath, cachePath);
 
     private async Task<IReadOnlyList<string>> ResolveCoverUrlsAsync(
         UnifiedGame game,
@@ -262,7 +244,6 @@ public sealed class MetadataService
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out var steamAppId))
         {
             urls.Add(SteamWebApiService.GetCoverUrl(steamAppId));
-            urls.Add($"https://cdn.cloudflare.steamstatic.com/steam/apps/{steamAppId}/header.jpg");
         }
         else if (game.Platform == Platform.Epic)
         {
@@ -285,6 +266,16 @@ public sealed class MetadataService
             urls.AddRange(await _steamStoreSearchClient.FindCoverUrlsAsync(game, cancellationToken));
         }
 
+        await AddSharedMetadataUrlsAsync(urls, game, settings, cancellationToken);
+        return urls;
+    }
+
+    private async Task AddSharedMetadataUrlsAsync(
+        List<string> urls,
+        UnifiedGame game,
+        AppSettings settings,
+        CancellationToken cancellationToken)
+    {
         if (_steamGridDbClient.IsConfigured(settings))
         {
             var steamGridUrl = await _steamGridDbClient.FindCoverUrlAsync(game, settings, cancellationToken);
@@ -302,8 +293,6 @@ public sealed class MetadataService
         var wikipediaUrl = await _wikipediaCoverClient.FindCoverUrlAsync(game, cancellationToken);
         if (!string.IsNullOrWhiteSpace(wikipediaUrl))
             urls.Add(wikipediaUrl);
-
-        return urls;
     }
 
     private static string NormalizeCoverUrl(string url)
@@ -317,6 +306,32 @@ public sealed class MetadataService
     private static bool ShouldDownloadCover(UnifiedGame game) =>
         !game.HasCustomCover && !GameEntryFilter.IsExcluded(game);
 
-    private Task<bool> TryDownloadAsync(string url, string cachePath, CancellationToken cancellationToken) =>
-        _safeImageDownloader.DownloadAsync(url, cachePath, cancellationToken);
+    private async Task<bool> TryDownloadAsync(string url, string cachePath, CancellationToken cancellationToken)
+    {
+        var tempPath = cachePath + ".download.tmp";
+        try
+        {
+            if (!await _safeImageDownloader.DownloadAsync(url, tempPath, cancellationToken))
+                return false;
+
+            return CoverImageProcessor.TryNormalizeToCacheFile(tempPath, cachePath);
+        }
+        finally
+        {
+            TryDeleteTempFile(tempPath);
+        }
+    }
+
+    private static void TryDeleteTempFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+        catch
+        {
+            // optional
+        }
+    }
 }

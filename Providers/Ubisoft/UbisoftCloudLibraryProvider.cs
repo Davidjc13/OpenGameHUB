@@ -56,7 +56,9 @@ public sealed class UbisoftCloudLibraryProvider : ICloudLibraryProvider
                 Title = entry.Title,
                 IsInstalled = false,
                 CatalogCoverUrl = entry.ThumbImageUrl,
-                LaunchSpec = LaunchSpec.Protocol($"uplay://install/{entry.UplayId}")
+                LaunchSpec = ProtocolUri.TryUplayInstall(entry.UplayId, out var protocolUrl)
+                    ? LaunchSpec.Protocol(protocolUrl)
+                    : LaunchSpec.None
             };
 
             if (!GameEntryFilter.IsExcluded(game))
@@ -71,10 +73,9 @@ public sealed class UbisoftCloudLibraryProvider : ICloudLibraryProvider
         if (game.Platform != Platform.Ubisoft || game.IsInstalled)
             yield break;
 
-        if (string.IsNullOrWhiteSpace(game.PlatformGameId))
+        if (!ProtocolUri.TryUplayInstall(game.PlatformGameId, out var installUrl))
             yield break;
 
-        var installUrl = $"uplay://install/{game.PlatformGameId}";
         yield return () => ProtocolLauncher.Start(installUrl);
 
         var launcherExe = UbisoftCatalogReader.FindLauncherExecutable();

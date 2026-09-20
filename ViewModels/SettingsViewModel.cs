@@ -34,9 +34,13 @@ public partial class SettingsViewModel : ViewModelBase
         IgdbClientSecret = current.IgdbClientSecret;
         SteamGridDbApiKey = current.SteamGridDbApiKey;
         SelectedCoverQuality = current.CoverQualityMode;
+        SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
+        SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
+        UiFontScaleOptions = BuildUiFontScaleOptions();
+        ThemeModeOptions = BuildThemeModeOptions();
         Updates = new SettingsUpdatesViewModel(statusMessage => StatusMessage = statusMessage);
         RefreshSteamStatus();
         RefreshEpicStatus();
@@ -54,11 +58,14 @@ public partial class SettingsViewModel : ViewModelBase
 
     public bool IsXboxConnected => XboxAccountClient.IsAuthenticated();
 
-    public bool CanConnectXbox => !IsXboxConnected;
+    public bool CanConnectXbox => !IsXboxConnected && EmbeddedBrowserService.IsAvailable;
 
-    public bool CanConnectEpic => LegendaryClient.IsAvailable() && !IsEpicConnected;
+    public bool CanConnectEpic =>
+        LegendaryClient.IsAvailable() && !IsEpicConnected && EmbeddedBrowserService.IsAvailable;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
+
+    public string DiagnosticsHelp => Loc.T("DiagnosticsHelp", AppLog.LogFilePath);
 
     public LocalizedStrings Strings { get; }
     public SettingsUpdatesViewModel Updates { get; }
@@ -101,6 +108,48 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     public IReadOnlyList<CoverQualityOption> CoverQualityOptions { get; }
+
+    [ObservableProperty]
+    private UiFontScale _selectedUiFontScale = UiFontScale.Normal;
+
+    partial void OnSelectedUiFontScaleChanged(UiFontScale value) =>
+        OnPropertyChanged(nameof(SelectedUiFontScaleOption));
+
+    public UiFontScaleOption? SelectedUiFontScaleOption
+    {
+        get => UiFontScaleOptions.FirstOrDefault(option => option.Scale == SelectedUiFontScale);
+        set
+        {
+            if (value is null || value.Scale == SelectedUiFontScale)
+                return;
+
+            SelectedUiFontScale = value.Scale;
+            OnPropertyChanged(nameof(SelectedUiFontScaleOption));
+        }
+    }
+
+    public IReadOnlyList<UiFontScaleOption> UiFontScaleOptions { get; }
+
+    [ObservableProperty]
+    private ThemeMode _selectedThemeMode = ThemeMode.System;
+
+    partial void OnSelectedThemeModeChanged(ThemeMode value) =>
+        OnPropertyChanged(nameof(SelectedThemeModeOption));
+
+    public ThemeModeOption? SelectedThemeModeOption
+    {
+        get => ThemeModeOptions.FirstOrDefault(option => option.Mode == SelectedThemeMode);
+        set
+        {
+            if (value is null || value.Mode == SelectedThemeMode)
+                return;
+
+            SelectedThemeMode = value.Mode;
+            OnPropertyChanged(nameof(SelectedThemeModeOption));
+        }
+    }
+
+    public IReadOnlyList<ThemeModeOption> ThemeModeOptions { get; }
 
     [ObservableProperty]
     private string _selectedLanguage = "en";
@@ -166,6 +215,8 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = current.IgdbClientSecret,
             SteamGridDbApiKey = current.SteamGridDbApiKey,
             CoverQualityMode = current.CoverQualityMode,
+            UiFontScale = current.UiFontScale,
+            ThemeMode = current.ThemeMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -238,40 +289,11 @@ public partial class SettingsViewModel : ViewModelBase
         try
         {
             StatusMessage = Loc.T("PreparingEpicLibrary");
-            using var downloadCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-            await LegendaryBootstrap.EnsureInstalledAsync(null, downloadCts.Token);
-            LegendaryClient.InvalidateExecutableCache();
-
-            if (!LegendaryClient.IsAvailable())
-            {
-                StatusMessage = Loc.T("EpicHelperUnavailable");
-                return;
-            }
-
-            if (EmbeddedBrowserService.IsAvailable)
-            {
-                var authCode = await EmbeddedBrowserService.ShowCaptureAsync<string>(
-                    new EpicAuthCaptureStrategy(),
-                    GetOwnerWindow());
-
-                if (string.IsNullOrWhiteSpace(authCode))
-                {
-                    StatusMessage = Loc.T("EpicAuthCancelled");
-                    return;
-                }
-
-                using var authCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-                await LegendaryClient.RunAuthWithCodeAsync(authCode, authCts.Token);
-                EpicAuthHelper.PersistFromLegendary(_settingsService);
-                RefreshEpicStatus();
-                OnPropertyChanged(nameof(IsEpicConnected));
-                OnPropertyChanged(nameof(CanConnectEpic));
-                StatusMessage = Loc.T("EpicAuthCompleted");
-                return;
-            }
-
-            LegendaryClient.RunAuth();
-            StatusMessage = Loc.T("EpicAuthStartedFallback");
+            await EpicAuthService.SignInAsync(_settingsService, GetOwnerWindow());
+            RefreshEpicStatus();
+            OnPropertyChanged(nameof(IsEpicConnected));
+            OnPropertyChanged(nameof(CanConnectEpic));
+            StatusMessage = Loc.T("EpicAuthCompleted");
         }
         catch (Exception ex)
         {
@@ -347,6 +369,9 @@ public partial class SettingsViewModel : ViewModelBase
         StatusMessage = Loc.T("DevClearLocalDatabaseDone");
     }
 
+    [RelayCommand]
+    private void OpenLogsFolder() => AppLog.OpenLogDirectory();
+
     private void RefreshEpicStatus()
     {
         try
@@ -419,6 +444,8 @@ public partial class SettingsViewModel : ViewModelBase
             IgdbClientSecret = IgdbClientSecret.Trim(),
             SteamGridDbApiKey = SteamGridDbApiKey.Trim(),
             CoverQualityMode = SelectedCoverQuality,
+            UiFontScale = SelectedUiFontScale,
+            ThemeMode = SelectedThemeMode,
             LibraryViewMode = current.LibraryViewMode,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
@@ -429,6 +456,8 @@ public partial class SettingsViewModel : ViewModelBase
         });
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);
+        UiFontScaleService.Apply(_settingsService.Current.UiFontScale);
+        ThemeModeService.Apply(_settingsService.Current.ThemeMode);
         StatusMessage = Loc.T("SettingsSaved");
         RequestClose?.Invoke();
     }
@@ -442,8 +471,28 @@ public partial class SettingsViewModel : ViewModelBase
         new(CoverQualityMode.Low, Loc.T("CoverQualityLow")),
         new(CoverQualityMode.High, Loc.T("CoverQualityHigh"))
     ];
+
+    private static IReadOnlyList<UiFontScaleOption> BuildUiFontScaleOptions() =>
+    [
+        new(UiFontScale.ExtraSmall, Loc.T("UiFontScaleExtraSmall")),
+        new(UiFontScale.Small, Loc.T("UiFontScaleSmall")),
+        new(UiFontScale.Normal, Loc.T("UiFontScaleNormal")),
+        new(UiFontScale.Large, Loc.T("UiFontScaleLarge")),
+        new(UiFontScale.ExtraLarge, Loc.T("UiFontScaleExtraLarge"))
+    ];
+
+    private static IReadOnlyList<ThemeModeOption> BuildThemeModeOptions() =>
+    [
+        new(ThemeMode.System, Loc.T("ThemeModeSystem")),
+        new(ThemeMode.Light, Loc.T("ThemeModeLight")),
+        new(ThemeMode.Dark, Loc.T("ThemeModeDark"))
+    ];
 }
 
 public sealed record LanguageOption(string Code, string Label);
 
 public sealed record CoverQualityOption(CoverQualityMode Mode, string Label);
+
+public sealed record UiFontScaleOption(UiFontScale Scale, string Label);
+
+public sealed record ThemeModeOption(ThemeMode Mode, string Label);

@@ -159,9 +159,6 @@ public static class LegendaryClient
     public static void RunLaunch(string appName) =>
         RunInConsole(FindExecutable(), "launch", appName);
 
-    public static void RunAuth() =>
-        RunHidden(FindExecutable(), "auth");
-
     public static async Task RunAuthWithCodeAsync(
         string authorizationCode,
         CancellationToken cancellationToken = default)
@@ -563,7 +560,9 @@ public sealed record LegendaryCatalogEntry(
         if (string.IsNullOrWhiteSpace(CatalogNamespace) || string.IsNullOrWhiteSpace(CatalogItemId))
             return null;
 
-        return $"com.epicgames.launcher://apps/{CatalogNamespace}%3A{CatalogItemId}%3A{AppName}?action=install";
+        return ProtocolUri.TryEpicCatalogInstall(CatalogNamespace, CatalogItemId, AppName, out var url)
+            ? url
+            : null;
     }
 }
 

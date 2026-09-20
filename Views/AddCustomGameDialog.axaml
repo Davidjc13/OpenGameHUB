@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenGameHUB.ViewModels"
+        x:Class="OpenGameHUB.Views.AddCustomGameDialog"
+        x:DataType="vm:AddCustomGameDialogViewModel"
+        Title="{Binding Strings.AddCustomGameTitle}"
+        Width="640"
+        Height="560"
+        MinWidth="520"
+        MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        Classes="app-window">
+    <Grid Margin="24" RowDefinitions="Auto,Auto,*,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0"
+                   Text="{Binding Strings.AddCustomGamePrompt}"
+                   Classes="text-secondary"
+                   TextWrapping="Wrap"/>
+
+        <TextBox Grid.Row="1"
+                 Margin="0,16,0,8"
+                 Text="{Binding FilterText, Mode=TwoWay}"
+                 PlaceholderText="{Binding Strings.AddCustomGameSearchPlaceholder}"/>
+
+        <Border Grid.Row="2"
+                Classes="panel-content"
+                Padding="0">
+            <Grid>
+                <ProgressBar IsIndeterminate="True"
+                             IsVisible="{Binding IsLoadingPrograms}"
+                             VerticalAlignment="Center"
+                             Margin="16"/>
+                <ListBox ItemsSource="{Binding FilteredPrograms}"
+                         SelectedItem="{Binding SelectedProgram}"
+                         IsVisible="{Binding !IsLoadingPrograms}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:InstalledProgramItemViewModel">
+                            <StackPanel Spacing="2" Margin="4,6">
+                                <TextBlock Text="{Binding DisplayName}" Classes="text-body"/>
+                                <TextBlock Text="{Binding ExecutablePath}"
+                                           Classes="text-caption"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="3" Spacing="8" Margin="0,16,0,0">
+            <TextBlock Text="{Binding Strings.CustomGameTitleLabel}" Classes="text-label"/>
+            <TextBox Text="{Binding GameTitle, Mode=TwoWay}"
+                     PlaceholderText="{Binding Strings.CustomGameTitlePlaceholder}"/>
+        </StackPanel>
+
+        <Grid Grid.Row="4"
+              Margin="0,12,0,0"
+              ColumnDefinitions="*,Auto">
+            <TextBox Grid.Column="0"
+                     Text="{Binding ExecutablePath, Mode=TwoWay}"
+                     IsReadOnly="True"
+                     PlaceholderText="{Binding Strings.CustomGameExecutablePlaceholder}"/>
+            <Button Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Content="{Binding Strings.BrowseExecutable}"
+                    Command="{Binding BrowseExecutableCommand}"/>
+        </Grid>
+
+        <Grid Grid.Row="5" Margin="0,16,0,0" RowDefinitions="Auto,Auto">
+            <TextBlock Grid.Row="0"
+                       Text="{Binding ValidationMessage}"
+                       Classes="text-caption"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,4"/>
+
+            <StackPanel Grid.Row="1"
+                        Margin="0,12,0,0"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        HorizontalAlignment="Right">
+                <Button Content="{Binding Strings.Cancel}"
+                        Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+                <Button Classes="primary"
+                        Content="{Binding Strings.Accept}"
+                        Command="{Binding ConfirmCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
