@@ -404,6 +404,15 @@ public sealed class GameDatabase : IDisposable
             new { Id = id, IsFavorite = isFavorite ? 1 : 0 });
     }
 
+    public bool DeleteGame(string id)
+    {
+        var deleted = _connection.Execute("DELETE FROM games WHERE id = @Id", new { Id = id });
+        if (deleted > 0)
+            PurgeOrphanCollectionGames();
+
+        return deleted > 0;
+    }
+
     private static string NormalizePath(string? path) =>
         string.IsNullOrWhiteSpace(path)
             ? string.Empty

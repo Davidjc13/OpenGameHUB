@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
@@ -99,6 +100,36 @@ public sealed class GameLibraryService : IDisposable
 
     public UnifiedGame AddCustomGame(string title, string executablePath) =>
         _customGameService.Add(title, executablePath);
+
+    public bool RemoveCustomGame(string id) => _customGameService.Remove(id);
+
+    public void OpenInstallFolder(UnifiedGame game)
+    {
+        if (!GameLibraryActions.TryGetInstallFolder(game, out var path))
+            throw new DirectoryNotFoundException(Loc.T("InstallFolderMissing"));
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = path,
+            UseShellExecute = true
+        });
+    }
+
+    public void OpenStorePage(UnifiedGame game)
+    {
+        if (!GameLibraryActions.TryGetStoreUrl(game, out var url))
+            throw new InvalidOperationException(Loc.T("StorePageUnavailable"));
+
+        _launchService.Execute(LaunchSpec.Protocol(url));
+    }
+
+    public void StartUninstall(UnifiedGame game)
+    {
+        if (!GameLibraryActions.TryGetUninstallSpec(game, out var spec))
+            throw new InvalidOperationException(Loc.T("UninstallNotAvailable"));
+
+        _launchService.Execute(spec);
+    }
 
     public IReadOnlyList<UnifiedGame> LoadCachedGames()
     {

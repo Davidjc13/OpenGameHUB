@@ -36,4 +36,24 @@ public sealed class GogCatalogReaderTests
 
         Assert.True(GogCatalogReader.MatchesInstalledGame(game, entry));
     }
+
+    [Fact]
+    public void TryGetReleaseKey_reads_catalog_id_or_falls_back_to_gog_id()
+    {
+        var catalog = TestGames.Create(
+            "gog:catalog:1207658924@gog_1207658924",
+            Platform.Gog,
+            "Witcher",
+            platformGameId: "1207658924");
+        Assert.Equal("gog_1207658924", GogCatalogReader.TryGetReleaseKey(catalog));
+
+        var installed = TestGames.Create("gog:path:abcd", Platform.Gog, "Witcher", platformGameId: "42");
+        Assert.Equal("gog_42", GogCatalogReader.TryGetReleaseKey(installed));
+    }
+
+    [Fact]
+    public void BuildUninstallArguments_uses_game_id()
+    {
+        Assert.Equal("/command=uninstall /gameId=1207658924", GogCatalogReader.BuildUninstallArguments(1207658924));
+    }
 }

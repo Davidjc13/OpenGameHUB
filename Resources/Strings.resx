@@ -397,4 +397,22 @@ You can share this log file when reporting the issue.</value></data>
   <data name="CustomGameAlreadyExists" xml:space="preserve"><value>{0} is already in your library.</value></data>
   <data name="CustomGameAdded" xml:space="preserve"><value>Added {0} to your library.</value></data>
   <data name="Accept" xml:space="preserve"><value>Accept</value></data>
+  <data name="ManageGame" xml:space="preserve"><value>Manage game</value></data>
+  <data name="OpenInstallFolder" xml:space="preserve"><value>Open install folder</value></data>
+  <data name="ViewInStore" xml:space="preserve"><value>View in store</value></data>
+  <data name="UninstallGame" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="UninstallGameConfirm" xml:space="preserve"><value>Uninstall "{0}"? This opens {1} so you can remove it from this PC.</value></data>
+  <data name="UninstallStarted" xml:space="preserve"><value>Opening {1} to uninstall {0}. Refresh the library when it finishes.</value></data>
+  <data name="UninstallNotAvailable" xml:space="preserve"><value>Uninstall is not available for this game.</value></data>
+  <data name="UninstallFailed" xml:space="preserve"><value>Could not uninstall: {0}</value></data>
+  <data name="RemoveFromLibrary" xml:space="preserve"><value>Remove from library</value></data>
+  <data name="RemoveCustomGameConfirm" xml:space="preserve"><value>Remove "{0}" from your library? Game files will not be deleted.</value></data>
+  <data name="CustomGameRemoved" xml:space="preserve"><value>Removed {0} from your library.</value></data>
+  <data name="CustomGameRemoveFailed" xml:space="preserve"><value>Could not remove {0} from your library.</value></data>
+  <data name="InstallFolderMissing" xml:space="preserve"><value>The install folder was not found.</value></data>
+  <data name="InstallFolderOpened" xml:space="preserve"><value>Opened the install folder for {0}.</value></data>
+  <data name="OpenInstallFolderFailed" xml:space="preserve"><value>Could not open the install folder: {0}</value></data>
+  <data name="StorePageUnavailable" xml:space="preserve"><value>No store page is available for this game.</value></data>
+  <data name="StorePageOpened" xml:space="preserve"><value>Opening the store page for {0}.</value></data>
+  <data name="OpenStorePageFailed" xml:space="preserve"><value>Could not open the store page: {0}</value></data>
 </root>

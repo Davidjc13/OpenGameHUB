@@ -84,6 +84,8 @@ public partial class GameItemViewModel : ViewModelBase
 
     public bool IsInstalled => Source.IsInstalled;
 
+    public string ManageGameLabel => Loc.T("ManageGame");
+
     public double GridCoverOpacity => IsInstalled ? 1.0 : 0.75;
 
     public double GridPlaceholderOpacity => IsInstalled ? 0.28 : 0.14;
@@ -111,6 +113,7 @@ public partial class GameItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(GridCoverOpacity));
         OnPropertyChanged(nameof(GridPlaceholderOpacity));
+        OnPropertyChanged(nameof(ManageGameLabel));
     }
 
     private string ResolveActionLabel()

@@ -28,6 +28,11 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string CollectionNamePrompt => Loc.T("CollectionNamePrompt");
     public string CollectionNamePlaceholder => Loc.T("CollectionNamePlaceholder");
     public string AddToCollection => Loc.T("AddToCollection");
+    public string ManageGame => Loc.T("ManageGame");
+    public string OpenInstallFolder => Loc.T("OpenInstallFolder");
+    public string ViewInStore => Loc.T("ViewInStore");
+    public string UninstallGame => Loc.T("UninstallGame");
+    public string RemoveFromLibrary => Loc.T("RemoveFromLibrary");
     public string ViewGrid => Loc.T("ViewGrid");
     public string ViewList => Loc.T("ViewList");
     public string ChangeCover => Loc.T("ChangeCover");

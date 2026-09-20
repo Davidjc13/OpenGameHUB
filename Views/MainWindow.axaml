@@ -274,10 +274,23 @@
                                            Classes="text-help"
                                            Margin="0,0,0,4"/>
                                 <StackPanel Spacing="10">
-                                    <Button Classes="primary"
-                                            Content="{Binding Library.SelectedGameActionLabel}"
-                                            HorizontalAlignment="Stretch"
-                                            Command="{Binding Library.LaunchSelectedGameCommand}"/>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                        <Button Grid.Column="0"
+                                                Classes="primary"
+                                                MinWidth="0"
+                                                Content="{Binding Library.SelectedGameActionLabel}"
+                                                HorizontalAlignment="Stretch"
+                                                Command="{Binding Library.LaunchSelectedGameCommand}"/>
+                                        <Button Grid.Column="1"
+                                                Classes="manage-icon"
+                                                ToolTip.Tip="{Binding Strings.ManageGame}"
+                                                IsVisible="{Binding Library.HasSelectedGame}"
+                                                Click="OnManageGameClick">
+                                            <PathIcon Width="16"
+                                                      Height="16"
+                                                      Data="{StaticResource GeometrySettings}"/>
+                                        </Button>
+                                    </Grid>
                                     <Button Content="{Binding Strings.ToggleFavorite}"
                                             HorizontalAlignment="Stretch"
                                             Command="{Binding Library.ToggleFavoriteCommand}"

@@ -397,4 +397,22 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="CustomGameAlreadyExists" xml:space="preserve"><value>{0} ya está en tu biblioteca.</value></data>
   <data name="CustomGameAdded" xml:space="preserve"><value>{0} se añadió a tu biblioteca.</value></data>
   <data name="Accept" xml:space="preserve"><value>Aceptar</value></data>
+  <data name="ManageGame" xml:space="preserve"><value>Gestionar partida</value></data>
+  <data name="OpenInstallFolder" xml:space="preserve"><value>Abrir carpeta de instalación</value></data>
+  <data name="ViewInStore" xml:space="preserve"><value>Ver en la tienda</value></data>
+  <data name="UninstallGame" xml:space="preserve"><value>Desinstalar</value></data>
+  <data name="UninstallGameConfirm" xml:space="preserve"><value>¿Desinstalar "{0}"? Se abrirá {1} para quitarlo de este PC.</value></data>
+  <data name="UninstallStarted" xml:space="preserve"><value>Abriendo {1} para desinstalar {0}. Actualiza la biblioteca cuando termine.</value></data>
+  <data name="UninstallNotAvailable" xml:space="preserve"><value>La desinstalación no está disponible para este juego.</value></data>
+  <data name="UninstallFailed" xml:space="preserve"><value>No se pudo desinstalar: {0}</value></data>
+  <data name="RemoveFromLibrary" xml:space="preserve"><value>Quitar de la biblioteca</value></data>
+  <data name="RemoveCustomGameConfirm" xml:space="preserve"><value>¿Quitar "{0}" de tu biblioteca? Los archivos del juego no se eliminarán.</value></data>
+  <data name="CustomGameRemoved" xml:space="preserve"><value>{0} se quitó de tu biblioteca.</value></data>
+  <data name="CustomGameRemoveFailed" xml:space="preserve"><value>No se pudo quitar {0} de tu biblioteca.</value></data>
+  <data name="InstallFolderMissing" xml:space="preserve"><value>No se encontró la carpeta de instalación.</value></data>
+  <data name="InstallFolderOpened" xml:space="preserve"><value>Se abrió la carpeta de instalación de {0}.</value></data>
+  <data name="OpenInstallFolderFailed" xml:space="preserve"><value>No se pudo abrir la carpeta de instalación: {0}</value></data>
+  <data name="StorePageUnavailable" xml:space="preserve"><value>Este juego no tiene página de tienda.</value></data>
+  <data name="StorePageOpened" xml:space="preserve"><value>Abriendo la tienda de {0}.</value></data>
+  <data name="OpenStorePageFailed" xml:space="preserve"><value>No se pudo abrir la tienda: {0}</value></data>
 </root>

@@ -50,6 +50,19 @@ public sealed class ProtocolUriTests
     }
 
     [Fact]
+    public void TrySteamStoreAndUninstall_build_product_urls()
+    {
+        Assert.True(ProtocolUri.TrySteamStore(570, out var storeUrl));
+        Assert.Equal("steam://store/570", storeUrl);
+        Assert.True(ProtocolUri.IsLaunchable(storeUrl));
+        Assert.True(ProtocolUri.TrySteamUninstall(570, out var uninstallUrl));
+        Assert.Equal("steam://uninstall/570", uninstallUrl);
+        Assert.True(ProtocolUri.IsLaunchable(uninstallUrl));
+        Assert.False(ProtocolUri.TrySteamStore(0, out _));
+        Assert.False(ProtocolUri.TrySteamUninstall(-1, out _));
+    }
+
+    [Fact]
     public void TrySteamInstall_rejects_non_positive_app_id()
     {
         Assert.False(ProtocolUri.TrySteamInstall(0, out _));
@@ -88,12 +101,27 @@ public sealed class ProtocolUriTests
     }
 
     [Fact]
+    public void TryEpicStoreAndUninstall_build_product_urls()
+    {
+        Assert.True(ProtocolUri.TryEpicStore("Fortnite", out var storeUrl));
+        Assert.Equal("com.epicgames.launcher://store/product/Fortnite", storeUrl);
+        Assert.True(ProtocolUri.IsLaunchable(storeUrl));
+        Assert.True(ProtocolUri.TryEpicUninstall("Fortnite", out var uninstallUrl));
+        Assert.Equal("com.epicgames.launcher://apps/Fortnite?action=uninstall", uninstallUrl);
+        Assert.True(ProtocolUri.IsLaunchable(uninstallUrl));
+        Assert.False(ProtocolUri.TryEpicStore("Fortnite?action=evil", out _));
+    }
+
+    [Fact]
     public void TryUplayInstall_requires_positive_id()
     {
         Assert.True(ProtocolUri.TryUplayInstall(12345u, out var url));
         Assert.Equal("uplay://install/12345", url);
         Assert.False(ProtocolUri.TryUplayInstall("not-a-number", out _));
         Assert.False(ProtocolUri.TryUplayInstall(0u, out _));
+        Assert.True(ProtocolUri.TryUplayUninstall(12345u, out var uninstallUrl));
+        Assert.Equal("uplay://uninstall/12345", uninstallUrl);
+        Assert.False(ProtocolUri.TryUplayUninstall("nope", out _));
     }
 
     [Fact]
@@ -133,6 +161,10 @@ public sealed class ProtocolUriTests
 
     [Theory]
     [InlineData("steam://install/570")]
+    [InlineData("steam://store/570")]
+    [InlineData("steam://uninstall/570")]
+    [InlineData("com.epicgames.launcher://store/product/Fortnite")]
+    [InlineData("com.epicgames.launcher://apps/Fortnite?action=uninstall")]
     [InlineData("com.epicgames.launcher://apps/Fortnite?action=launch&silent=true")]
     [InlineData("link2ea://openlibrary?slug=the-sims-4&platform=EA")]
     [InlineData("shell:AppsFolder\\Microsoft.Halo_8wekyb3d8bbwe!App")]

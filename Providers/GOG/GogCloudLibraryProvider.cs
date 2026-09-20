@@ -91,7 +91,7 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
         if (!long.TryParse(game.PlatformGameId, out var gogId))
             yield break;
 
-        var releaseKey = TryGetReleaseKey(game.Id) ?? $"gog_{gogId}";
+        var releaseKey = GogCatalogReader.TryGetReleaseKey(game) ?? $"gog_{gogId}";
         if (ProtocolUri.TryGogOpenGameView(releaseKey, out var protocolUrl))
             yield return () => ProtocolLauncher.Start(protocolUrl);
 
@@ -101,19 +101,6 @@ public sealed class GogCloudLibraryProvider : ICloudLibraryProvider
             var installArgs = GogCatalogReader.BuildLaunchArguments(gogId, install: true);
             yield return () => StartLauncherArgs(clientExe, installArgs);
         }
-    }
-
-    private static string? TryGetReleaseKey(string id)
-    {
-        const string prefix = "gog:catalog:";
-        if (!id.StartsWith(prefix, StringComparison.Ordinal))
-            return null;
-
-        var payload = id[prefix.Length..];
-        var separator = payload.IndexOf('@');
-        return separator >= 0 && separator < payload.Length - 1
-            ? payload[(separator + 1)..]
-            : null;
     }
 
     private static void StartLauncherArgs(string launcherExe, string arguments)

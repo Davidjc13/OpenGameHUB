@@ -80,4 +80,22 @@
         <Setter Property="Background" Value="{DynamicResource BrushBgCard}"/>
     </Style>
 
+    <Style Selector="Button.manage-icon">
+        <Setter Property="MinWidth" Value="40"/>
+        <Setter Property="MaxWidth" Value="40"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgInput}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+    </Style>
+    <Style Selector="Button.manage-icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgCard}"/>
+    </Style>
+
 </Styles>

@@ -89,6 +89,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public bool SelectedGameHasCustomCover => SelectedGame?.HasCustomCover == true;
 
+    public bool HasSelectedGame => SelectedGame is not null;
+
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
 
     public string SelectedGameActionLabel => SelectedGame?.ActionLabel ?? Loc.T("Play");
@@ -164,6 +166,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
+        OnPropertyChanged(nameof(HasSelectedGame));
         ApplyFilter();
         ApplyVisibleCovers();
     }
@@ -264,6 +267,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
+        OnPropertyChanged(nameof(HasSelectedGame));
         _sidebar.OnSelectedGameChanged();
     }
 
@@ -556,6 +560,151 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             ? Loc.T("AddedToFavorites", game.Title)
             : Loc.T("RemovedFromFavorites", game.Title));
         _scheduleStatusClear(TimeSpan.Zero);
+    }
+
+    [RelayCommand]
+    private void OpenInstallFolder(GameItemViewModel? game)
+    {
+        if (game is null)
+            return;
+
+        try
+        {
+            _library.OpenInstallFolder(game.Source);
+            _setStatusText(Loc.T("InstallFolderOpened", game.Title));
+            _scheduleStatusClear(TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowLibraryViewModel),
+                operation: "OpenInstallFolder",
+                exception: ex,
+                platform: game.Platform,
+                details: game.Source.Id);
+            _setStatusText(Loc.T("OpenInstallFolderFailed", ex.Message));
+            _scheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
+    }
+
+    [RelayCommand]
+    private void OpenStorePage(GameItemViewModel? game)
+    {
+        if (game is null)
+            return;
+
+        try
+        {
+            _library.OpenStorePage(game.Source);
+            _setStatusText(Loc.T("StorePageOpened", game.Title));
+            _scheduleStatusClear(TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowLibraryViewModel),
+                operation: "OpenStorePage",
+                exception: ex,
+                platform: game.Platform,
+                details: game.Source.Id);
+            _setStatusText(Loc.T("OpenStorePageFailed", ex.Message));
+            _scheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
+    }
+
+    [RelayCommand]
+    private async Task UninstallGameAsync(GameItemViewModel? game)
+    {
+        if (game is null || !GameLibraryActions.CanUninstall(game.Source))
+            return;
+
+        var confirmed = await ConfirmActionAsync(
+            Loc.T("UninstallGame"),
+            Loc.T("UninstallGameConfirm", game.Title, game.PlatformLabel),
+            Loc.T("UninstallGame"));
+        if (!confirmed)
+            return;
+
+        try
+        {
+            _library.StartUninstall(game.Source);
+            _setStatusText(Loc.T("UninstallStarted", game.Title, game.PlatformLabel));
+            _scheduleStatusClear(TimeSpan.FromSeconds(8));
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowLibraryViewModel),
+                operation: "UninstallGameAsync",
+                exception: ex,
+                platform: game.Platform,
+                details: game.Source.Id);
+            _setStatusText(Loc.T("UninstallFailed", ex.Message));
+            _scheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
+    }
+
+    [RelayCommand]
+    private async Task RemoveCustomGameAsync(GameItemViewModel? game)
+    {
+        if (game is null || !GameLibraryActions.CanRemoveFromLibrary(game.Source))
+            return;
+
+        var confirmed = await ConfirmActionAsync(
+            Loc.T("RemoveFromLibrary"),
+            Loc.T("RemoveCustomGameConfirm", game.Title),
+            Loc.T("RemoveFromLibrary"));
+        if (!confirmed)
+            return;
+
+        try
+        {
+            if (!_library.RemoveCustomGame(game.Source.Id))
+            {
+                _setStatusText(Loc.T("CustomGameRemoveFailed", game.Title));
+                _scheduleStatusClear(TimeSpan.FromSeconds(6));
+                return;
+            }
+
+            RemoveGameFromUi(game);
+            _setStatusText(Loc.T("CustomGameRemoved", game.Title));
+            _scheduleStatusClear(TimeSpan.FromSeconds(4));
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(MainWindowLibraryViewModel),
+                operation: "RemoveCustomGameAsync",
+                exception: ex,
+                platform: game.Platform,
+                details: game.Source.Id);
+            _setStatusText(Loc.T("CustomGameRemoveFailed", game.Title));
+            _scheduleStatusClear(TimeSpan.FromSeconds(6));
+        }
+    }
+
+    private async Task<bool> ConfirmActionAsync(string title, string message, string confirmLabel)
+    {
+        var viewModel = new CollectionConfirmDialogViewModel(title, message, confirmLabel);
+        var window = new CollectionConfirmDialog { DataContext = viewModel };
+        await _showDialogAsync(window);
+        return viewModel.Confirmed;
+    }
+
+    private void RemoveGameFromUi(GameItemViewModel game)
+    {
+        if (ReferenceEquals(SelectedGame, game)
+            || string.Equals(SelectedGame?.Source.Id, game.Source.Id, StringComparison.Ordinal))
+        {
+            SelectedGame = null;
+        }
+
+        game.ReleaseCover();
+        _allGames = _allGames
+            .Where(item => !string.Equals(item.Source.Id, game.Source.Id, StringComparison.Ordinal))
+            .ToList();
+        _sidebar.RebuildAll(_allGames);
+        ApplyFilter();
     }
 
     public void ApplyFilter()

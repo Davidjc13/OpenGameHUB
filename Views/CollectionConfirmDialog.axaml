@@ -24,7 +24,7 @@
                     Command="{Binding CancelCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
             <Button Classes="primary"
-                    Content="{Binding Strings.DeleteCollection}"
+                    Content="{Binding ConfirmLabel}"
                     Command="{Binding ConfirmCommand}"
                     CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
         </StackPanel>
