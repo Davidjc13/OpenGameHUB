@@ -55,6 +55,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         Games = new ObservableCollection<GameItemViewModel>();
         CoverQualityMode = _library.Settings.Current.CoverQualityMode;
         IsListView = _library.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(_library.Settings.Current.GridCardSize);
     }
 
     public ObservableCollection<GameItemViewModel> Games { get; }
@@ -81,9 +82,24 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     private int _gridRows = 3;
 
     [ObservableProperty]
+    private double _gridCardWidth = LibraryGridMetrics.PreferredCardWidth;
+
+    [ObservableProperty]
+    private double _gridCoverHeight = LibraryGridMetrics.PreferredCardWidth * LibraryGridMetrics.CoverAspect;
+
+    [ObservableProperty]
+    private double _gridCardSize = LibraryGridMetrics.DefaultPreferredCardWidth;
+
+    [ObservableProperty]
     private int _currentPage = 1;
 
     public bool IsGridView => !IsListView;
+
+    public double GridCardSizeMinimum => LibraryGridMetrics.MinPreferredCardWidth;
+
+    public double GridCardSizeMaximum => LibraryGridMetrics.MaxPreferredCardWidth;
+
+    public string GridCardSizeLabel => Loc.T("GridCardSize");
 
     public bool ShowDetailCover => CoverQualitySettings.Get(CoverQualityMode).ShowDetailCover;
 
@@ -131,7 +147,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (cached.Count == 0)
             return;
 
-        _allGames = cached.Select(g => new GameItemViewModel(g)).ToList();
+        _allGames = GameItemViewModelFactory.CreateGrouped(cached);
         ApplyGameMembership();
         _sidebar.RebuildAll(_allGames);
         ApplyFilter();
@@ -159,7 +175,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var previousQuality = CoverQualityMode;
         CoverQualityMode = _library.Settings.Current.CoverQualityMode;
         IsListView = _library.Settings.Current.LibraryViewMode == LibraryViewMode.List;
+        GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(_library.Settings.Current.GridCardSize);
         OnPropertyChanged(nameof(ShowDetailCover));
+        OnPropertyChanged(nameof(GridCardSizeLabel));
         if (releaseCoversOnQualityChange && previousQuality != CoverQualityMode)
             ReleaseAllGameCovers();
         OnPropertyChanged(nameof(IsGridView));
@@ -190,27 +208,27 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (width < 10 || height < 10)
             return;
 
-        var newPageSize = IsListView
-            ? LibraryGridMetrics.ListPageSizeFromHeight(height)
-            : LibraryGridMetrics.Calculate(width, height).PageSize;
-
-        if (!IsListView)
+        if (IsListView)
         {
-            var metrics = LibraryGridMetrics.Calculate(width, height);
-            GridColumns = metrics.Columns;
-            GridRows = metrics.Rows;
+            ApplyListPageSize(height);
+            return;
         }
 
-        if (newPageSize == _effectivePageSize)
+        ApplyGridLayout(width, height);
+    }
+
+    partial void OnGridCardSizeChanged(double value)
+    {
+        var clamped = LibraryGridMetrics.ClampPreferredCardWidth(value);
+        if (Math.Abs(clamped - value) > 0.01)
+        {
+            GridCardSize = clamped;
             return;
+        }
 
-        _effectivePageSize = newPageSize;
-        NotifyPaginationChanged();
-
-        if (CurrentPage > TotalPages)
-            CurrentPage = TotalPages;
-
-        ApplyCurrentPage();
+        PersistGridCardSize();
+        if (_libraryViewportWidth >= 10 && _libraryViewportHeight >= 10)
+            ApplyGridLayout(_libraryViewportWidth, _libraryViewportHeight);
     }
 
     partial void OnCurrentPageChanged(int value)
@@ -297,7 +315,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                 SelectedGame = null;
                 _previousSelectedGame = null;
 
-                _allGames = games.Select(g => new GameItemViewModel(g)).ToList();
+                _allGames = GameItemViewModelFactory.CreateGrouped(games);
                 ApplyGameMembership();
                 _suppressCoverLoading = false;
                 _sidebar.RebuildAll(_allGames);
@@ -370,7 +388,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
         try
         {
-            var installResult = await _installOrchestrator.TryStartInstallAsync(SelectedGame.Source);
+            var launchTarget = await ResolveInstallLaunchTargetAsync(SelectedGame);
+            if (launchTarget is null)
+                return;
+
+            var installResult = await _installOrchestrator.TryStartInstallAsync(launchTarget);
             switch (installResult.Outcome)
             {
                 case GameInstallOutcome.InstallStarted:
@@ -386,12 +408,12 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                     return;
             }
 
-            _library.LaunchGame(SelectedGame.Source);
+            _library.LaunchGame(launchTarget);
             SelectedGame.RefreshLaunchState();
             if (!_sidebar.HasUserSelectedSort)
                 _sidebar.RebuildSortOptions();
             ApplyFilter();
-            _setStatusText(SelectedGame.Source.IsInstalled
+            _setStatusText(launchTarget.IsInstalled
                 ? Loc.T("LaunchingGame", SelectedGame.Title)
                 : Loc.T("StartingInstallLaunch", SelectedGame.Title));
         }
@@ -847,7 +869,18 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     {
         var collections = _library.Collections;
         foreach (var game in _allGames)
-            game.SetCollectionIds(collections.GetCollectionIdsForGame(game.Source.Id));
+        {
+            var collectionIds = new HashSet<string>(
+                collections.GetCollectionIdsForGame(game.Source.Id),
+                StringComparer.Ordinal);
+            foreach (var alternate in game.Source.AlternateListings)
+            {
+                foreach (var collectionId in collections.GetCollectionIdsForGame(alternate.Id))
+                    collectionIds.Add(collectionId);
+            }
+
+            game.SetCollectionIds(collectionIds);
+        }
     }
 
     private void ReleaseAllGameCovers()
@@ -868,6 +901,53 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         _library.Settings.Save(updated);
     }
 
+    private void PersistGridCardSize()
+    {
+        var current = _library.Settings.Current;
+        if (Math.Abs(current.GridCardSize - GridCardSize) < 0.5)
+            return;
+
+        var updated = current.Clone();
+        updated.GridCardSize = GridCardSize;
+        _library.Settings.Save(updated);
+    }
+
+    private void ApplyListPageSize(double viewportHeight)
+    {
+        var newPageSize = LibraryGridMetrics.ListPageSizeFromHeight(viewportHeight);
+        if (newPageSize == _effectivePageSize)
+            return;
+
+        _effectivePageSize = newPageSize;
+        NotifyPaginationChanged();
+
+        if (CurrentPage > TotalPages)
+            CurrentPage = TotalPages;
+
+        ApplyCurrentPage();
+    }
+
+    private void ApplyGridLayout(double viewportWidth, double viewportHeight)
+    {
+        var metrics = LibraryGridMetrics.Calculate(viewportWidth, viewportHeight, GridCardSize);
+        GridColumns = metrics.Columns;
+        GridRows = metrics.Rows;
+        GridCardWidth = metrics.CardWidth;
+        GridCoverHeight = metrics.CoverHeight;
+
+        var pageSizeChanged = metrics.PageSize != _effectivePageSize;
+        if (pageSizeChanged)
+        {
+            _effectivePageSize = metrics.PageSize;
+            NotifyPaginationChanged();
+
+            if (CurrentPage > TotalPages)
+                CurrentPage = TotalPages;
+        }
+
+        ApplyCurrentPage();
+    }
+
     private void NotifyPaginationChanged()
     {
         OnPropertyChanged(nameof(TotalPages));
@@ -882,6 +962,21 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var viewModel = new EaManualInstallNoticeViewModel(gameTitle);
         var window = new EaManualInstallNoticeWindow(viewModel);
         await _showDialogAsync(window);
+    }
+
+    private async Task<UnifiedGame?> ResolveInstallLaunchTargetAsync(GameItemViewModel selectedGame)
+    {
+        if (selectedGame.Source.IsInstalled)
+            return selectedGame.Source;
+
+        var installTargets = selectedGame.GetUninstalledInstallTargets();
+        if (installTargets.Count <= 1)
+            return installTargets.FirstOrDefault() ?? selectedGame.Source;
+
+        var viewModel = new StoreInstallChoiceDialogViewModel(selectedGame.Title, installTargets);
+        var window = new StoreInstallChoiceDialog { DataContext = viewModel };
+        await _showDialogAsync(window);
+        return viewModel.Confirmed ? viewModel.SelectedGame : null;
     }
 
     private static async Task RunOnUiThreadAsync(Action action)

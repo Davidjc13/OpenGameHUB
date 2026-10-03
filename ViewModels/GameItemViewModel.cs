@@ -14,7 +14,7 @@ public partial class GameItemViewModel : ViewModelBase
         Title = game.Title;
         Platform = game.Platform;
         PlatformLabel = PlatformLabels.Get(game.Platform);
-        IsFavorite = game.IsFavorite;
+        IsFavorite = game.IsFavorite || game.AlternateListings.Any(a => a.IsFavorite);
         ApplyLocalization();
     }
 
@@ -23,6 +23,10 @@ public partial class GameItemViewModel : ViewModelBase
     public string Title { get; }
     public Platform Platform { get; }
     public string PlatformLabel { get; }
+
+    public string AlsoOnLabel { get; private set; } = string.Empty;
+
+    public bool HasAlsoOnBadge => !string.IsNullOrEmpty(AlsoOnLabel);
 
     [ObservableProperty]
     private string _installPath = string.Empty;
@@ -110,10 +114,44 @@ public partial class GameItemViewModel : ViewModelBase
         InstallStatus = Source.IsInstalled ? Loc.T("Installed") : Loc.T("InLibrary");
         ActionLabel = ResolveActionLabel();
         PlaytimeLabel = BuildPlaytimeLabel();
+        AlsoOnLabel = BuildAlsoOnLabel();
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(GridCoverOpacity));
         OnPropertyChanged(nameof(GridPlaceholderOpacity));
         OnPropertyChanged(nameof(ManageGameLabel));
+        OnPropertyChanged(nameof(AlsoOnLabel));
+        OnPropertyChanged(nameof(HasAlsoOnBadge));
+    }
+
+    public IReadOnlyList<UnifiedGame> GetUninstalledInstallTargets()
+    {
+        var targets = new List<UnifiedGame>();
+        if (!Source.IsInstalled)
+            targets.Add(Source);
+
+        targets.AddRange(Source.AlternateListings.Where(a => !a.IsInstalled));
+        return targets;
+    }
+
+    public bool MatchesPlatform(Platform platform) =>
+        Platform == platform || Source.AlternateListings.Any(a => a.Platform == platform);
+
+    public bool MatchesAnyGameId(IReadOnlySet<string> gameIds) =>
+        gameIds.Contains(Source.Id)
+        || Source.AlternateListings.Any(a => gameIds.Contains(a.Id));
+
+    private string BuildAlsoOnLabel()
+    {
+        if (Source.AlternateListings.Count == 0)
+            return string.Empty;
+
+        var labels = Source.AlternateListings
+            .Select(a => a.Platform)
+            .Distinct()
+            .OrderBy(p => PlatformLabels.Get(p), StringComparer.OrdinalIgnoreCase)
+            .Select(PlatformLabels.Get);
+
+        return string.Join(", ", labels);
     }
 
     private string ResolveActionLabel()

@@ -12,6 +12,7 @@ internal sealed class AppSettingsDocument
     public UiFontScale UiFontScale { get; set; } = UiFontScale.Normal;
     public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
+    public double GridCardSize { get; set; } = 224;
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
     public bool DismissLegendaryPrompt { get; set; }
@@ -29,6 +30,7 @@ internal sealed class AppSettingsDocument
             UiFontScale = settings.UiFontScale,
             ThemeMode = settings.ThemeMode,
             LibraryViewMode = settings.LibraryViewMode,
+            GridCardSize = settings.GridCardSize,
             DismissSteamApiKeyPrompt = settings.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = settings.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = settings.DismissLegendaryPrompt,
@@ -47,6 +49,7 @@ internal sealed class AppSettingsDocument
             UiFontScale = UiFontScale,
             ThemeMode = ThemeMode,
             LibraryViewMode = LibraryViewMode,
+            GridCardSize = GridCardSize,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,
             DismissLegendaryPrompt = DismissLegendaryPrompt,

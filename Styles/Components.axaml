@@ -12,13 +12,26 @@
         <Setter Property="Margin" Value="6"/>
         <Setter Property="HorizontalAlignment" Value="Stretch"/>
         <Setter Property="VerticalAlignment" Value="Stretch"/>
-        <Setter Property="MinWidth" Value="136"/>
+        <Setter Property="MinWidth" Value="160"/>
     </Style>
 
     <Style Selector="Border.platform-badge">
         <Setter Property="CornerRadius" Value="{StaticResource RadiusBadge}"/>
         <Setter Property="Padding" Value="5,2"/>
         <Setter Property="HorizontalAlignment" Value="Left"/>
+    </Style>
+
+    <Style Selector="Border.toolbar-group">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusBadge}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgPanel}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.also-on-badge">
+        <Setter Property="Background" Value="{DynamicResource BrushBgPanel}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
     </Style>
 
     <Style Selector="Border.game-cover-area">
