@@ -13,6 +13,7 @@ internal sealed class AppSettingsDocument
     public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public double GridCardSize { get; set; } = 224;
+    public bool PageSlideEnabled { get; set; }
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
     public bool DismissLegendaryPrompt { get; set; }
@@ -31,6 +32,7 @@ internal sealed class AppSettingsDocument
             ThemeMode = settings.ThemeMode,
             LibraryViewMode = settings.LibraryViewMode,
             GridCardSize = settings.GridCardSize,
+            PageSlideEnabled = settings.PageSlideEnabled,
             DismissSteamApiKeyPrompt = settings.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = settings.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = settings.DismissLegendaryPrompt,
@@ -50,6 +52,7 @@ internal sealed class AppSettingsDocument
             ThemeMode = ThemeMode,
             LibraryViewMode = LibraryViewMode,
             GridCardSize = GridCardSize,
+            PageSlideEnabled = PageSlideEnabled,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,
             DismissLegendaryPrompt = DismissLegendaryPrompt,

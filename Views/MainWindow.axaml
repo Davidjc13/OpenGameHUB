@@ -3,6 +3,7 @@
         xmlns:vm="using:OpenGameHUB.ViewModels"
         xmlns:main="using:OpenGameHUB.ViewModels.MainWindow"
         xmlns:controls="using:OpenGameHUB.Controls"
+        xmlns:views="using:OpenGameHUB.Views"
         x:Class="OpenGameHUB.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/app.ico"
@@ -14,8 +15,10 @@
         Classes="app-window"
         Opened="OnOpened">
 
+    <Grid>
     <Grid RowDefinitions="Auto,Auto,Auto,*"
-          Margin="{StaticResource ThicknessWindowMargin}">
+          Margin="{StaticResource ThicknessWindowMargin}"
+          IsVisible="{Binding !IsConsoleMode}">
         <Grid Grid.Row="0"
               ColumnDefinitions="Auto,*,Auto"
               ColumnSpacing="16"
@@ -40,6 +43,30 @@
                         Orientation="Horizontal"
                         Spacing="8"
                         VerticalAlignment="Center">
+                <Button Classes="icon"
+                        ToolTip.Tip="{Binding Strings.EnterConsoleMode}"
+                        Command="{Binding ToggleFullScreenCommand}">
+                    <PathIcon Width="16"
+                              Height="16"
+                              Data="{StaticResource GeometryConsole}"/>
+                </Button>
+                <Button Classes="icon"
+                        Classes.favorite-on="{Binding Library.SelectedGameIsFavorite}"
+                        ToolTip.Tip="{Binding Library.FavoriteSelectedToolTip}"
+                        Command="{Binding Library.ToggleFavoriteCommand}"
+                        CommandParameter="{Binding Library.SelectedGame}"
+                        IsEnabled="{Binding Library.HasSelectedGame}">
+                    <Panel>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeartOutline}"
+                                  IsVisible="{Binding !Library.SelectedGameIsFavorite}"/>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeart}"
+                                  IsVisible="{Binding Library.SelectedGameIsFavorite}"/>
+                    </Panel>
+                </Button>
                 <Button Classes="icon"
                         ToolTip.Tip="{Binding Strings.Settings}"
                         Command="{Binding OpenSettingsCommand}">
@@ -209,7 +236,8 @@
                                       Classes="library-scroll"
                                       Classes.clip-y="{Binding !Library.IsListView}"
                                       SizeChanged="OnGamesViewportSizeChanged">
-                            <Grid MinWidth="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
+                            <Grid x:Name="GamesSlideHost"
+                                  MinWidth="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
                                 <ItemsControl ItemsSource="{Binding Library.Games}"
                                               IsVisible="{Binding !Library.IsListView}"
                                               HorizontalAlignment="Stretch"
@@ -306,7 +334,7 @@
                                                TextWrapping="Wrap"
                                                Classes="text-help"/>
 
-                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                         <Button Grid.Column="0"
                                                 Classes="primary"
                                                 MinWidth="0"
@@ -314,6 +342,23 @@
                                                 HorizontalAlignment="Stretch"
                                                 Command="{Binding Library.LaunchSelectedGameCommand}"/>
                                         <Button Grid.Column="1"
+                                                Classes="icon"
+                                                Classes.favorite-on="{Binding Library.SelectedGameIsFavorite}"
+                                                ToolTip.Tip="{Binding Library.FavoriteSelectedToolTip}"
+                                                Command="{Binding Library.ToggleFavoriteCommand}"
+                                                CommandParameter="{Binding Library.SelectedGame}">
+                                            <Panel>
+                                                <PathIcon Width="16"
+                                                          Height="16"
+                                                          Data="{StaticResource GeometryHeartOutline}"
+                                                          IsVisible="{Binding !Library.SelectedGameIsFavorite}"/>
+                                                <PathIcon Width="16"
+                                                          Height="16"
+                                                          Data="{StaticResource GeometryHeart}"
+                                                          IsVisible="{Binding Library.SelectedGameIsFavorite}"/>
+                                            </Panel>
+                                        </Button>
+                                        <Button Grid.Column="2"
                                                 Classes="icon"
                                                 ToolTip.Tip="{Binding Strings.ManageGame}"
                                                 IsVisible="{Binding Library.HasSelectedGame}"
@@ -323,11 +368,6 @@
                                                       Data="{StaticResource GeometrySettings}"/>
                                         </Button>
                                     </Grid>
-
-                                    <Button Content="{Binding Strings.ToggleFavorite}"
-                                            Classes="quiet"
-                                            Command="{Binding Library.ToggleFavoriteCommand}"
-                                            CommandParameter="{Binding Library.SelectedGame}"/>
 
                                     <StackPanel Spacing="8"
                                                 IsVisible="{Binding Sidebar.ShowDetailCollections}">
@@ -359,5 +399,9 @@
                 </Grid>
             </Grid>
         </Grid>
+    </Grid>
+        <views:ConsoleModeView x:Name="ConsoleView"
+                               DataContext="{Binding Console}"
+                               IsVisible="False"/>
     </Grid>
 </Window>

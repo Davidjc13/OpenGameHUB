@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="EaHowToInstall" xml:space="preserve"><value>Cómo instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
+  <data name="FavoriteAdd" xml:space="preserve"><value>Añadir a favoritos</value></data>
+  <data name="FavoriteRemove" xml:space="preserve"><value>Quitar de favoritos</value></data>
+  <data name="FavoriteNeedsSelection" xml:space="preserve"><value>Selecciona un juego para marcarlo como favorito</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Parrilla</value></data>
   <data name="ViewList" xml:space="preserve"><value>Lista</value></data>
   <data name="ChangeCover" xml:space="preserve"><value>Cambiar portada</value></data>
@@ -317,6 +320,19 @@
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnóstico</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>Si OpenGameHUB falla, comparte el archivo de log con soporte. Los logs se guardan en: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir carpeta de logs</value></data>
+  <data name="PreferencesTransferSection" xml:space="preserve"><value>Archivo de preferencias</value></data>
+  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Lleva a otro PC el idioma, el tema, el tamaño del texto, la calidad de las portadas, la animación de página, la vista de la biblioteca, las colecciones y los favoritos. Los juegos añadidos a mano no entran. Las claves y las cuentas conectadas se quedan en este PC.</value></data>
+  <data name="ExportPreferences" xml:space="preserve"><value>Exportar</value></data>
+  <data name="ImportPreferences" xml:space="preserve"><value>Importar</value></data>
+  <data name="ExportPreferencesDialogTitle" xml:space="preserve"><value>Exportar preferencias</value></data>
+  <data name="ImportPreferencesDialogTitle" xml:space="preserve"><value>Importar preferencias</value></data>
+  <data name="PreferencesFileFilter" xml:space="preserve"><value>Preferencias de OpenGameHUB</value></data>
+  <data name="PreferencesExported" xml:space="preserve"><value>Preferencias exportadas. No se incluyeron claves, cuentas ni juegos añadidos a mano.</value></data>
+  <data name="PreferencesImported" xml:space="preserve"><value>Preferencias cargadas. Guarda para aplicarlas en este PC.</value></data>
+  <data name="PreferencesFileInvalid" xml:space="preserve"><value>Ese archivo no es un archivo de preferencias de OpenGameHUB.</value></data>
+  <data name="PreferencesFileNewer" xml:space="preserve"><value>Ese archivo de preferencias lo creó una versión más reciente de OpenGameHUB.</value></data>
+  <data name="PreferencesFileWriteFailed" xml:space="preserve"><value>No se pudo escribir el archivo de preferencias.</value></data>
+  <data name="PreferencesFileReadFailed" xml:space="preserve"><value>No se pudo leer el archivo de preferencias.</value></data>
   <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encontró un error fatal</value></data>
   <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB debe cerrarse por un error inesperado.
 
@@ -345,6 +361,8 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="UiFontScaleLarge" xml:space="preserve"><value>Grande</value></data>
   <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra grande</value></data>
   <data name="UiFontScaleHelp" xml:space="preserve"><value>Ajusta el tamaño del texto en toda la aplicación. Útil para mejorar la legibilidad en pantallas grandes o de alta densidad.</value></data>
+  <data name="PageSlideEnabled" xml:space="preserve"><value>Deslizar al cambiar de página</value></data>
+  <data name="PageSlideHelp" xml:space="preserve"><value>La biblioteca se desliza en vertical entre páginas. Siguiente entra desde abajo y anterior desde arriba.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
@@ -420,4 +438,16 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="StorePageUnavailable" xml:space="preserve"><value>Este juego no tiene página de tienda.</value></data>
   <data name="StorePageOpened" xml:space="preserve"><value>Abriendo la tienda de {0}.</value></data>
   <data name="OpenStorePageFailed" xml:space="preserve"><value>No se pudo abrir la tienda: {0}</value></data>
+  <data name="EnterConsoleMode" xml:space="preserve"><value>Pantalla completa (F11)</value></data>
+  <data name="ExitConsoleMode" xml:space="preserve"><value>Salir</value></data>
+  <data name="ConsoleAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="ConsoleInstalled" xml:space="preserve"><value>Instalados</value></data>
+  <data name="ConsoleFavorites" xml:space="preserve"><value>Favoritos</value></data>
+  <data name="ConsoleEmpty" xml:space="preserve"><value>No hay juegos en esta vista</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  X o M música  ·  F11 o Esc salir</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar</value></data>
+  <data name="MediaPlay" xml:space="preserve"><value>Reproducir</value></data>
+  <data name="MediaPause" xml:space="preserve"><value>Pausar</value></data>
+  <data name="MediaPrevious" xml:space="preserve"><value>Anterior</value></data>
+  <data name="MediaNext" xml:space="preserve"><value>Siguiente</value></data>
 </root>

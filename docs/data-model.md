@@ -128,7 +128,7 @@ Table `collection_games` (many-to-many):
 | Column | Type | Notes |
 |--------|------|-------|
 | `collection_id` | TEXT FK | References `collections.id` (`ON DELETE CASCADE`) |
-| `game_id` | TEXT | References `games.id` (orphans purged after sync) |
+| `game_id` | TEXT | Game id. Membership for a game removed by scan is deleted. Membership for a game not yet in the library is kept. |
 | `added_at` | TEXT | ISO 8601 |
 
 **System views** (All games, Favorites, Installed) are not persisted — they are derived filters in the UI. Only user-created collections use these tables.

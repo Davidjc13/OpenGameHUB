@@ -60,6 +60,7 @@ public partial class MainWindowViewModel : ViewModelBase
             window => Onboarding.ShowDialogAsync(window));
 
         libraryRef = Library;
+        Console = new ConsoleModeViewModel(Library, ExitConsoleMode);
 
         Updates = new MainWindowUpdatesViewModel(
             text => StatusText = text,
@@ -75,9 +76,116 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowOnboardingViewModel Onboarding { get; }
     public MainWindowSidebarViewModel Sidebar { get; }
     public MainWindowLibraryViewModel Library { get; }
+    public ConsoleModeViewModel Console { get; }
+
+    [ObservableProperty]
+    private bool _isConsoleMode;
 
     [ObservableProperty]
     private string _statusText = string.Empty;
+
+    partial void OnIsConsoleModeChanged(bool value)
+    {
+        if (value)
+            Console.Activate();
+        else
+            Console.Deactivate();
+    }
+
+    [RelayCommand]
+    private void ToggleFullScreen() => IsConsoleMode = !IsConsoleMode;
+
+    private void ExitConsoleMode() => IsConsoleMode = false;
+
+    public void ApplyWindowGamepad(ConsoleInput input)
+    {
+        switch (input)
+        {
+            case ConsoleInput.MoveLeft:
+            case ConsoleInput.MoveRight:
+            case ConsoleInput.MoveUp:
+            case ConsoleInput.MoveDown:
+                MoveLibrarySelection(input);
+                break;
+            case ConsoleInput.Activate:
+                if (Library.SelectedGame is null)
+                    MoveLibrarySelection(ConsoleInput.MoveRight);
+                else
+                    Library.LaunchGameCommand.Execute(Library.SelectedGame);
+                break;
+            case ConsoleInput.Favorite:
+                Library.ToggleFavoriteCommand.Execute(Library.SelectedGame);
+                break;
+            case ConsoleInput.PreviousCategory:
+                CyclePlatform(-1);
+                break;
+            case ConsoleInput.NextCategory:
+                CyclePlatform(1);
+                break;
+            case ConsoleInput.Back:
+                Library.ClearSelection();
+                break;
+            case ConsoleInput.MediaToggle:
+            case ConsoleInput.MediaNext:
+            case ConsoleInput.MediaPrevious:
+                break;
+        }
+    }
+
+    private void MoveLibrarySelection(ConsoleInput input)
+    {
+        var games = Library.Games;
+        var current = Library.SelectedGame is null ? -1 : games.IndexOf(Library.SelectedGame);
+        var columns = Library.IsListView ? 1 : Library.GridColumns;
+        var step = WindowGamepadNavigation.Move(current, games.Count, columns, input);
+        if (step.PageDelta != 0)
+        {
+            var moved = step.PageDelta < 0
+                ? ChangePage(Library.CanGoPrevious, Library.PreviousPageCommand)
+                : ChangePage(Library.CanGoNext, Library.NextPageCommand);
+            var page = Library.Games;
+            if (page.Count == 0)
+                return;
+
+            Library.SelectedGame = moved
+                ? page[step.PageDelta < 0 ? page.Count - 1 : 0]
+                : page[step.PageDelta < 0 ? 0 : page.Count - 1];
+            return;
+        }
+
+        if (step.Index < 0 || step.Index >= games.Count)
+            return;
+
+        Library.SelectedGame = games[step.Index];
+    }
+
+    private static bool ChangePage(bool canChange, IRelayCommand command)
+    {
+        if (!canChange)
+            return false;
+
+        command.Execute(null);
+        return true;
+    }
+
+    private void CyclePlatform(int delta)
+    {
+        var filters = Sidebar.PlatformFilters;
+        if (filters.Count == 0)
+            return;
+
+        var index = Sidebar.SelectedPlatformFilter is null
+            ? 0
+            : filters.IndexOf(Sidebar.SelectedPlatformFilter);
+        if (index < 0)
+            index = 0;
+
+        var next = (index + delta) % filters.Count;
+        if (next < 0)
+            next += filters.Count;
+
+        Sidebar.SelectedPlatformFilter = filters[next];
+    }
 
     [RelayCommand]
     private async Task RefreshLibraryAsync()
@@ -97,7 +205,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 _libraryService.Settings,
                 Onboarding.ResetSession,
                 ScheduleDevRelaunch,
-                ClearDevLocalDatabase)));
+                ClearDevLocalDatabase,
+                _libraryService.Collections,
+                _libraryService)));
             ApplyLocalization();
 
             if (_pendingDevRelaunch)
@@ -150,6 +260,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ApplyLocalization()
     {
         Strings.Refresh();
+        Library.ReloadFavoritesFromDatabase();
         Sidebar.RebuildSortOptions();
         Sidebar.RebuildPlatformFilters();
         Sidebar.RebuildLibraryCollections();
@@ -158,6 +269,7 @@ public partial class MainWindowViewModel : ViewModelBase
         UiFontScaleService.Apply(_libraryService.Settings.Current.UiFontScale);
         ThemeModeService.Apply(_libraryService.Settings.Current.ThemeMode);
         Library.ApplyLocalization(releaseCoversOnQualityChange: true);
+        Console.ApplyLocalization();
     }
 
     private void ScheduleStatusClear(TimeSpan delay)

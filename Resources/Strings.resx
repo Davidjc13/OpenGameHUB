@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Install</value></data>
   <data name="EaHowToInstall" xml:space="preserve"><value>How to install</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Toggle favorite</value></data>
+  <data name="FavoriteAdd" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="FavoriteRemove" xml:space="preserve"><value>Remove from favorites</value></data>
+  <data name="FavoriteNeedsSelection" xml:space="preserve"><value>Select a game to add it to favorites</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Grid</value></data>
   <data name="ViewList" xml:space="preserve"><value>List</value></data>
   <data name="ChangeCover" xml:space="preserve"><value>Change cover</value></data>
@@ -317,6 +320,19 @@
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>If OpenGameHUB misbehaves, share the log file with support. Logs are stored at: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="PreferencesTransferSection" xml:space="preserve"><value>Preferences file</value></data>
+  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Move language, theme, text size, cover quality, page animation, library layout, collections, and favorites to another PC. Games you added manually are left out. API keys and signed-in accounts stay on this PC.</value></data>
+  <data name="ExportPreferences" xml:space="preserve"><value>Export</value></data>
+  <data name="ImportPreferences" xml:space="preserve"><value>Import</value></data>
+  <data name="ExportPreferencesDialogTitle" xml:space="preserve"><value>Export preferences</value></data>
+  <data name="ImportPreferencesDialogTitle" xml:space="preserve"><value>Import preferences</value></data>
+  <data name="PreferencesFileFilter" xml:space="preserve"><value>OpenGameHUB preferences</value></data>
+  <data name="PreferencesExported" xml:space="preserve"><value>Preferences exported. API keys, accounts, and manually added games were not included.</value></data>
+  <data name="PreferencesImported" xml:space="preserve"><value>Preferences loaded. Save to apply them on this PC.</value></data>
+  <data name="PreferencesFileInvalid" xml:space="preserve"><value>That file is not an OpenGameHUB preferences file.</value></data>
+  <data name="PreferencesFileNewer" xml:space="preserve"><value>That preferences file was created by a newer version of OpenGameHUB.</value></data>
+  <data name="PreferencesFileWriteFailed" xml:space="preserve"><value>Could not write the preferences file.</value></data>
+  <data name="PreferencesFileReadFailed" xml:space="preserve"><value>Could not read the preferences file.</value></data>
   <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encountered a fatal error</value></data>
   <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB must close because of an unexpected error.
 
@@ -345,6 +361,8 @@ You can share this log file when reporting the issue.</value></data>
   <data name="UiFontScaleLarge" xml:space="preserve"><value>Large</value></data>
   <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra large</value></data>
   <data name="UiFontScaleHelp" xml:space="preserve"><value>Adjusts text size across the app. Useful for readability on high-DPI or large screens.</value></data>
+  <data name="PageSlideEnabled" xml:space="preserve"><value>Slide when changing page</value></data>
+  <data name="PageSlideHelp" xml:space="preserve"><value>The library slides vertically between pages. Next enters from below and previous from above.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>
   <data name="SteamIdPlaceholder" xml:space="preserve"><value>SteamID64</value></data>
@@ -420,4 +438,16 @@ You can share this log file when reporting the issue.</value></data>
   <data name="StorePageUnavailable" xml:space="preserve"><value>No store page is available for this game.</value></data>
   <data name="StorePageOpened" xml:space="preserve"><value>Opening the store page for {0}.</value></data>
   <data name="OpenStorePageFailed" xml:space="preserve"><value>Could not open the store page: {0}</value></data>
+  <data name="EnterConsoleMode" xml:space="preserve"><value>Full screen (F11)</value></data>
+  <data name="ExitConsoleMode" xml:space="preserve"><value>Exit</value></data>
+  <data name="ConsoleAll" xml:space="preserve"><value>All</value></data>
+  <data name="ConsoleInstalled" xml:space="preserve"><value>Installed</value></data>
+  <data name="ConsoleFavorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="ConsoleEmpty" xml:space="preserve"><value>No games in this view</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  F11 or Esc exit</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search</value></data>
+  <data name="MediaPlay" xml:space="preserve"><value>Play</value></data>
+  <data name="MediaPause" xml:space="preserve"><value>Pause</value></data>
+  <data name="MediaPrevious" xml:space="preserve"><value>Previous</value></data>
+  <data name="MediaNext" xml:space="preserve"><value>Next</value></data>
 </root>

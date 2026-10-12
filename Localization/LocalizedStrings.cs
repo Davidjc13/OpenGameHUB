@@ -109,6 +109,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppUpdateDismissLater => Loc.T("AppUpdateDismissLater");
     public string DiagnosticsSection => Loc.T("DiagnosticsSection");
     public string OpenLogsFolder => Loc.T("OpenLogsFolder");
+    public string PreferencesTransferSection => Loc.T("PreferencesTransferSection");
+    public string PreferencesTransferHelp => Loc.T("PreferencesTransferHelp");
+    public string ExportPreferences => Loc.T("ExportPreferences");
+    public string ImportPreferences => Loc.T("ImportPreferences");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ThemeModeSection => Loc.T("ThemeModeSection");
@@ -117,6 +121,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string CoverQualityHelp => Loc.T("CoverQualityHelp");
     public string UiFontScaleSection => Loc.T("UiFontScaleSection");
     public string UiFontScaleHelp => Loc.T("UiFontScaleHelp");
+    public string PageSlideEnabled => Loc.T("PageSlideEnabled");
+    public string PageSlideHelp => Loc.T("PageSlideHelp");
     public string CoverArtHelp => Loc.T("CoverArtHelp");
     public string SteamApiKeyPlaceholder => Loc.T("SteamApiKeyPlaceholder");
     public string SteamIdPlaceholder => Loc.T("SteamIdPlaceholder");
@@ -137,6 +143,18 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string CustomGameTitlePlaceholder => Loc.T("CustomGameTitlePlaceholder");
     public string CustomGameExecutablePlaceholder => Loc.T("CustomGameExecutablePlaceholder");
     public string SteamSetupSignInWithBrowser => Loc.T("SteamSetupSignInWithBrowser");
+    public string EnterConsoleMode => Loc.T("EnterConsoleMode");
+    public string ExitConsoleMode => Loc.T("ExitConsoleMode");
+    public string ConsoleAll => Loc.T("ConsoleAll");
+    public string ConsoleInstalled => Loc.T("ConsoleInstalled");
+    public string ConsoleFavorites => Loc.T("ConsoleFavorites");
+    public string ConsoleEmpty => Loc.T("ConsoleEmpty");
+    public string ConsoleHint => Loc.T("ConsoleHint");
+    public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
+    public string MediaPlay => Loc.T("MediaPlay");
+    public string MediaPause => Loc.T("MediaPause");
+    public string MediaPrevious => Loc.T("MediaPrevious");
+    public string MediaNext => Loc.T("MediaNext");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

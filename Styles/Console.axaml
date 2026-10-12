@@ -1,0 +1,245 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="TextBlock.console-wordmark">
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBox.console-search">
+        <Setter Property="MinHeight" Value="48"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Padding" Value="18,10"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Background" Value="#1A2030"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="BorderBrush" Value="#2C3448"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CaretBrush" Value="#F4F7FF"/>
+    </Style>
+
+    <Style Selector="Button.console-exit">
+        <Setter Property="MinHeight" Value="48"/>
+        <Setter Property="MinWidth" Value="112"/>
+        <Setter Property="Padding" Value="22,10"/>
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="BorderBrush" Value="#5C6A88"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Button.console-exit:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#262D3E"/>
+    </Style>
+
+    <Style Selector="Button.console-chip">
+        <Setter Property="MinHeight" Value="40"/>
+        <Setter Property="Margin" Value="0,0,8,8"/>
+        <Setter Property="Padding" Value="16,8"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="CornerRadius" Value="20"/>
+        <Setter Property="Background" Value="#1A2030"/>
+        <Setter Property="Foreground" Value="#D7DFF1"/>
+        <Setter Property="BorderBrush" Value="#2C3448"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+
+    <Style Selector="Button.console-chip:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#262D3E"/>
+    </Style>
+
+    <Style Selector="Button.console-chip.selected">
+        <Setter Property="Background" Value="#3D6AF2"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="Button.console-chip.selected:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#4F7BFF"/>
+    </Style>
+
+    <Style Selector="Button.console-play">
+        <Setter Property="MinWidth" Value="220"/>
+        <Setter Property="MinHeight" Value="64"/>
+        <Setter Property="Padding" Value="36,16"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="CornerRadius" Value="32"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-kicker">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#9AA6BF"/>
+        <Setter Property="LetterSpacing" Value="1.5"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-title">
+        <Setter Property="FontSize" Value="54"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="LineHeight" Value="60"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-meta">
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Foreground" Value="#C5CEE0"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-status">
+        <Setter Property="FontSize" Value="16"/>
+        <Setter Property="Foreground" Value="#9AA6BF"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-empty">
+        <Setter Property="FontSize" Value="28"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-hint">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="#7E8AA3"/>
+        <Setter Property="Margin" Value="0,8,0,0"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel ListBoxItem">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="MinHeight" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel ListBoxItem:selected:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="Border.console-tile">
+        <Setter Property="Width" Value="168"/>
+        <Setter Property="Height" Value="252"/>
+        <Setter Property="Margin" Value="8,0"/>
+        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="ClipToBounds" Value="True"/>
+        <Setter Property="Background" Value="#1B2130"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="3"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel ListBoxItem:selected Border.console-tile">
+        <Setter Property="Width" Value="214"/>
+        <Setter Property="Height" Value="321"/>
+        <Setter Property="BorderBrush" Value="#F4F7FF"/>
+    </Style>
+
+    <Style Selector="Border.console-tile-scrim">
+        <Setter Property="Background" Value="#B30B0D12"/>
+        <Setter Property="Padding" Value="12,28,12,12"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-tile-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style Selector="Border.console-tile-favorite">
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="Margin" Value="8"/>
+        <Setter Property="Width" Value="28"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="Background" Value="#CC0B0D12"/>
+    </Style>
+
+    <Style Selector="Border.console-media">
+        <Setter Property="Background" Value="#CC1A2030"/>
+        <Setter Property="BorderBrush" Value="#2C3448"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Padding" Value="6,6,8,6"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="MinWidth" Value="36"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="18"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#262D3E"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button:disabled">
+        <Setter Property="Opacity" Value="0.35"/>
+    </Style>
+
+    <Style Selector="Button.console-media-toggle">
+        <Setter Property="Background" Value="#3D6AF2"/>
+    </Style>
+
+    <Style Selector="Button.console-media-toggle:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#4F7BFF"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-glyph">
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-artist">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="#9AA6BF"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-tile-star">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="#F2C14E"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+</Styles>

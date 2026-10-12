@@ -16,5 +16,6 @@
         <StyleInclude Source="avares://OpenGameHUB/Styles/Layout.axaml"/>
         <StyleInclude Source="avares://OpenGameHUB/Styles/Controls.axaml"/>
         <StyleInclude Source="avares://OpenGameHUB/Styles/Components.axaml"/>
+        <StyleInclude Source="avares://OpenGameHUB/Styles/Console.axaml"/>
     </Application.Styles>
 </Application>

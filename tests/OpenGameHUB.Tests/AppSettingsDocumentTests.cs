@@ -16,6 +16,7 @@ public sealed class AppSettingsDocumentTests
             CoverQualityMode = CoverQualityMode.High,
             UiFontScale = UiFontScale.ExtraLarge,
             ThemeMode = ThemeMode.Light,
+            PageSlideEnabled = true,
             EpicAccountId = "epic"
         };
 
@@ -34,5 +35,6 @@ public sealed class AppSettingsDocumentTests
         Assert.Equal(CoverQualityMode.High, roundTrip.CoverQualityMode);
         Assert.Equal(UiFontScale.ExtraLarge, roundTrip.UiFontScale);
         Assert.Equal(ThemeMode.Light, roundTrip.ThemeMode);
+        Assert.True(roundTrip.PageSlideEnabled);
     }
 }

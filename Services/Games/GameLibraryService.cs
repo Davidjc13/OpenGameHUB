@@ -289,8 +289,35 @@ public sealed class GameLibraryService : IDisposable
         _database.RecordLauncherLaunch(game.Id, launchedAt);
     }
 
-    public void ToggleFavorite(UnifiedGame game) =>
-        _database.SetFavorite(game.Id, !game.IsFavorite);
+    public void SetFavorite(UnifiedGame game, bool isFavorite)
+    {
+        game.IsFavorite = isFavorite;
+        _database.SetFavorite(game.Id, isFavorite);
+        foreach (var alternate in game.AlternateListings)
+        {
+            alternate.IsFavorite = isFavorite;
+            _database.SetFavorite(alternate.Id, isFavorite);
+        }
+    }
+
+    public IReadOnlyList<string> GetPortableFavoriteIds() =>
+        _database.GetFavoriteGameIds()
+            .Where(UserCollectionService.IsPortableGameId)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
+
+    public HashSet<string> GetFavoriteGameIds() => _database.GetFavoriteGameIds();
+
+    public void MergeImportedFavorites(IReadOnlyList<string> gameIds)
+    {
+        foreach (var gameId in gameIds.Distinct(StringComparer.Ordinal))
+        {
+            if (!UserCollectionService.IsPortableGameId(gameId))
+                continue;
+
+            _database.SetFavorite(gameId, true);
+        }
+    }
 
     private async Task<IReadOnlyList<SteamWebApiService.SteamOwnedGameEntry>> LoadLocalSteamLibraryAsync(
         CancellationToken cancellationToken)

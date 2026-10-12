@@ -61,6 +61,12 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public ObservableCollection<GameItemViewModel> Games { get; }
 
+    public IReadOnlyList<GameItemViewModel> AllGames => _allGames;
+
+    public event EventHandler? LibraryContentsChanged;
+
+    private bool _consoleCoverMode;
+
     [ObservableProperty]
     private string _gamesCountLabel = string.Empty;
 
@@ -108,6 +114,15 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public bool HasSelectedGame => SelectedGame is not null;
 
+    public bool SelectedGameIsFavorite => SelectedGame?.IsFavorite == true;
+
+    public string FavoriteSelectedToolTip =>
+        SelectedGame is null
+            ? Loc.T("FavoriteNeedsSelection")
+            : SelectedGame.IsFavorite
+                ? Loc.T("FavoriteRemove")
+                : Loc.T("FavoriteAdd");
+
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
 
     public string SelectedGameActionLabel => SelectedGame?.ActionLabel ?? Loc.T("Play");
@@ -142,6 +157,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public bool CanGoNext => CurrentPage < TotalPages;
 
+    public int PageSlideDirection { get; private set; }
+
+    public int PageSlideGeneration { get; private set; }
+
     public void LoadCachedGames()
     {
         var cached = _library.LoadCachedGames();
@@ -171,6 +190,23 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         ApplyFilter();
     }
 
+    public void ReloadFavoritesFromDatabase()
+    {
+        var favorites = _library.GetFavoriteGameIds();
+        foreach (var game in _allGames)
+        {
+            var favorite = favorites.Contains(game.Source.Id)
+                || game.Source.AlternateListings.Any(alternate => favorites.Contains(alternate.Id));
+            game.Source.IsFavorite = favorite;
+            foreach (var alternate in game.Source.AlternateListings)
+                alternate.IsFavorite = favorites.Contains(alternate.Id);
+            game.IsFavorite = favorite;
+        }
+
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
+    }
+
     public void ApplyLocalization(bool releaseCoversOnQualityChange)
     {
         var previousQuality = CoverQualityMode;
@@ -186,6 +222,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(HasSelectedGame));
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
+        ApplyGameMembership();
         ApplyFilter();
         ApplyVisibleCovers();
     }
@@ -264,7 +303,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         {
             var profile = CoverProfile;
             var keepForGrid = profile.ShowLibraryCovers && Games.Contains(_previousSelectedGame);
-            if (!keepForGrid)
+            if (!keepForGrid && !_consoleCoverMode)
                 _previousSelectedGame.ReleaseCover();
         }
 
@@ -274,7 +313,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             game.IsSelected = ReferenceEquals(game, value);
 
         var currentProfile = CoverProfile;
-        if (value is not null && currentProfile.ShowDetailCover)
+        if (value is not null && currentProfile.ShowDetailCover && !_consoleCoverMode)
         {
             _ = value.EnsureCoverAsync(
                 currentProfile.DetailDecodeWidth,
@@ -287,6 +326,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
         OnPropertyChanged(nameof(HasSelectedGame));
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         _sidebar.OnSelectedGameChanged();
     }
 
@@ -412,14 +453,18 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                     return;
             }
 
+            if (SelectedGame is null)
+                return;
+
             _library.LaunchGame(launchTarget);
+            var launchedTitle = SelectedGame.Title;
             SelectedGame.RefreshLaunchState();
             if (!_sidebar.HasUserSelectedSort)
                 _sidebar.RebuildSortOptions();
             ApplyFilter();
             _setStatusText(launchTarget.IsInstalled
-                ? Loc.T("LaunchingGame", SelectedGame.Title)
-                : Loc.T("StartingInstallLaunch", SelectedGame.Title));
+                ? Loc.T("LaunchingGame", launchedTitle)
+                : Loc.T("StartingInstallLaunch", launchedTitle));
         }
         catch (Exception ex)
         {
@@ -451,15 +496,32 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
     private void PreviousPage()
     {
-        if (CurrentPage > 1)
-            CurrentPage--;
+        if (CurrentPage <= 1)
+            return;
+
+        BeginPageSlide(-1);
+        CurrentPage--;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
     private void NextPage()
     {
-        if (CurrentPage < TotalPages)
-            CurrentPage++;
+        if (CurrentPage >= TotalPages)
+            return;
+
+        BeginPageSlide(1);
+        CurrentPage++;
+    }
+
+    private void BeginPageSlide(int direction)
+    {
+        if (!_library.Settings.Current.PageSlideEnabled)
+            return;
+
+        PageSlideDirection = direction;
+        PageSlideGeneration++;
+        OnPropertyChanged(nameof(PageSlideDirection));
+        OnPropertyChanged(nameof(PageSlideGeneration));
     }
 
     [RelayCommand]
@@ -578,8 +640,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (game is null)
             return;
 
-        game.IsFavorite = !game.IsFavorite;
-        _library.ToggleFavorite(game.Source);
+        var favorite = !game.IsFavorite;
+        game.IsFavorite = favorite;
+        _library.SetFavorite(game.Source, favorite);
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         _sidebar.RebuildLibraryCollections();
         ApplyFilter();
         _setStatusText(game.IsFavorite
@@ -756,6 +821,63 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         var selected = SelectedGame;
         if (selected is not null && !Games.Contains(selected))
             SelectedGame = null;
+
+        LibraryContentsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void ClearSelection() => SelectedGame = null;
+
+    public void SetConsoleCoverMode(bool active)
+    {
+        _consoleCoverMode = active;
+        if (!active)
+            ApplyVisibleCovers();
+    }
+
+    public void LoadConsoleCovers(IReadOnlyList<GameItemViewModel> visibleGames, int focusIndex)
+    {
+        if (!_consoleCoverMode)
+            return;
+
+        var profile = CoverProfile;
+        if (!profile.ShowLibraryCovers && !profile.ShowDetailCover)
+        {
+            foreach (var game in _allGames)
+            {
+                game.ShowCoverInGrid = false;
+                game.ReleaseCover();
+            }
+
+            return;
+        }
+
+        const int radius = 8;
+        var decodeWidth = Math.Clamp(Math.Max(profile.DetailDecodeWidth * 2, 320), 320, 480);
+        var keep = new HashSet<GameItemViewModel>();
+        if (visibleGames.Count > 0)
+        {
+            var index = Math.Clamp(focusIndex, 0, visibleGames.Count - 1);
+            var start = Math.Max(0, index - radius);
+            var end = Math.Min(visibleGames.Count - 1, index + radius);
+            for (var i = start; i <= end; i++)
+                keep.Add(visibleGames[i]);
+        }
+
+        foreach (var game in _allGames)
+        {
+            if (!keep.Contains(game))
+            {
+                if (!game.HasCover && !game.ShowCoverInGrid)
+                    continue;
+
+                game.ShowCoverInGrid = false;
+                game.ReleaseCover();
+                continue;
+            }
+
+            game.ShowCoverInGrid = true;
+            _ = game.EnsureCoverAsync(decodeWidth, profile.Interpolation, _library.Metadata);
+        }
     }
 
     private void ApplyCurrentPage()
@@ -775,6 +897,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     private void ApplyVisibleCovers()
     {
+        if (_consoleCoverMode)
+            return;
+
         if (_suppressCoverLoading)
         {
             foreach (var game in _allGames)

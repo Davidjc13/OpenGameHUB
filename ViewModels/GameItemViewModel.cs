@@ -43,6 +43,12 @@ public partial class GameItemViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isFavorite;
 
+    partial void OnIsFavoriteChanged(bool value) =>
+        OnPropertyChanged(nameof(FavoriteToolTip));
+
+    public string FavoriteToolTip =>
+        IsFavorite ? Loc.T("FavoriteRemove") : Loc.T("FavoriteAdd");
+
     private HashSet<string> _collectionIds = new(StringComparer.Ordinal);
 
     public IReadOnlySet<string> CollectionIds => _collectionIds;
@@ -119,6 +125,7 @@ public partial class GameItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(GridCoverOpacity));
         OnPropertyChanged(nameof(GridPlaceholderOpacity));
         OnPropertyChanged(nameof(ManageGameLabel));
+        OnPropertyChanged(nameof(FavoriteToolTip));
         OnPropertyChanged(nameof(AlsoOnLabel));
         OnPropertyChanged(nameof(HasAlsoOnBadge));
     }

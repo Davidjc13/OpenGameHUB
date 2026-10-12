@@ -35,6 +35,14 @@ public partial class GameListCard : UserControl
         e.Handled = true;
     }
 
+    private void OnFavoriteClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is GameItemViewModel game && GetMainViewModel() is { } vm)
+            vm.Library.ToggleFavoriteCommand.Execute(game);
+
+        e.Handled = true;
+    }
+
     private void OnManageClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is GameItemViewModel game && sender is Control host)

@@ -13,6 +13,7 @@ public sealed class AppSettings
     public ThemeMode ThemeMode { get; set; } = ThemeMode.System;
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public double GridCardSize { get; set; } = 224;
+    public bool PageSlideEnabled { get; set; }
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
     public bool DismissLegendaryPrompt { get; set; }
@@ -46,6 +47,7 @@ public sealed class AppSettings
             ThemeMode = ThemeMode,
             LibraryViewMode = LibraryViewMode,
             GridCardSize = GridCardSize,
+            PageSlideEnabled = PageSlideEnabled,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,
             DismissLegendaryPrompt = DismissLegendaryPrompt,
