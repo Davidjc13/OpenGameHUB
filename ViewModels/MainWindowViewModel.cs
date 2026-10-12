@@ -125,6 +125,10 @@ public partial class MainWindowViewModel : ViewModelBase
             case ConsoleInput.Back:
                 Library.ClearSelection();
                 break;
+            case ConsoleInput.MediaToggle:
+            case ConsoleInput.MediaNext:
+            case ConsoleInput.MediaPrevious:
+                break;
         }
     }
 

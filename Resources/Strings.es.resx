@@ -444,6 +444,10 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="ConsoleInstalled" xml:space="preserve"><value>Instalados</value></data>
   <data name="ConsoleFavorites" xml:space="preserve"><value>Favoritos</value></data>
   <data name="ConsoleEmpty" xml:space="preserve"><value>No hay juegos en esta vista</value></data>
-  <data name="ConsoleHint" xml:space="preserve"><value>Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  F11 o Esc salir</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  X o M música  ·  F11 o Esc salir</value></data>
   <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar</value></data>
+  <data name="MediaPlay" xml:space="preserve"><value>Reproducir</value></data>
+  <data name="MediaPause" xml:space="preserve"><value>Pausar</value></data>
+  <data name="MediaPrevious" xml:space="preserve"><value>Anterior</value></data>
+  <data name="MediaNext" xml:space="preserve"><value>Siguiente</value></data>
 </root>

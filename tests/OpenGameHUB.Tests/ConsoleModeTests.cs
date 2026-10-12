@@ -106,6 +106,17 @@ public sealed class ConsoleModeTests
     }
 
     [Fact]
+    public void Media_controls_keep_the_current_game_selected()
+    {
+        var state = new ConsoleNavigationState(1, 2, true);
+
+        var (next, effect) = ConsoleNavigation.Apply(state, ConsoleInput.MediaToggle, 4, 6);
+
+        Assert.Equal(ConsoleInputEffect.MediaToggle, effect);
+        Assert.Equal(state, next);
+    }
+
+    [Fact]
     public void Back_exits_when_search_is_not_focused()
     {
         var state = new ConsoleNavigationState(0, 1, false);
@@ -241,6 +252,28 @@ public sealed class ConsoleModeTests
 
         Assert.Equal([ConsoleInput.MoveLeft], inputs);
         Assert.Equal(0, repeat.Direction);
+    }
+
+    [Fact]
+    public void Gamepad_x_toggles_media_on_the_rising_edge()
+    {
+        var repeat = new GamepadRepeatState();
+        var pressed = new GamepadButtons(
+            A: false,
+            B: false,
+            Y: false,
+            Left: false,
+            Right: false,
+            LeftShoulder: false,
+            RightShoulder: false,
+            ThumbX: 0,
+            X: true);
+
+        var first = GamepadInput.Collect(default, pressed, repeat, TimeSpan.Zero);
+        var held = GamepadInput.Collect(pressed, pressed, repeat, TimeSpan.FromMilliseconds(50));
+
+        Assert.Equal([ConsoleInput.MediaToggle], first);
+        Assert.Empty(held);
     }
 
     private static GameItemViewModel CreateGame(

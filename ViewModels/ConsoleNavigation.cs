@@ -10,7 +10,10 @@ public enum ConsoleInput
     NextCategory,
     Activate,
     Favorite,
-    Back
+    Back,
+    MediaToggle,
+    MediaNext,
+    MediaPrevious
 }
 
 public enum ConsoleInputEffect
@@ -19,7 +22,10 @@ public enum ConsoleInputEffect
     Activate,
     Favorite,
     Exit,
-    ClearSearch
+    ClearSearch,
+    MediaToggle,
+    MediaNext,
+    MediaPrevious
 }
 
 public readonly record struct ConsoleNavigationState(int CategoryIndex, int GameIndex, bool SearchFocused);
@@ -35,6 +41,12 @@ public static class ConsoleNavigation
     {
         switch (input)
         {
+            case ConsoleInput.MediaToggle:
+                return (state, ConsoleInputEffect.MediaToggle);
+            case ConsoleInput.MediaNext:
+                return (state, ConsoleInputEffect.MediaNext);
+            case ConsoleInput.MediaPrevious:
+                return (state, ConsoleInputEffect.MediaPrevious);
             case ConsoleInput.Back when state.SearchFocused:
                 return (state with { SearchFocused = false }, ConsoleInputEffect.ClearSearch);
             case ConsoleInput.Back:

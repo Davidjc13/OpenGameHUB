@@ -31,7 +31,7 @@
 
         <Grid RowDefinitions="Auto,*,Auto,Auto"
               Margin="48,32,48,28">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="24">
                 <TextBlock Text="OpenGameHUB"
                            Classes="console-wordmark"
                            VerticalAlignment="Center"/>
@@ -42,7 +42,53 @@
                          HorizontalAlignment="Stretch"
                          PlaceholderText="{Binding SearchPlaceholder}"
                          Text="{Binding SearchText, Mode=TwoWay}"/>
-                <Button Grid.Column="2"
+                <Border Grid.Column="2"
+                        Classes="console-media"
+                        IsVisible="{Binding Media.IsAvailable}"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Right"
+                        MaxWidth="360">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="2">
+                        <Border Width="36"
+                                Height="36"
+                                CornerRadius="18"
+                                ClipToBounds="True"
+                                IsVisible="{Binding Media.HasArtwork}">
+                            <Image Source="{Binding Media.Artwork}" Stretch="UniformToFill"/>
+                        </Border>
+                        <Button Grid.Column="1"
+                                Classes="console-media-button"
+                                ToolTip.Tip="{Binding Media.PreviousToolTip}"
+                                Command="{Binding Media.PreviousCommand}">
+                            <TextBlock Text="&#xE892;" Classes="console-media-glyph"/>
+                        </Button>
+                        <Button Grid.Column="2"
+                                Classes="console-media-button console-media-toggle"
+                                ToolTip.Tip="{Binding Media.ToggleToolTip}"
+                                Command="{Binding Media.ToggleCommand}">
+                            <TextBlock Text="{Binding Media.ToggleGlyph}" Classes="console-media-glyph"/>
+                        </Button>
+                        <Button Grid.Column="3"
+                                Classes="console-media-button"
+                                ToolTip.Tip="{Binding Media.NextToolTip}"
+                                Command="{Binding Media.NextCommand}">
+                            <TextBlock Text="&#xE893;" Classes="console-media-glyph"/>
+                        </Button>
+                        <StackPanel Grid.Column="4"
+                                    VerticalAlignment="Center"
+                                    Margin="8,0,8,0"
+                                    MinWidth="0">
+                            <TextBlock Text="{Binding Media.Title}"
+                                       Classes="console-media-title"
+                                       TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding Media.Artist}"
+                                       Classes="console-media-artist"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding Media.HasArtist}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Button Grid.Column="3"
                         Classes="console-exit"
                         Content="{Binding ExitLabel}"
                         Command="{Binding ExitModeCommand}"

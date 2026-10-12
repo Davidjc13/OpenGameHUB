@@ -5,6 +5,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure.Media;
+using OpenGameHUB.Services.Media;
 using OpenGameHUB.ViewModels.MainWindow;
 
 namespace OpenGameHUB.ViewModels;
@@ -19,14 +21,20 @@ public partial class ConsoleModeViewModel : ViewModelBase
     private bool _suppressSearchRefresh;
     private bool _syncingFocus;
 
-    public ConsoleModeViewModel(MainWindowLibraryViewModel library, Action exit)
+    public ConsoleModeViewModel(
+        MainWindowLibraryViewModel library,
+        Action exit,
+        ISystemMediaController? media = null)
     {
         _library = library;
         _exit = exit;
+        Media = new SystemMediaViewModel(media ?? new WindowsSystemMediaController());
         Categories = new ObservableCollection<ConsoleCategoryItem>();
         Games = new ObservableCollection<GameItemViewModel>();
         _library.LibraryContentsChanged += OnLibraryContentsChanged;
     }
+
+    public SystemMediaViewModel Media { get; }
 
     public ObservableCollection<ConsoleCategoryItem> Categories { get; }
 
@@ -80,6 +88,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
             return;
 
         IsActive = true;
+        Media.Start();
         _library.SetConsoleCoverMode(true);
         Rebuild(preserveGameId: null);
     }
@@ -90,6 +99,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
             return;
 
         IsActive = false;
+        Media.Stop();
         SearchFocused = false;
         _suppressSearchRefresh = true;
         SearchText = string.Empty;
@@ -105,6 +115,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
         OnPropertyChanged(nameof(SearchPlaceholder));
         OnPropertyChanged(nameof(Hint));
         OnPropertyChanged(nameof(EmptyMessage));
+        Media.ApplyLocalization();
         NotifyHero();
         if (!IsActive)
             return;
@@ -124,6 +135,27 @@ public partial class ConsoleModeViewModel : ViewModelBase
             Categories.Count,
             Games.Count,
             textConsumesHorizontal);
+
+        if (effect == ConsoleInputEffect.MediaToggle)
+        {
+            if (Media.ToggleCommand.CanExecute(null))
+                _ = Media.ToggleCommand.ExecuteAsync(null);
+            return;
+        }
+
+        if (effect == ConsoleInputEffect.MediaNext)
+        {
+            if (Media.NextCommand.CanExecute(null))
+                _ = Media.NextCommand.ExecuteAsync(null);
+            return;
+        }
+
+        if (effect == ConsoleInputEffect.MediaPrevious)
+        {
+            if (Media.PreviousCommand.CanExecute(null))
+                _ = Media.PreviousCommand.ExecuteAsync(null);
+            return;
+        }
 
         if (effect == ConsoleInputEffect.Exit)
         {

@@ -15,6 +15,7 @@ public sealed class XInputGamepadPoller : IDisposable
     private const ushort RightShoulder = 0x0200;
     private const ushort A = 0x1000;
     private const ushort B = 0x2000;
+    private const ushort X = 0x4000;
     private const ushort Y = 0x8000;
 
     private readonly GamepadRepeatState _repeat = new();
@@ -126,7 +127,8 @@ public sealed class XInputGamepadPoller : IDisposable
                     ThumbX: pad.ThumbLX,
                     Up: Has(pad.Buttons, DpadUp),
                     Down: Has(pad.Buttons, DpadDown),
-                    ThumbY: pad.ThumbLY);
+                    ThumbY: pad.ThumbLY,
+                    X: Has(pad.Buttons, X));
                 return true;
             }
 

@@ -215,6 +215,7 @@ public partial class MainWindow : Window
             Key.E => ConsoleInput.NextCategory,
             Key.Enter or Key.A => ConsoleInput.Activate,
             Key.Y => ConsoleInput.Favorite,
+            Key.M => ConsoleInput.MediaToggle,
             _ => (ConsoleInput?)null
         };
 

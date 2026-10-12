@@ -151,6 +151,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string ConsoleEmpty => Loc.T("ConsoleEmpty");
     public string ConsoleHint => Loc.T("ConsoleHint");
     public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
+    public string MediaPlay => Loc.T("MediaPlay");
+    public string MediaPause => Loc.T("MediaPause");
+    public string MediaPrevious => Loc.T("MediaPrevious");
+    public string MediaNext => Loc.T("MediaNext");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

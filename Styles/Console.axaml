@@ -175,6 +175,66 @@
         <Setter Property="Background" Value="#CC0B0D12"/>
     </Style>
 
+    <Style Selector="Border.console-media">
+        <Setter Property="Background" Value="#CC1A2030"/>
+        <Setter Property="BorderBrush" Value="#2C3448"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Padding" Value="6,6,8,6"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button">
+        <Setter Property="Width" Value="36"/>
+        <Setter Property="Height" Value="36"/>
+        <Setter Property="MinWidth" Value="36"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="18"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FocusAdorner" Value="{x:Null}"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#262D3E"/>
+    </Style>
+
+    <Style Selector="Button.console-media-button:disabled">
+        <Setter Property="Opacity" Value="0.35"/>
+    </Style>
+
+    <Style Selector="Button.console-media-toggle">
+        <Setter Property="Background" Value="#3D6AF2"/>
+    </Style>
+
+    <Style Selector="Button.console-media-toggle:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#4F7BFF"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-glyph">
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-title">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-media-artist">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="#9AA6BF"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
     <Style Selector="TextBlock.console-tile-star">
         <Setter Property="FontSize" Value="14"/>
         <Setter Property="Foreground" Value="#F2C14E"/>

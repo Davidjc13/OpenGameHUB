@@ -13,7 +13,8 @@ public readonly record struct GamepadButtons(
     short ThumbX,
     bool Up = false,
     bool Down = false,
-    short ThumbY = 0);
+    short ThumbY = 0,
+    bool X = false);
 
 public sealed class GamepadRepeatState
 {
@@ -52,6 +53,8 @@ public static class GamepadInput
             inputs.Add(ConsoleInput.Back);
         if (Pressed(previous.Y, current.Y))
             inputs.Add(ConsoleInput.Favorite);
+        if (Pressed(previous.X, current.X))
+            inputs.Add(ConsoleInput.MediaToggle);
         if (Pressed(previous.LeftShoulder, current.LeftShoulder))
             inputs.Add(ConsoleInput.PreviousCategory);
         if (Pressed(previous.RightShoulder, current.RightShoulder))
