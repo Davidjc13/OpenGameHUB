@@ -10,6 +10,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using OpenGameHUB.Controls;
+using OpenGameHUB.Infrastructure.Input;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.ViewModels.MainWindow;
 
@@ -28,8 +29,18 @@ public partial class MainWindow : Window
     };
 
     private MainWindowLibraryViewModel? _library;
+    private MainWindowViewModel? _windowVm;
     private TranslateTransform? _pageSlideTransform;
     private int _pageSlideRun;
+    private bool _consoleChromeActive;
+    private bool _restoreBoundsValid;
+    private WindowState _restoreWindowState;
+    private WindowDecorations _restoreDecorations;
+    private bool _restoreCanResize;
+    private PixelPoint _restorePosition;
+    private double _restoreWidth;
+    private double _restoreHeight;
+    private readonly XInputGamepadPoller _gamepad = new();
 
     public MainWindow()
     {
@@ -40,23 +51,199 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel vm)
         {
+            _windowVm = vm;
+            ConsoleView.DataContext = vm.Console;
+            ConsoleView.IsVisible = false;
             _library = vm.Library;
             _library.PropertyChanged += OnLibraryPropertyChanged;
+            vm.PropertyChanged += OnViewModelPropertyChanged;
         }
 
+        AddHandler(KeyDownEvent, OnConsoleKeyDown, RoutingStrategies.Tunnel);
+        _gamepad.Input += OnGamepadInput;
+        _gamepad.Start();
         QueueViewportUpdate();
     }
 
     protected override void OnClosed(EventArgs e)
     {
+        RemoveHandler(KeyDownEvent, OnConsoleKeyDown);
+        _gamepad.Input -= OnGamepadInput;
+        _gamepad.Dispose();
+
         if (_library is not null)
             _library.PropertyChanged -= OnLibraryPropertyChanged;
+
+        if (_windowVm is not null)
+            _windowVm.PropertyChanged -= OnViewModelPropertyChanged;
 
         base.OnClosed(e);
     }
 
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.IsConsoleMode) && _windowVm is not null)
+            ApplyConsoleChrome(_windowVm.IsConsoleMode);
+    }
+
+    private void ApplyConsoleChrome(bool enabled)
+    {
+        if (enabled)
+        {
+            ConsoleView.IsVisible = true;
+            EnterConsoleChrome();
+            Dispatcher.UIThread.Post(() => ConsoleView.FocusCarousel(), DispatcherPriority.Input);
+            return;
+        }
+
+        ConsoleView.IsVisible = false;
+        ExitConsoleChrome();
+    }
+
+    private void EnterConsoleChrome()
+    {
+        if (_consoleChromeActive)
+            return;
+
+        _consoleChromeActive = true;
+        _restoreWindowState = WindowState;
+        _restoreDecorations = WindowDecorations;
+        _restoreCanResize = CanResize;
+        _restoreBoundsValid = WindowState == WindowState.Normal;
+        if (_restoreBoundsValid)
+        {
+            _restorePosition = Position;
+            _restoreWidth = Width;
+            _restoreHeight = Height;
+        }
+
+        if (WindowState != WindowState.Normal)
+            WindowState = WindowState.Normal;
+
+        WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+        CanResize = false;
+        WindowState = WindowState.FullScreen;
+    }
+
+    private void ExitConsoleChrome()
+    {
+        if (!_consoleChromeActive)
+            return;
+
+        _consoleChromeActive = false;
+        WindowState = WindowState.Normal;
+        WindowDecorations = _restoreDecorations;
+        CanResize = _restoreCanResize;
+        if (_restoreBoundsValid)
+        {
+            Width = _restoreWidth;
+            Height = _restoreHeight;
+            Position = _restorePosition;
+        }
+
+        WindowState = _restoreWindowState;
+    }
+
+    private void OnGamepadInput(ConsoleInput input)
+    {
+        if (_windowVm is null)
+            return;
+
+        if (_windowVm.IsConsoleMode)
+            _windowVm.Console.ApplyInput(input);
+        else
+            _windowVm.ApplyWindowGamepad(input);
+    }
+
+    private void OnConsoleKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (_windowVm is null)
+            return;
+
+        if (e.Key == Key.F11)
+        {
+            _windowVm.ToggleFullScreenCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (!_windowVm.IsConsoleMode)
+        {
+            if (FocusOwnsArrows(FocusManager?.GetFocusedElement()))
+                return;
+
+            var windowInput = e.Key switch
+            {
+                Key.Left => ConsoleInput.MoveLeft,
+                Key.Right => ConsoleInput.MoveRight,
+                Key.Up => ConsoleInput.MoveUp,
+                Key.Down => ConsoleInput.MoveDown,
+                _ => (ConsoleInput?)null
+            };
+
+            if (windowInput is null)
+                return;
+
+            _windowVm.ApplyWindowGamepad(windowInput.Value);
+            e.Handled = true;
+            return;
+        }
+
+        var focused = FocusManager?.GetFocusedElement();
+        var searchFocused = ConsoleView.IsConsoleSearch(focused);
+        if (searchFocused != _windowVm.Console.SearchFocused)
+            _windowVm.Console.SearchFocused = searchFocused;
+
+        if (e.Key == Key.Escape)
+        {
+            _windowVm.Console.ApplyInput(ConsoleInput.Back);
+            e.Handled = true;
+            return;
+        }
+
+        if (searchFocused)
+            return;
+
+        if (focused is Button && e.Key is Key.Enter or Key.Space)
+            return;
+
+        var input = e.Key switch
+        {
+            Key.Left => ConsoleInput.MoveLeft,
+            Key.Right => ConsoleInput.MoveRight,
+            Key.Q => ConsoleInput.PreviousCategory,
+            Key.E => ConsoleInput.NextCategory,
+            Key.Enter or Key.A => ConsoleInput.Activate,
+            Key.Y => ConsoleInput.Favorite,
+            _ => (ConsoleInput?)null
+        };
+
+        if (input is null)
+            return;
+
+        _windowVm.Console.ApplyInput(input.Value, textConsumesHorizontal: searchFocused);
+        e.Handled = true;
+    }
+
+    private static bool FocusOwnsArrows(object? focused)
+    {
+        if (focused is not Visual visual)
+            return false;
+
+        return visual is TextBox or ComboBox
+            || visual.FindAncestorOfType<TextBox>() is not null
+            || visual.FindAncestorOfType<ComboBox>() is not null
+            || visual.FindAncestorOfType<ListBox>() is not null;
+    }
+
     private void OnLibraryPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(MainWindowLibraryViewModel.SelectedGame))
+        {
+            Dispatcher.UIThread.Post(BringSelectedGameIntoView, DispatcherPriority.Render);
+            return;
+        }
+
         if (e.PropertyName != nameof(MainWindowLibraryViewModel.PageSlideGeneration) || _library is null)
             return;
 
@@ -67,6 +254,31 @@ public partial class MainWindow : Window
         // The page swap happens after this notification returns. Slide the new page in on the next pass.
         var captured = direction;
         Dispatcher.UIThread.Post(() => SlidePageIn(captured), DispatcherPriority.Loaded);
+    }
+
+    private void BringSelectedGameIntoView()
+    {
+        if (TryBringSelectedGameIntoView())
+            return;
+
+        Dispatcher.UIThread.Post(() => TryBringSelectedGameIntoView(), DispatcherPriority.Background);
+    }
+
+    private bool TryBringSelectedGameIntoView()
+    {
+        if (_library?.SelectedGame is not { } selected)
+            return true;
+
+        foreach (var visual in GamesSlideHost.GetVisualDescendants())
+        {
+            if (visual is Control control && ReferenceEquals(control.DataContext, selected))
+            {
+                control.BringIntoView();
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void SlidePageIn(int direction)

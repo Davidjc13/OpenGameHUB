@@ -422,4 +422,12 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="StorePageUnavailable" xml:space="preserve"><value>Este juego no tiene página de tienda.</value></data>
   <data name="StorePageOpened" xml:space="preserve"><value>Abriendo la tienda de {0}.</value></data>
   <data name="OpenStorePageFailed" xml:space="preserve"><value>No se pudo abrir la tienda: {0}</value></data>
+  <data name="EnterConsoleMode" xml:space="preserve"><value>Pantalla completa (F11)</value></data>
+  <data name="ExitConsoleMode" xml:space="preserve"><value>Salir</value></data>
+  <data name="ConsoleAll" xml:space="preserve"><value>Todos</value></data>
+  <data name="ConsoleInstalled" xml:space="preserve"><value>Instalados</value></data>
+  <data name="ConsoleFavorites" xml:space="preserve"><value>Favoritos</value></data>
+  <data name="ConsoleEmpty" xml:space="preserve"><value>No hay juegos en esta vista</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  F11 o Esc salir</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar</value></data>
 </root>

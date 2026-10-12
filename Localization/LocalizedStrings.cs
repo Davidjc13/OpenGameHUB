@@ -139,6 +139,14 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string CustomGameTitlePlaceholder => Loc.T("CustomGameTitlePlaceholder");
     public string CustomGameExecutablePlaceholder => Loc.T("CustomGameExecutablePlaceholder");
     public string SteamSetupSignInWithBrowser => Loc.T("SteamSetupSignInWithBrowser");
+    public string EnterConsoleMode => Loc.T("EnterConsoleMode");
+    public string ExitConsoleMode => Loc.T("ExitConsoleMode");
+    public string ConsoleAll => Loc.T("ConsoleAll");
+    public string ConsoleInstalled => Loc.T("ConsoleInstalled");
+    public string ConsoleFavorites => Loc.T("ConsoleFavorites");
+    public string ConsoleEmpty => Loc.T("ConsoleEmpty");
+    public string ConsoleHint => Loc.T("ConsoleHint");
+    public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

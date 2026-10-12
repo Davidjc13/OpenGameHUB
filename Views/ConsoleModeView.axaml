@@ -1,0 +1,149 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:OpenGameHUB.ViewModels"
+             xmlns:conv="using:OpenGameHUB.Converters"
+             x:Class="OpenGameHUB.Views.ConsoleModeView"
+             x:DataType="vm:ConsoleModeViewModel"
+             Background="Transparent">
+
+    <Panel Background="#0B0D12">
+        <Border IsHitTestVisible="False" ClipToBounds="True">
+            <Image Source="{Binding HeroCover}"
+                   Stretch="UniformToFill"
+                   Opacity="0.55"
+                   IsVisible="{Binding HasHeroCover}">
+                <Image.Effect>
+                    <BlurEffect Radius="36"/>
+                </Image.Effect>
+            </Image>
+        </Border>
+
+        <Border IsHitTestVisible="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                    <GradientStop Offset="0" Color="#990B0D12"/>
+                    <GradientStop Offset="0.38" Color="#C40B0D12"/>
+                    <GradientStop Offset="0.72" Color="#EE0B0D12"/>
+                    <GradientStop Offset="1" Color="#F70B0D12"/>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+
+        <Grid RowDefinitions="Auto,*,Auto,Auto"
+              Margin="48,32,48,28">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
+                <TextBlock Text="OpenGameHUB"
+                           Classes="console-wordmark"
+                           VerticalAlignment="Center"/>
+                <TextBox x:Name="SearchBox"
+                         Grid.Column="1"
+                         Classes="console-search"
+                         MaxWidth="560"
+                         HorizontalAlignment="Stretch"
+                         PlaceholderText="{Binding SearchPlaceholder}"
+                         Text="{Binding SearchText, Mode=TwoWay}"/>
+                <Button Grid.Column="2"
+                        Classes="console-exit"
+                        Content="{Binding ExitLabel}"
+                        Command="{Binding ExitModeCommand}"
+                        VerticalAlignment="Center"/>
+            </Grid>
+
+            <StackPanel Grid.Row="1"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left"
+                        MaxWidth="820"
+                        Spacing="16">
+                <TextBlock Text="{Binding FocusedPlatform}"
+                           Classes="console-kicker"
+                           IsVisible="{Binding HasFocusedGame}"/>
+                <TextBlock Text="{Binding FocusedTitle}"
+                           Classes="console-title"
+                           TextWrapping="Wrap"
+                           MaxHeight="150"
+                           IsVisible="{Binding HasFocusedGame}"/>
+                <TextBlock Text="{Binding FocusedMeta}"
+                           Classes="console-meta"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding HasFocusedGame}"/>
+                <Button Classes="primary console-play"
+                        Content="{Binding FocusedAction}"
+                        Command="{Binding PlayFocusedCommand}"
+                        IsVisible="{Binding HasFocusedGame}"
+                        HorizontalAlignment="Left"/>
+                <TextBlock x:Name="StatusLine"
+                           Classes="console-status"
+                           TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding EmptyMessage}"
+                           Classes="console-empty"
+                           IsVisible="{Binding IsEmpty}"/>
+                <TextBlock Text="{Binding Hint}"
+                           Classes="console-hint"
+                           TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <ItemsControl Grid.Row="2"
+                          ItemsSource="{Binding Categories}"
+                          Margin="0,0,0,12">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ConsoleCategoryItem">
+                        <Button Classes="console-chip"
+                                Classes.selected="{Binding IsSelected}"
+                                Content="{Binding Label}"
+                                Command="{Binding SelectCommand}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <ListBox x:Name="Carousel"
+                     Grid.Row="3"
+                     Classes="console-carousel"
+                     Height="390"
+                     ItemsSource="{Binding Games}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     Focusable="True"
+                     SelectionChanged="OnCarouselSelectionChanged"
+                     DoubleTapped="OnCarouselDoubleTapped">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:GameItemViewModel">
+                        <Border Classes="console-tile">
+                            <Panel>
+                                <Image Source="{Binding CoverImage}"
+                                       Stretch="UniformToFill"
+                                       Opacity="{Binding GridCoverOpacity}"
+                                       IsVisible="{Binding HasCover}"/>
+                                <Border Background="{Binding Platform, Converter={x:Static conv:PlatformBrushConverter.Instance}}"
+                                        Opacity="0.9"
+                                        IsVisible="{Binding !HasCover}"/>
+                                <Border Background="#660B0D12"
+                                        IsVisible="{Binding !IsInstalled}"/>
+                                <Border Classes="console-tile-scrim">
+                                    <TextBlock Text="{Binding Title}"
+                                               Classes="console-tile-title"
+                                               TextWrapping="Wrap"
+                                               MaxHeight="44"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Border>
+                                <Border Classes="console-tile-favorite"
+                                        IsVisible="{Binding IsFavorite}">
+                                    <TextBlock Text="&#x2605;" Classes="console-tile-star"/>
+                                </Border>
+                            </Panel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Panel>
+</UserControl>

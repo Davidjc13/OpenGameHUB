@@ -422,4 +422,12 @@ You can share this log file when reporting the issue.</value></data>
   <data name="StorePageUnavailable" xml:space="preserve"><value>No store page is available for this game.</value></data>
   <data name="StorePageOpened" xml:space="preserve"><value>Opening the store page for {0}.</value></data>
   <data name="OpenStorePageFailed" xml:space="preserve"><value>Could not open the store page: {0}</value></data>
+  <data name="EnterConsoleMode" xml:space="preserve"><value>Full screen (F11)</value></data>
+  <data name="ExitConsoleMode" xml:space="preserve"><value>Exit</value></data>
+  <data name="ConsoleAll" xml:space="preserve"><value>All</value></data>
+  <data name="ConsoleInstalled" xml:space="preserve"><value>Installed</value></data>
+  <data name="ConsoleFavorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="ConsoleEmpty" xml:space="preserve"><value>No games in this view</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  F11 or Esc exit</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search</value></data>
 </root>
