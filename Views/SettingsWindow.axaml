@@ -204,6 +204,23 @@
 
                 <Border Classes="section-card">
                     <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.PreferencesTransferSection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding Strings.PreferencesTransferHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.ExportPreferences}"
+                                    Command="{Binding ExportPreferencesCommand}"/>
+                            <Button Content="{Binding Strings.ImportPreferences}"
+                                    Classes="ghost"
+                                    Command="{Binding ImportPreferencesCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
                         <TextBlock Text="{Binding Strings.DiagnosticsSection}"
                                    Classes="text-label"/>
                         <TextBlock Text="{Binding DiagnosticsHelp}"

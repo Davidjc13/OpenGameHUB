@@ -109,6 +109,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppUpdateDismissLater => Loc.T("AppUpdateDismissLater");
     public string DiagnosticsSection => Loc.T("DiagnosticsSection");
     public string OpenLogsFolder => Loc.T("OpenLogsFolder");
+    public string PreferencesTransferSection => Loc.T("PreferencesTransferSection");
+    public string PreferencesTransferHelp => Loc.T("PreferencesTransferHelp");
+    public string ExportPreferences => Loc.T("ExportPreferences");
+    public string ImportPreferences => Loc.T("ImportPreferences");
     public string CoverArtSection => Loc.T("CoverArtSection");
     public string DisplaySection => Loc.T("DisplaySection");
     public string ThemeModeSection => Loc.T("ThemeModeSection");

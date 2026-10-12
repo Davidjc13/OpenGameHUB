@@ -38,6 +38,12 @@ On first launch after an upgrade, plaintext secrets in an old `settings.json` ar
 
 **Do not commit** `settings.json` or `secrets.dat`.
 
+### Portable preferences file
+
+Settings → **Preferences file** writes `OpenGameHUB-preferences.json` (`PreferencesTransfer`). It includes language, theme, text size, cover quality, page animation, library layout, and grid card size.
+
+It does **not** include API keys, SteamID, IGDB client id, Epic or Xbox accounts, or dismiss-prompt flags. Import fills the settings form; **Save** writes those options on the destination PC and leaves that PC's keys and accounts unchanged. A newer `Version` than the app understands is rejected.
+
 ## `AppSettings` fields
 
 See [data-model.md](data-model.md).

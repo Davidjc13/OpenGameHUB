@@ -317,6 +317,19 @@
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>If OpenGameHUB misbehaves, share the log file with support. Logs are stored at: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Open logs folder</value></data>
+  <data name="PreferencesTransferSection" xml:space="preserve"><value>Preferences file</value></data>
+  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Move language, theme, text size, cover quality, page animation, and library layout to another PC. API keys and signed-in accounts stay on this PC.</value></data>
+  <data name="ExportPreferences" xml:space="preserve"><value>Export</value></data>
+  <data name="ImportPreferences" xml:space="preserve"><value>Import</value></data>
+  <data name="ExportPreferencesDialogTitle" xml:space="preserve"><value>Export preferences</value></data>
+  <data name="ImportPreferencesDialogTitle" xml:space="preserve"><value>Import preferences</value></data>
+  <data name="PreferencesFileFilter" xml:space="preserve"><value>OpenGameHUB preferences</value></data>
+  <data name="PreferencesExported" xml:space="preserve"><value>Preferences exported. API keys and accounts were not included.</value></data>
+  <data name="PreferencesImported" xml:space="preserve"><value>Preferences loaded. Save to apply them on this PC.</value></data>
+  <data name="PreferencesFileInvalid" xml:space="preserve"><value>That file is not an OpenGameHUB preferences file.</value></data>
+  <data name="PreferencesFileNewer" xml:space="preserve"><value>That preferences file was created by a newer version of OpenGameHUB.</value></data>
+  <data name="PreferencesFileWriteFailed" xml:space="preserve"><value>Could not write the preferences file.</value></data>
+  <data name="PreferencesFileReadFailed" xml:space="preserve"><value>Could not read the preferences file.</value></data>
   <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encountered a fatal error</value></data>
   <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB must close because of an unexpected error.
 

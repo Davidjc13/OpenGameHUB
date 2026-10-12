@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
@@ -18,6 +19,8 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly Action? _onDevSessionReset;
     private readonly Action? _onDevRelaunchRequested;
     private readonly Action? _onDevClearLocalDatabase;
+    private LibraryViewMode _libraryViewMode;
+    private double _gridCardSize;
 
     public SettingsViewModel(
         SettingsService settingsService,
@@ -37,6 +40,8 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
         SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
         PageSlideEnabled = current.PageSlideEnabled;
+        _libraryViewMode = current.LibraryViewMode;
+        _gridCardSize = current.GridCardSize;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
@@ -379,6 +384,123 @@ public partial class SettingsViewModel : ViewModelBase
     [RelayCommand]
     private void OpenLogsFolder() => AppLog.OpenLogDirectory();
 
+    [RelayCommand]
+    private async Task ExportPreferencesAsync()
+    {
+        try
+        {
+            var file = await GetDialogWindow().StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = Loc.T("ExportPreferencesDialogTitle"),
+                SuggestedFileName = PreferencesTransfer.SuggestedFileName,
+                DefaultExtension = "json",
+                FileTypeChoices = [PreferencesFileType()]
+            });
+
+            if (file is null)
+                return;
+
+            var path = file.TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                StatusMessage = Loc.T("PreferencesFileWriteFailed");
+                return;
+            }
+
+            var draft = _settingsService.Current.Clone();
+            draft.Language = SelectedLanguage;
+            draft.CoverQualityMode = SelectedCoverQuality;
+            draft.UiFontScale = SelectedUiFontScale;
+            draft.ThemeMode = SelectedThemeMode;
+            draft.LibraryViewMode = _libraryViewMode;
+            draft.GridCardSize = _gridCardSize;
+            draft.PageSlideEnabled = PageSlideEnabled;
+            await File.WriteAllTextAsync(path, PreferencesTransfer.Serialize(draft));
+            StatusMessage = Loc.T("PreferencesExported");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ExportPreferencesAsync",
+                exception: ex,
+                details: "preferences export");
+            StatusMessage = Loc.T("PreferencesFileWriteFailed");
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportPreferencesAsync()
+    {
+        try
+        {
+            var files = await GetDialogWindow().StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = Loc.T("ImportPreferencesDialogTitle"),
+                AllowMultiple = false,
+                FileTypeFilter = [PreferencesFileType()]
+            });
+
+            if (files.Count == 0)
+                return;
+
+            var path = files[0].TryGetLocalPath();
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                StatusMessage = Loc.T("PreferencesFileReadFailed");
+                return;
+            }
+
+            var applied = PreferencesTransfer.Apply(_settingsService.Current, await File.ReadAllTextAsync(path));
+            SelectedLanguage = LocalizationService.ResolveLanguage(applied.Language);
+            SelectedCoverQuality = applied.CoverQualityMode;
+            SelectedUiFontScale = UiFontScaleService.Normalize(applied.UiFontScale);
+            SelectedThemeMode = ThemeModeService.Normalize(applied.ThemeMode);
+            PageSlideEnabled = applied.PageSlideEnabled;
+            _libraryViewMode = applied.LibraryViewMode;
+            _gridCardSize = applied.GridCardSize;
+            StatusMessage = Loc.T("PreferencesImported");
+        }
+        catch (PreferencesTransferException ex)
+        {
+            StatusMessage = ex.Failure == PreferencesTransferFailure.NewerVersion
+                ? Loc.T("PreferencesFileNewer")
+                : Loc.T("PreferencesFileInvalid");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ImportPreferencesAsync",
+                exception: ex,
+                details: "preferences import");
+            StatusMessage = Loc.T("PreferencesFileReadFailed");
+        }
+    }
+
+    private static FilePickerFileType PreferencesFileType() =>
+        new(Loc.T("PreferencesFileFilter"))
+        {
+            Patterns = ["*.json"],
+            MimeTypes = ["application/json"]
+        };
+
+    private static Window GetDialogWindow()
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime
+            is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var settings = desktop.Windows.OfType<SettingsWindow>().LastOrDefault();
+            if (settings is not null)
+                return settings;
+
+            if (desktop.MainWindow is { } owner)
+                return owner;
+        }
+
+        throw new InvalidOperationException(Loc.T("MainWindowUnavailable"));
+    }
+
     private void RefreshEpicStatus()
     {
         try
@@ -453,8 +575,8 @@ public partial class SettingsViewModel : ViewModelBase
             CoverQualityMode = SelectedCoverQuality,
             UiFontScale = SelectedUiFontScale,
             ThemeMode = SelectedThemeMode,
-            LibraryViewMode = current.LibraryViewMode,
-            GridCardSize = current.GridCardSize,
+            LibraryViewMode = _libraryViewMode,
+            GridCardSize = _gridCardSize,
             PageSlideEnabled = PageSlideEnabled,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,

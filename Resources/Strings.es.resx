@@ -317,6 +317,19 @@
   <data name="DiagnosticsSection" xml:space="preserve"><value>Diagnóstico</value></data>
   <data name="DiagnosticsHelp" xml:space="preserve"><value>Si OpenGameHUB falla, comparte el archivo de log con soporte. Los logs se guardan en: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir carpeta de logs</value></data>
+  <data name="PreferencesTransferSection" xml:space="preserve"><value>Archivo de preferencias</value></data>
+  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Lleva a otro PC el idioma, el tema, el tamaño del texto, la calidad de las portadas, la animación de página y la vista de la biblioteca. Las claves y las cuentas conectadas se quedan en este PC.</value></data>
+  <data name="ExportPreferences" xml:space="preserve"><value>Exportar</value></data>
+  <data name="ImportPreferences" xml:space="preserve"><value>Importar</value></data>
+  <data name="ExportPreferencesDialogTitle" xml:space="preserve"><value>Exportar preferencias</value></data>
+  <data name="ImportPreferencesDialogTitle" xml:space="preserve"><value>Importar preferencias</value></data>
+  <data name="PreferencesFileFilter" xml:space="preserve"><value>Preferencias de OpenGameHUB</value></data>
+  <data name="PreferencesExported" xml:space="preserve"><value>Preferencias exportadas. No se incluyeron claves ni cuentas.</value></data>
+  <data name="PreferencesImported" xml:space="preserve"><value>Preferencias cargadas. Guarda para aplicarlas en este PC.</value></data>
+  <data name="PreferencesFileInvalid" xml:space="preserve"><value>Ese archivo no es un archivo de preferencias de OpenGameHUB.</value></data>
+  <data name="PreferencesFileNewer" xml:space="preserve"><value>Ese archivo de preferencias lo creó una versión más reciente de OpenGameHUB.</value></data>
+  <data name="PreferencesFileWriteFailed" xml:space="preserve"><value>No se pudo escribir el archivo de preferencias.</value></data>
+  <data name="PreferencesFileReadFailed" xml:space="preserve"><value>No se pudo leer el archivo de preferencias.</value></data>
   <data name="FatalCrashTitle" xml:space="preserve"><value>OpenGameHUB encontró un error fatal</value></data>
   <data name="FatalCrashMessage" xml:space="preserve"><value>OpenGameHUB debe cerrarse por un error inesperado.
 
