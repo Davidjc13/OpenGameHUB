@@ -209,7 +209,8 @@
                                       Classes="library-scroll"
                                       Classes.clip-y="{Binding !Library.IsListView}"
                                       SizeChanged="OnGamesViewportSizeChanged">
-                            <Grid MinWidth="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
+                            <Grid x:Name="GamesSlideHost"
+                                  MinWidth="{Binding Bounds.Width, ElementName=GamesScrollViewer}">
                                 <ItemsControl ItemsSource="{Binding Library.Games}"
                                               IsVisible="{Binding !Library.IsListView}"
                                               HorizontalAlignment="Stretch"

@@ -36,6 +36,7 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedCoverQuality = current.CoverQualityMode;
         SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
         SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
+        PageSlideEnabled = current.PageSlideEnabled;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
         Strings = new LocalizedStrings();
         CoverQualityOptions = BuildCoverQualityOptions();
@@ -133,6 +134,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private ThemeMode _selectedThemeMode = ThemeMode.System;
 
+    [ObservableProperty]
+    private bool _pageSlideEnabled;
+
     partial void OnSelectedThemeModeChanged(ThemeMode value) =>
         OnPropertyChanged(nameof(SelectedThemeModeOption));
 
@@ -219,6 +223,7 @@ public partial class SettingsViewModel : ViewModelBase
             ThemeMode = current.ThemeMode,
             LibraryViewMode = current.LibraryViewMode,
             GridCardSize = current.GridCardSize,
+            PageSlideEnabled = current.PageSlideEnabled,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -450,6 +455,7 @@ public partial class SettingsViewModel : ViewModelBase
             ThemeMode = SelectedThemeMode,
             LibraryViewMode = current.LibraryViewMode,
             GridCardSize = current.GridCardSize,
+            PageSlideEnabled = PageSlideEnabled,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,

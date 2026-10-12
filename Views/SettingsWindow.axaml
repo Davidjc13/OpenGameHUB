@@ -150,6 +150,13 @@
                         <TextBlock Text="{Binding Strings.UiFontScaleHelp}"
                                    Classes="text-help"
                                    TextWrapping="Wrap"/>
+
+                        <CheckBox Content="{Binding Strings.PageSlideEnabled}"
+                                  IsChecked="{Binding PageSlideEnabled}"
+                                  Margin="0,8,0,0"/>
+                        <TextBlock Text="{Binding Strings.PageSlideHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 

@@ -142,6 +142,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public bool CanGoNext => CurrentPage < TotalPages;
 
+    public int PageSlideDirection { get; private set; }
+
+    public int PageSlideGeneration { get; private set; }
+
     public void LoadCachedGames()
     {
         var cached = _library.LoadCachedGames();
@@ -451,15 +455,32 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanGoPrevious))]
     private void PreviousPage()
     {
-        if (CurrentPage > 1)
-            CurrentPage--;
+        if (CurrentPage <= 1)
+            return;
+
+        BeginPageSlide(-1);
+        CurrentPage--;
     }
 
     [RelayCommand(CanExecute = nameof(CanGoNext))]
     private void NextPage()
     {
-        if (CurrentPage < TotalPages)
-            CurrentPage++;
+        if (CurrentPage >= TotalPages)
+            return;
+
+        BeginPageSlide(1);
+        CurrentPage++;
+    }
+
+    private void BeginPageSlide(int direction)
+    {
+        if (!_library.Settings.Current.PageSlideEnabled)
+            return;
+
+        PageSlideDirection = direction;
+        PageSlideGeneration++;
+        OnPropertyChanged(nameof(PageSlideDirection));
+        OnPropertyChanged(nameof(PageSlideGeneration));
     }
 
     [RelayCommand]

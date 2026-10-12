@@ -86,6 +86,7 @@
     <Style Selector="ScrollViewer.library-scroll">
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ClipToBounds" Value="True"/>
     </Style>
     <Style Selector="ScrollViewer.library-scroll.clip-y">
         <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
