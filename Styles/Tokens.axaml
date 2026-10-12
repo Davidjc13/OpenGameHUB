@@ -3,15 +3,17 @@
 
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
-            <Color x:Key="ColorBgApp">#10131A</Color>
-            <Color x:Key="ColorBgPanel">#161B27</Color>
-            <Color x:Key="ColorBgCard">#1E2535</Color>
-            <Color x:Key="ColorBgCover">#141A28</Color>
+            <Color x:Key="ColorBgApp">#0B0D12</Color>
+            <Color x:Key="ColorBgPanel">#141822</Color>
+            <Color x:Key="ColorBgCard">#1B2130</Color>
+            <Color x:Key="ColorBgCover">#10141C</Color>
             <Color x:Key="ColorBgInput">#1A2030</Color>
-            <Color x:Key="ColorBgBanner">#1A2438</Color>
+            <Color x:Key="ColorBgBanner">#152033</Color>
             <Color x:Key="ColorBgDevPanel">#1A1218</Color>
+            <Color x:Key="ColorBgHover">#262D3E</Color>
+            <Color x:Key="ColorBgSelected">#2A3654</Color>
 
-            <Color x:Key="ColorBorder">#2B3448</Color>
+            <Color x:Key="ColorBorder">#2C3448</Color>
             <Color x:Key="ColorBorderBanner">#3D6FB8</Color>
             <Color x:Key="ColorBorderDev">#5C3040</Color>
 
@@ -27,8 +29,9 @@
             <Color x:Key="ColorTextStatus">#8B97B0</Color>
             <Color x:Key="ColorTextBanner">#E8F0FF</Color>
             <Color x:Key="ColorTextDev">#F2B8C6</Color>
+            <Color x:Key="ColorTextOnCover">#FFFFFF</Color>
 
-            <Color x:Key="ColorOverlayDim">#66484848</Color>
+            <Color x:Key="ColorOverlayDim">#990B0D12</Color>
 
             <SolidColorBrush x:Key="BrushBgApp" Color="{StaticResource ColorBgApp}"/>
             <SolidColorBrush x:Key="BrushBgPanel" Color="{StaticResource ColorBgPanel}"/>
@@ -37,6 +40,8 @@
             <SolidColorBrush x:Key="BrushBgInput" Color="{StaticResource ColorBgInput}"/>
             <SolidColorBrush x:Key="BrushBgBanner" Color="{StaticResource ColorBgBanner}"/>
             <SolidColorBrush x:Key="BrushBgDevPanel" Color="{StaticResource ColorBgDevPanel}"/>
+            <SolidColorBrush x:Key="BrushBgHover" Color="{StaticResource ColorBgHover}"/>
+            <SolidColorBrush x:Key="BrushBgSelected" Color="{StaticResource ColorBgSelected}"/>
 
             <SolidColorBrush x:Key="BrushBorder" Color="{StaticResource ColorBorder}"/>
             <SolidColorBrush x:Key="BrushBorderBanner" Color="{StaticResource ColorBorderBanner}"/>
@@ -54,20 +59,23 @@
             <SolidColorBrush x:Key="BrushTextStatus" Color="{StaticResource ColorTextStatus}"/>
             <SolidColorBrush x:Key="BrushTextBanner" Color="{StaticResource ColorTextBanner}"/>
             <SolidColorBrush x:Key="BrushTextDev" Color="{StaticResource ColorTextDev}"/>
+            <SolidColorBrush x:Key="BrushTextOnCover" Color="{StaticResource ColorTextOnCover}"/>
 
             <SolidColorBrush x:Key="BrushOverlayDim" Color="{StaticResource ColorOverlayDim}"/>
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
-            <Color x:Key="ColorBgApp">#E8ECF4</Color>
-            <Color x:Key="ColorBgPanel">#F7F9FC</Color>
+            <Color x:Key="ColorBgApp">#EEF1F6</Color>
+            <Color x:Key="ColorBgPanel">#FFFFFF</Color>
             <Color x:Key="ColorBgCard">#FFFFFF</Color>
-            <Color x:Key="ColorBgCover">#DDE3EF</Color>
-            <Color x:Key="ColorBgInput">#FFFFFF</Color>
-            <Color x:Key="ColorBgBanner">#E4ECFA</Color>
+            <Color x:Key="ColorBgCover">#E4E9F2</Color>
+            <Color x:Key="ColorBgInput">#F7F8FB</Color>
+            <Color x:Key="ColorBgBanner">#E8EEF8</Color>
             <Color x:Key="ColorBgDevPanel">#F8EBEF</Color>
+            <Color x:Key="ColorBgHover">#E8EDF5</Color>
+            <Color x:Key="ColorBgSelected">#E3E9F8</Color>
 
-            <Color x:Key="ColorBorder">#C5CEDD</Color>
+            <Color x:Key="ColorBorder">#D5DCE8</Color>
             <Color x:Key="ColorBorderBanner">#3D6FB8</Color>
             <Color x:Key="ColorBorderDev">#C87888</Color>
 
@@ -83,8 +91,9 @@
             <Color x:Key="ColorTextStatus">#5A667C</Color>
             <Color x:Key="ColorTextBanner">#1A2A44</Color>
             <Color x:Key="ColorTextDev">#8B3040</Color>
+            <Color x:Key="ColorTextOnCover">#FFFFFF</Color>
 
-            <Color x:Key="ColorOverlayDim">#55000000</Color>
+            <Color x:Key="ColorOverlayDim">#66000000</Color>
 
             <SolidColorBrush x:Key="BrushBgApp" Color="{StaticResource ColorBgApp}"/>
             <SolidColorBrush x:Key="BrushBgPanel" Color="{StaticResource ColorBgPanel}"/>
@@ -93,6 +102,8 @@
             <SolidColorBrush x:Key="BrushBgInput" Color="{StaticResource ColorBgInput}"/>
             <SolidColorBrush x:Key="BrushBgBanner" Color="{StaticResource ColorBgBanner}"/>
             <SolidColorBrush x:Key="BrushBgDevPanel" Color="{StaticResource ColorBgDevPanel}"/>
+            <SolidColorBrush x:Key="BrushBgHover" Color="{StaticResource ColorBgHover}"/>
+            <SolidColorBrush x:Key="BrushBgSelected" Color="{StaticResource ColorBgSelected}"/>
 
             <SolidColorBrush x:Key="BrushBorder" Color="{StaticResource ColorBorder}"/>
             <SolidColorBrush x:Key="BrushBorderBanner" Color="{StaticResource ColorBorderBanner}"/>
@@ -110,25 +121,34 @@
             <SolidColorBrush x:Key="BrushTextStatus" Color="{StaticResource ColorTextStatus}"/>
             <SolidColorBrush x:Key="BrushTextBanner" Color="{StaticResource ColorTextBanner}"/>
             <SolidColorBrush x:Key="BrushTextDev" Color="{StaticResource ColorTextDev}"/>
+            <SolidColorBrush x:Key="BrushTextOnCover" Color="{StaticResource ColorTextOnCover}"/>
 
             <SolidColorBrush x:Key="BrushOverlayDim" Color="{StaticResource ColorOverlayDim}"/>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
+    <LinearGradientBrush x:Key="BrushCoverScrim" StartPoint="0%,0%" EndPoint="0%,100%">
+        <GradientStop Offset="0" Color="#00000000"/>
+        <GradientStop Offset="0.35" Color="#00000000"/>
+        <GradientStop Offset="1" Color="#F20B0D12"/>
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="BrushFavorite" Color="#F5C451"/>
+
     <!-- Layout (theme-independent) -->
-    <CornerRadius x:Key="RadiusPanel">10</CornerRadius>
-    <CornerRadius x:Key="RadiusPanelLg">12</CornerRadius>
-    <CornerRadius x:Key="RadiusCard">10</CornerRadius>
-    <CornerRadius x:Key="RadiusInput">8</CornerRadius>
-    <CornerRadius x:Key="RadiusCover">6</CornerRadius>
-    <CornerRadius x:Key="RadiusBadge">4</CornerRadius>
-    <CornerRadius x:Key="RadiusBrowser">8</CornerRadius>
+    <CornerRadius x:Key="RadiusPanel">12</CornerRadius>
+    <CornerRadius x:Key="RadiusPanelLg">16</CornerRadius>
+    <CornerRadius x:Key="RadiusCard">14</CornerRadius>
+    <CornerRadius x:Key="RadiusInput">10</CornerRadius>
+    <CornerRadius x:Key="RadiusCover">12</CornerRadius>
+    <CornerRadius x:Key="RadiusBadge">6</CornerRadius>
+    <CornerRadius x:Key="RadiusBrowser">12</CornerRadius>
 
     <Thickness x:Key="ThicknessPanelPadding">16</Thickness>
     <Thickness x:Key="ThicknessPanelPaddingLg">18</Thickness>
     <Thickness x:Key="ThicknessPanelPaddingDetail">20</Thickness>
-    <Thickness x:Key="ThicknessWindowMargin">20</Thickness>
-    <Thickness x:Key="ThicknessSectionGap">0,0,0,20</Thickness>
+    <Thickness x:Key="ThicknessWindowMargin">16,12,16,16</Thickness>
+    <Thickness x:Key="ThicknessSectionGap">0,0,0,12</Thickness>
 
     <!-- Typography (overridden at runtime by UiFontScaleService) -->
     <x:Double x:Key="FontSizeBadge">10</x:Double>

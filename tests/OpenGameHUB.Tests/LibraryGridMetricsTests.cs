@@ -44,6 +44,37 @@ public sealed class LibraryGridMetricsTests
     }
 
     [Fact]
+    public void Calculate_fills_viewport_with_a_partial_last_row()
+    {
+        var cardWidth = 224d;
+        var slotHeight = cardWidth * LibraryGridMetrics.CoverAspect + LibraryGridMetrics.CardChromeHeight;
+
+        var exact = LibraryGridMetrics.Calculate(1000, slotHeight, cardWidth);
+        var partial = LibraryGridMetrics.Calculate(1000, slotHeight * 1.55, cardWidth);
+
+        Assert.Equal(1, exact.Rows);
+        Assert.Equal(1, partial.Rows);
+        Assert.Equal(exact.Columns, partial.Columns);
+        Assert.Equal(exact.Columns, exact.PageSize);
+        Assert.Equal(exact.PageSize, exact.RenderCount);
+        Assert.Equal(partial.Columns, partial.PageSize);
+        Assert.Equal(partial.Columns * 2, partial.RenderCount);
+    }
+
+    [Fact]
+    public void Calculate_peek_row_matches_column_count_and_starts_the_next_page()
+    {
+        var cardWidth = 224d;
+        var slotHeight = cardWidth * LibraryGridMetrics.CoverAspect + LibraryGridMetrics.CardChromeHeight;
+        var metrics = LibraryGridMetrics.Calculate(cardWidth * 5 + 10, slotHeight * 1.4, cardWidth);
+
+        Assert.Equal(5, metrics.Columns);
+        Assert.Equal(1, metrics.Rows);
+        Assert.Equal(5, metrics.PageSize);
+        Assert.Equal(10, metrics.RenderCount);
+    }
+
+    [Fact]
     public void ClampPreferredCardWidth_clamps_to_bounds()
     {
         Assert.Equal(160, LibraryGridMetrics.ClampPreferredCardWidth(150));

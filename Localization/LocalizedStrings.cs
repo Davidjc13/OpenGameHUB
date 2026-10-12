@@ -124,6 +124,7 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string IgdbClientSecretOptional => Loc.T("IgdbClientSecretOptional");
     public string SteamGridDbApiKeyOptional => Loc.T("SteamGridDbApiKeyOptional");
     public string Cancel => Loc.T("Cancel");
+    public string Close => Loc.T("Close");
     public string Save => Loc.T("Save");
     public string Accept => Loc.T("Accept");
     public string AddCustomGame => Loc.T("AddCustomGame");

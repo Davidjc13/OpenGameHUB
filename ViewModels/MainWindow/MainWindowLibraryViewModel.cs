@@ -29,6 +29,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     private CancellationTokenSource? _coverCts;
     private bool _suppressCoverLoading = true;
     private int _effectivePageSize;
+    private int _renderCount;
     private double _libraryViewportWidth;
     private double _libraryViewportHeight;
     private GameItemViewModel? _previousSelectedGame;
@@ -375,6 +376,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     [RelayCommand]
     private void SelectGame(GameItemViewModel? game) =>
         SelectedGame = ReferenceEquals(SelectedGame, game) ? null : game;
+
+    [RelayCommand]
+    private void CloseDetail() => SelectedGame = null;
 
     [RelayCommand]
     private async Task LaunchSelectedGameAsync()
@@ -758,7 +762,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     {
         Games.Clear();
         var start = (CurrentPage - 1) * PageSize;
-        foreach (var game in _filteredGames.Skip(start).Take(PageSize))
+        var take = Math.Max(PageSize, _renderCount);
+        foreach (var game in _filteredGames.Skip(start).Take(take))
             Games.Add(game);
 
         GamesCountLabel = _filteredGames.Count == 0
@@ -915,10 +920,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     private void ApplyListPageSize(double viewportHeight)
     {
         var newPageSize = LibraryGridMetrics.ListPageSizeFromHeight(viewportHeight);
-        if (newPageSize == _effectivePageSize)
+        if (newPageSize == _effectivePageSize && newPageSize == _renderCount)
             return;
 
         _effectivePageSize = newPageSize;
+        _renderCount = newPageSize;
         NotifyPaginationChanged();
 
         if (CurrentPage > TotalPages)
@@ -935,10 +941,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         GridCardWidth = metrics.CardWidth;
         GridCoverHeight = metrics.CoverHeight;
 
-        var pageSizeChanged = metrics.PageSize != _effectivePageSize;
+        var pageSizeChanged = metrics.PageSize != _effectivePageSize || metrics.RenderCount != _renderCount;
+        _effectivePageSize = metrics.PageSize;
+        _renderCount = metrics.RenderCount;
         if (pageSizeChanged)
         {
-            _effectivePageSize = metrics.PageSize;
             NotifyPaginationChanged();
 
             if (CurrentPage > TotalPages)

@@ -19,7 +19,7 @@ public class CenteredWrapPanel : Panel
 
         foreach (var child in Children)
         {
-            child.Measure(new Size(maxWidth, availableSize.Height));
+            child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             var size = child.DesiredSize;
 
             if (x + size.Width > maxWidth && x > 0)

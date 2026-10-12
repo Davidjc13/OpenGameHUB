@@ -4,9 +4,9 @@
         x:Class="OpenGameHUB.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="{Binding Strings.SettingsWindowTitle}"
-        Width="520"
-        Height="700"
-        MinWidth="480"
+        Width="560"
+        Height="720"
+        MinWidth="500"
         MinHeight="620"
         WindowStartupLocation="CenterOwner"
         Classes="app-window">
@@ -17,192 +17,220 @@
                       Classes="dialogScroll"
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="16">
-                    <TextBlock Text="{Binding Strings.SettingsTitle}"
-                               Classes="heading-lg"/>
-                    <TextBlock Text="{Binding Strings.SettingsDescription}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"/>
+            <StackPanel Spacing="12">
+                <TextBlock Text="{Binding Strings.SettingsTitle}"
+                           Classes="heading-lg"/>
+                <TextBlock Text="{Binding Strings.SettingsDescription}"
+                           Classes="text-secondary"
+                           TextWrapping="Wrap"
+                           Margin="0,0,0,4"/>
 
-                    <TextBlock Text="{Binding Strings.Language}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <ComboBox ItemsSource="{Binding LanguageOptions}"
-                              SelectedItem="{Binding SelectedLanguageOption}"
-                              HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:LanguageOption">
-                                <TextBlock Text="{Binding Label}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-
-                    <TextBlock Text="{Binding Strings.SteamWebApi}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding SteamStatusText}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="{Binding Strings.SteamSetupButton}"
-                                Command="{Binding OpenSteamSetupCommand}"/>
-                        <Button Content="{Binding Strings.SteamDisconnectApi}"
-                                Command="{Binding ClearSteamApiCommand}"
-                                IsVisible="{Binding IsSteamApiConnected}"/>
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.Language}"
+                                   Classes="text-label"/>
+                        <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                  SelectedItem="{Binding SelectedLanguageOption}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:LanguageOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
+                </Border>
 
-                    <TextBlock Text="{Binding Strings.EpicLibrarySection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"
-                               IsVisible="{Binding IsEpicSectionVisible}"/>
-                    <TextBlock Text="{Binding EpicStatusText}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"
-                               IsVisible="{Binding IsEpicSectionVisible}"/>
-                    <StackPanel Orientation="Horizontal"
-                                Spacing="10"
-                                IsVisible="{Binding IsEpicSectionVisible}">
-                        <Button Content="{Binding Strings.EpicConnectAccount}"
-                                Command="{Binding ConnectEpicCommand}"
-                                IsEnabled="{Binding CanConnectEpic}"/>
-                        <Button Content="{Binding Strings.EpicDisconnectAccount}"
-                                Command="{Binding DisconnectEpicCommand}"
-                                IsVisible="{Binding IsEpicConnected}"/>
-                    </StackPanel>
-
-                    <TextBlock Text="{Binding Strings.XboxLibrarySection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding XboxStatusText}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="{Binding Strings.XboxConnectAccount}"
-                                Command="{Binding ConnectXboxCommand}"
-                                IsEnabled="{Binding CanConnectXbox}"/>
-                        <Button Content="{Binding Strings.XboxDisconnectAccount}"
-                                Command="{Binding DisconnectXboxCommand}"
-                                IsVisible="{Binding IsXboxConnected}"/>
-                    </StackPanel>
-
-                    <TextBlock Text="{Binding Strings.DisplaySection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding Strings.ThemeModeSection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <ComboBox ItemsSource="{Binding ThemeModeOptions}"
-                              SelectedItem="{Binding SelectedThemeModeOption}"
-                              HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:ThemeModeOption">
-                                <TextBlock Text="{Binding Label}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <TextBlock Text="{Binding Strings.ThemeModeHelp}"
-                               Classes="text-help"
-                               TextWrapping="Wrap"/>
-
-                    <TextBlock Text="{Binding Strings.CoverQualitySection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <ComboBox ItemsSource="{Binding CoverQualityOptions}"
-                              SelectedItem="{Binding SelectedCoverQualityOption}"
-                              HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:CoverQualityOption">
-                                <TextBlock Text="{Binding Label}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <TextBlock Text="{Binding Strings.CoverQualityHelp}"
-                               Classes="text-help"
-                               TextWrapping="Wrap"/>
-
-                    <TextBlock Text="{Binding Strings.UiFontScaleSection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <ComboBox ItemsSource="{Binding UiFontScaleOptions}"
-                              SelectedItem="{Binding SelectedUiFontScaleOption}"
-                              HorizontalAlignment="Stretch">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:UiFontScaleOption">
-                                <TextBlock Text="{Binding Label}"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    <TextBlock Text="{Binding Strings.UiFontScaleHelp}"
-                               Classes="text-help"
-                               TextWrapping="Wrap"/>
-
-                    <TextBlock Text="{Binding Strings.CoverArtSection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding Strings.CoverArtHelp}"
-                               Classes="text-help"
-                               TextWrapping="Wrap"/>
-                    <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
-                             Text="{Binding IgdbClientId}"/>
-                    <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
-                             Text="{Binding IgdbClientSecret}"/>
-                    <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
-                             Text="{Binding SteamGridDbApiKey}"/>
-
-                    <TextBlock Text="{Binding Strings.AppUpdateSection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding Updates.AppVersionText}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal" Spacing="10">
-                        <Button Content="{Binding Strings.AppCheckForUpdates}"
-                                Command="{Binding Updates.CheckForUpdatesCommand}"
-                                IsEnabled="{Binding !Updates.IsUpdateBusy}"/>
-                        <Button Classes="primary"
-                                Content="{Binding Strings.AppInstallUpdate}"
-                                Command="{Binding Updates.InstallUpdateCommand}"
-                                IsEnabled="{Binding !Updates.IsUpdateBusy}"
-                                IsVisible="{Binding Updates.IsUpdateAvailable}"/>
-                    </StackPanel>
-                    <ProgressBar Minimum="0"
-                                 Maximum="100"
-                                 Value="{Binding Updates.UpdateProgress}"
-                                 IsIndeterminate="{Binding Updates.ShowIndeterminateUpdateProgress}"
-                                 IsVisible="{Binding Updates.IsUpdateBusy}"
-                                 Height="4"/>
-
-                    <TextBlock Text="{Binding Strings.DiagnosticsSection}"
-                               Classes="text-label"
-                               Margin="0,8,0,0"/>
-                    <TextBlock Text="{Binding DiagnosticsHelp}"
-                               Classes="text-help"
-                               TextWrapping="Wrap"/>
-                    <Button Content="{Binding Strings.OpenLogsFolder}"
-                            Command="{Binding OpenLogsFolderCommand}"/>
-
-                    <Border Classes="dev-panel"
-                            IsVisible="{Binding IsDevModeEnabled}">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="{Binding Strings.DevModeSection}"
-                                       Classes="text-dev"/>
-                            <TextBlock Text="{Binding Strings.DevModeHelp}"
-                                       Classes="text-caption"
-                                       TextWrapping="Wrap"/>
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Button Content="{Binding Strings.DevResetConnections}"
-                                        Command="{Binding DevResetConnectionsCommand}"/>
-                                <Button Content="{Binding Strings.DevResetAndRelaunch}"
-                                        Command="{Binding DevResetAndRelaunchCommand}"/>
-                                <Button Content="{Binding Strings.DevClearLocalDatabase}"
-                                        Command="{Binding DevClearLocalDatabaseCommand}"/>
-                            </StackPanel>
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.SteamWebApi}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding SteamStatusText}"
+                                   Classes="text-secondary"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.SteamSetupButton}"
+                                    Command="{Binding OpenSteamSetupCommand}"/>
+                            <Button Content="{Binding Strings.SteamDisconnectApi}"
+                                    Classes="ghost"
+                                    Command="{Binding ClearSteamApiCommand}"
+                                    IsVisible="{Binding IsSteamApiConnected}"/>
                         </StackPanel>
-                    </Border>
+                    </StackPanel>
+                </Border>
 
-                    <TextBlock Text="{Binding StatusMessage}"
-                               Classes="text-secondary"
-                               TextWrapping="Wrap"/>
+                <Border Classes="section-card"
+                        IsVisible="{Binding IsEpicSectionVisible}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.EpicLibrarySection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding EpicStatusText}"
+                                   Classes="text-secondary"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.EpicConnectAccount}"
+                                    Command="{Binding ConnectEpicCommand}"
+                                    IsEnabled="{Binding CanConnectEpic}"/>
+                            <Button Content="{Binding Strings.EpicDisconnectAccount}"
+                                    Classes="ghost"
+                                    Command="{Binding DisconnectEpicCommand}"
+                                    IsVisible="{Binding IsEpicConnected}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.XboxLibrarySection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding XboxStatusText}"
+                                   Classes="text-secondary"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.XboxConnectAccount}"
+                                    Command="{Binding ConnectXboxCommand}"
+                                    IsEnabled="{Binding CanConnectXbox}"/>
+                            <Button Content="{Binding Strings.XboxDisconnectAccount}"
+                                    Classes="ghost"
+                                    Command="{Binding DisconnectXboxCommand}"
+                                    IsVisible="{Binding IsXboxConnected}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.DisplaySection}"
+                                   Classes="text-label"/>
+
+                        <TextBlock Text="{Binding Strings.ThemeModeSection}"
+                                   Classes="text-caption"
+                                   Margin="0,6,0,0"/>
+                        <ComboBox ItemsSource="{Binding ThemeModeOptions}"
+                                  SelectedItem="{Binding SelectedThemeModeOption}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ThemeModeOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding Strings.ThemeModeHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock Text="{Binding Strings.CoverQualitySection}"
+                                   Classes="text-caption"
+                                   Margin="0,6,0,0"/>
+                        <ComboBox ItemsSource="{Binding CoverQualityOptions}"
+                                  SelectedItem="{Binding SelectedCoverQualityOption}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:CoverQualityOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding Strings.CoverQualityHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+
+                        <TextBlock Text="{Binding Strings.UiFontScaleSection}"
+                                   Classes="text-caption"
+                                   Margin="0,6,0,0"/>
+                        <ComboBox ItemsSource="{Binding UiFontScaleOptions}"
+                                  SelectedItem="{Binding SelectedUiFontScaleOption}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:UiFontScaleOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="{Binding Strings.UiFontScaleHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.CoverArtSection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding Strings.CoverArtHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+                        <TextBox PlaceholderText="{Binding Strings.IgdbClientIdOptional}"
+                                 Text="{Binding IgdbClientId}"/>
+                        <TextBox PlaceholderText="{Binding Strings.IgdbClientSecretOptional}"
+                                 Text="{Binding IgdbClientSecret}"/>
+                        <TextBox PlaceholderText="{Binding Strings.SteamGridDbApiKeyOptional}"
+                                 Text="{Binding SteamGridDbApiKey}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.AppUpdateSection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding Updates.AppVersionText}"
+                                   Classes="text-secondary"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.AppCheckForUpdates}"
+                                    Command="{Binding Updates.CheckForUpdatesCommand}"
+                                    IsEnabled="{Binding !Updates.IsUpdateBusy}"/>
+                            <Button Classes="primary"
+                                    Content="{Binding Strings.AppInstallUpdate}"
+                                    Command="{Binding Updates.InstallUpdateCommand}"
+                                    IsEnabled="{Binding !Updates.IsUpdateBusy}"
+                                    IsVisible="{Binding Updates.IsUpdateAvailable}"/>
+                        </StackPanel>
+                        <ProgressBar Minimum="0"
+                                     Maximum="100"
+                                     Value="{Binding Updates.UpdateProgress}"
+                                     IsIndeterminate="{Binding Updates.ShowIndeterminateUpdateProgress}"
+                                     IsVisible="{Binding Updates.IsUpdateBusy}"
+                                     Height="4"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="section-card">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.DiagnosticsSection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding DiagnosticsHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+                        <Button Content="{Binding Strings.OpenLogsFolder}"
+                                Classes="ghost"
+                                HorizontalAlignment="Left"
+                                Command="{Binding OpenLogsFolderCommand}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Classes="dev-panel"
+                        IsVisible="{Binding IsDevModeEnabled}">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="{Binding Strings.DevModeSection}"
+                                   Classes="text-dev"/>
+                        <TextBlock Text="{Binding Strings.DevModeHelp}"
+                                   Classes="text-caption"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.DevResetConnections}"
+                                    Command="{Binding DevResetConnectionsCommand}"/>
+                            <Button Content="{Binding Strings.DevResetAndRelaunch}"
+                                    Command="{Binding DevResetAndRelaunchCommand}"/>
+                            <Button Content="{Binding Strings.DevClearLocalDatabase}"
+                                    Command="{Binding DevClearLocalDatabaseCommand}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Classes="text-secondary"
+                           TextWrapping="Wrap"/>
             </StackPanel>
         </ScrollViewer>
 
@@ -212,6 +240,7 @@
                     HorizontalAlignment="Right"
                     Margin="0,16,0,0">
             <Button Content="{Binding Strings.Cancel}"
+                    Classes="ghost"
                     Command="{Binding CancelCommand}"/>
             <Button Classes="primary"
                     Content="{Binding Strings.Save}"

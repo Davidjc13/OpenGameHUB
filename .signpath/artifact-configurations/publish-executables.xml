@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <!-- GitHub Actions upload-artifact: directory contents at zip root -->
+  <zip-file>
+    <pe-file-set>
+      <include path="**/*.exe" min-matches="1" max-matches="unbounded" />
+      <for-each>
+        <authenticode-sign />
+      </for-each>
+    </pe-file-set>
+  </zip-file>
+</artifact-configuration>

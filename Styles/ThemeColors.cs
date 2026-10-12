@@ -28,5 +28,5 @@ public static class ThemeColors
     public static IBrush AccentBrush => GetBrush("BrushAccent", Accent);
     public static IBrush BorderDefaultBrush => GetBrush("BrushBorder", BorderDefault);
     public static IBrush SelectedBorderBrush => AccentBrush;
-    public static IBrush UnselectedBorderBrush => BorderDefaultBrush;
+    public static IBrush UnselectedBorderBrush => Brushes.Transparent;
 }

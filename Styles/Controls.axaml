@@ -1,15 +1,95 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <Style Selector="Button">
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="14,8"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgInput}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
+    </Style>
+
     <Style Selector="Button.primary">
         <Setter Property="Background" Value="{DynamicResource BrushAccent}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Padding" Value="14,8"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="BorderThickness" Value="0"/>
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+    </Style>
+
+    <Style Selector="Button.ghost">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+    </Style>
+    <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
+    </Style>
+
+    <Style Selector="Button.quiet">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+    </Style>
+    <Style Selector="Button.quiet:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
+    </Style>
+
+    <Style Selector="Button.icon">
+        <Setter Property="MinWidth" Value="36"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="MaxWidth" Value="36"/>
+        <Setter Property="MaxHeight" Value="36"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+    <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
+    </Style>
+
+    <Style Selector="Button.card-hover-action">
+        <Setter Property="Opacity" Value="0"/>
+        <Setter Property="IsHitTestVisible" Value="False"/>
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.14"/>
+            </Transitions>
+        </Setter>
+    </Style>
+    <Style Selector="Border.game-card:pointerover Button.card-hover-action">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="IsHitTestVisible" Value="True"/>
+    </Style>
+    <Style Selector="Border.game-card.selected Button.card-hover-action">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="IsHitTestVisible" Value="True"/>
+    </Style>
+
+    <Style Selector="ScrollViewer.library-scroll">
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+    </Style>
+    <Style Selector="ScrollViewer.library-scroll.clip-y">
+        <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ClipToBounds" Value="True"/>
     </Style>
 
     <Style Selector="ScrollViewer.dialogScroll">
@@ -23,6 +103,17 @@
         <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
     </Style>
 
+    <Style Selector="TextBox">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="Padding" Value="12,8"/>
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusInput}"/>
+        <Setter Property="MinHeight" Value="36"/>
+    </Style>
+
     <Style Selector="ListBox.sidebar-list">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
@@ -32,6 +123,45 @@
         <Setter Property="Padding" Value="8,6"/>
         <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
         <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem">
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="Margin" Value="0,1"/>
+        <Setter Property="MinHeight" Value="34"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem TextBlock">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
+        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgSelected}"/>
+        <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem:selected:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource BrushBgSelected}"/>
+    </Style>
+
+    <Style Selector="ListBox.rail-list ListBoxItem:selected TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
     </Style>
 
     <Style Selector="ListBox.sidebar-list-platforms">
@@ -70,32 +200,32 @@
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="CornerRadius" Value="6"/>
-        <Setter Property="Background" Value="{DynamicResource BrushBgInput}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground" Value="{DynamicResource BrushTextSidebar}"/>
     </Style>
     <Style Selector="Button.sidebar-icon:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource BrushBgCard}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
     </Style>
 
     <Style Selector="Button.manage-icon">
-        <Setter Property="MinWidth" Value="40"/>
-        <Setter Property="MaxWidth" Value="40"/>
+        <Setter Property="MinWidth" Value="36"/>
+        <Setter Property="MaxWidth" Value="36"/>
+        <Setter Property="MinHeight" Value="36"/>
+        <Setter Property="MaxHeight" Value="36"/>
         <Setter Property="Padding" Value="0"/>
         <Setter Property="HorizontalAlignment" Value="Right"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
-        <Setter Property="VerticalAlignment" Value="Stretch"/>
-        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="CornerRadius" Value="8"/>
         <Setter Property="Background" Value="{DynamicResource BrushBgInput}"/>
-        <Setter Property="BorderBrush" Value="{DynamicResource BrushBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
     </Style>
     <Style Selector="Button.manage-icon:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{DynamicResource BrushBgCard}"/>
+        <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
     </Style>
 
 </Styles>

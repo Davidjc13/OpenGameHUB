@@ -352,6 +352,7 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="IgdbClientSecretOptional" xml:space="preserve"><value>IGDB Client Secret (opcional)</value></data>
   <data name="SteamGridDbApiKeyOptional" xml:space="preserve"><value>SteamGridDB API Key (opcional)</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Close" xml:space="preserve"><value>Cerrar</value></data>
   <data name="Save" xml:space="preserve"><value>Guardar</value></data>
   <data name="SettingsSaved" xml:space="preserve"><value>Ajustes guardados.</value></data>
   <data name="NoLaunchMethod" xml:space="preserve"><value>No hay un método de lanzamiento disponible para este juego.</value></data>

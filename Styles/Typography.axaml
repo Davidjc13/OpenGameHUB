@@ -1,6 +1,26 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <Style Selector="TextBlock.wordmark">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeTitle}"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.overlay-title">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="LineHeight" Value="{DynamicResource LineHeightLabel}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrushTextOnCover}"/>
+    </Style>
+
+    <Style Selector="TextBlock.favorite-glyph">
+        <Setter Property="FontSize" Value="{DynamicResource FontSizeLabel}"/>
+        <Setter Property="Foreground" Value="{StaticResource BrushFavorite}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
     <Style Selector="TextBlock.heading-xl">
         <Setter Property="FontSize" Value="{DynamicResource FontSizeHeadingXl}"/>
         <Setter Property="FontWeight" Value="Bold"/>

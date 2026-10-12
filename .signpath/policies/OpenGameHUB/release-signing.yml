@@ -1,0 +1,8 @@
+# SignPath release signing policy for tag-based GitHub Actions builds.
+# Upload this file path when creating the SignPath project (slug: OpenGameHUB).
+
+github-policies:
+  runners:
+    require_github_hosted: true
+  build:
+    disallow_reruns: true

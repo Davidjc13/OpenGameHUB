@@ -8,30 +8,33 @@
         <conv:PlatformBrushConverter x:Key="PlatformBrushConverter"/>
     </UserControl.Resources>
 
-    <Border Classes="game-card"
+    <Border Classes="game-card game-card-list"
+            Classes.selected="{Binding IsSelected}"
             BorderBrush="{Binding IsSelected, Converter={x:Static conv:SelectionBorderConverter.Instance}}"
             PointerPressed="OnCardPressed"
             DoubleTapped="OnGameDoubleTapped"
             ContextRequested="OnContextRequested">
         <Grid ColumnDefinitions="Auto,*,Auto"
-              Margin="10"
-              ColumnSpacing="12">
+              Margin="12,10"
+              ColumnSpacing="14">
             <Border Grid.Column="0"
                     Classes="game-list-thumb">
                 <Panel>
                     <Image Source="{Binding CoverImage}"
-                           Stretch="Uniform"
+                           Stretch="UniformToFill"
                            IsVisible="{Binding DisplayListCover}"
                            Opacity="{Binding GridCoverOpacity}"/>
                     <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
                             Opacity="{Binding GridPlaceholderOpacity}"
                             IsVisible="{Binding !DisplayListCover}"/>
+                    <Border Classes="overlay-dim"
+                            IsVisible="{Binding !IsInstalled}"/>
                 </Panel>
             </Border>
 
             <StackPanel Grid.Column="1"
                         VerticalAlignment="Center"
-                        Spacing="4">
+                        Spacing="6">
                 <StackPanel Orientation="Horizontal" Spacing="6">
                     <Border Classes="platform-badge"
                             Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}">
@@ -43,6 +46,9 @@
                         <TextBlock Text="{Binding AlsoOnLabel}"
                                    Classes="badge-label"/>
                     </Border>
+                    <TextBlock Text="&#x2605;"
+                               Classes="favorite-glyph"
+                               IsVisible="{Binding IsFavorite}"/>
                 </StackPanel>
                 <TextBlock Text="{Binding Title}"
                            Classes="card-title-lg"
@@ -56,14 +62,13 @@
 
             <StackPanel Grid.Column="2"
                         Orientation="Horizontal"
-                        Spacing="6"
+                        Spacing="8"
                         VerticalAlignment="Center">
-                <Button Classes="primary"
+                <Button Classes="ghost"
                         MinWidth="88"
                         Content="{Binding ActionLabel}"
                         Click="OnPlayClick"/>
-                <Button Classes="manage-icon"
-                        MinHeight="36"
+                <Button Classes="icon"
                         ToolTip.Tip="{Binding ManageGameLabel}"
                         Click="OnManageClick">
                     <PathIcon Width="16"

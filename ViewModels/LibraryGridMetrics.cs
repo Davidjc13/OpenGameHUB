@@ -5,7 +5,8 @@ public readonly record struct LibraryGridMetrics(
     int Rows,
     double CardWidth,
     double CoverHeight,
-    int PageSize)
+    int PageSize,
+    int RenderCount)
 {
     public const double Gap = 12;
     public const double CardOuterMargin = 12;
@@ -14,7 +15,10 @@ public readonly record struct LibraryGridMetrics(
     public const double DefaultPreferredCardWidth = 224;
     public const double MaxPreferredCardWidth = 320;
     public const double PreferredCardWidth = DefaultPreferredCardWidth;
-    public const double CardFooterHeight = 108;
+
+    /// <summary>Border plus vertical margin around a grid cover. The title sits on the cover, so it does not add height.</summary>
+    public const double CardChromeHeight = 20;
+
     public const double CoverAspect = 1.45;
 
     public static LibraryGridMetrics Calculate(
@@ -24,24 +28,36 @@ public readonly record struct LibraryGridMetrics(
     {
         var cardWidth = ClampPreferredCardWidth(targetCardWidth);
         var coverHeight = cardWidth * CoverAspect;
-        var slotWidth = cardWidth + CardOuterMargin;
-        var slotHeight = coverHeight + CardFooterHeight + CardOuterMargin;
+        var slotHeight = coverHeight + CardChromeHeight;
 
         if (viewportWidth < 1 || viewportHeight < 1)
-            return new LibraryGridMetrics(3, 3, cardWidth, coverHeight, 9);
+            return new LibraryGridMetrics(3, 3, cardWidth, coverHeight, 9, 9);
 
-        var columns = Math.Max(1, (int)((viewportWidth + Gap) / (slotWidth + Gap)));
-        var rows = Math.Max(1, (int)((viewportHeight + Gap) / (slotHeight + Gap)));
+        // Same width the wrap panel uses: the card's explicit width, with margin inside it.
+        var columns = Math.Max(1, (int)Math.Floor((viewportWidth + 0.01) / cardWidth));
+        var fullRows = FullRows(viewportHeight, slotHeight);
+        var pageSize = columns * fullRows;
+        var remainder = viewportHeight - fullRows * slotHeight;
+        var renderCount = remainder > 8 ? pageSize + columns : pageSize;
 
-        return new LibraryGridMetrics(columns, rows, cardWidth, coverHeight, columns * rows);
+        return new LibraryGridMetrics(columns, fullRows, cardWidth, coverHeight, pageSize, renderCount);
     }
 
     public static double ClampPreferredCardWidth(double preferredCardWidth) =>
         Math.Clamp(preferredCardWidth, MinPreferredCardWidth, MaxPreferredCardWidth);
 
+    /// <summary>Rows that belong to the current page. A following row may be drawn as a clipped preview of the next page.</summary>
+    public static int FullRows(double viewportHeight, double slotHeight)
+    {
+        if (viewportHeight < 1 || slotHeight < 1)
+            return 1;
+
+        return Math.Max(1, (int)Math.Floor((viewportHeight + 0.01) / slotHeight));
+    }
+
     public static int ListPageSizeFromHeight(double viewportHeight)
     {
-        const double rowHeight = 92;
+        const double rowHeight = 132;
         return Math.Max(8, (int)((viewportHeight + 8) / rowHeight));
     }
 }
