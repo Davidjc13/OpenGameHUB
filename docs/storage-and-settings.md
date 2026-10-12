@@ -40,9 +40,9 @@ On first launch after an upgrade, plaintext secrets in an old `settings.json` ar
 
 ### Portable preferences file
 
-Settings → **Preferences file** writes `OpenGameHUB-preferences.json` (`PreferencesTransfer`). It includes language, theme, text size, cover quality, page animation, library layout, and grid card size.
+Settings → **Preferences file** writes `OpenGameHUB-preferences.json` (`PreferencesTransfer`). It includes language, theme, text size, cover quality, page animation, library layout, grid card size, user collections (name, order, and member game ids), and favorite game ids.
 
-It does **not** include API keys, SteamID, IGDB client id, Epic or Xbox accounts, or dismiss-prompt flags. Import fills the settings form; **Save** writes those options on the destination PC and leaves that PC's keys and accounts unchanged. A newer `Version` than the app understands is rejected.
+It does **not** include API keys, SteamID, IGDB client id, Epic or Xbox accounts, dismiss-prompt flags, or manually added games (`custom:` ids). Import fills the settings form and remembers the collections and favorites; **Save** writes those options, merges collections by name, and marks the imported favorites. Games that are not in the library yet stay linked until a later scan finds them. A newer `Version` than the app understands is rejected.
 
 ## `AppSettings` fields
 

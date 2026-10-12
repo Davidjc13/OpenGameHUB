@@ -52,6 +52,108 @@ public sealed class PreferencesTransferTests
     }
 
     [Fact]
+    public void Serialize_keeps_collection_names_and_drops_manual_games()
+    {
+        var json = PreferencesTransfer.Serialize(new AppSettings(),
+        [
+            new PortableCollection
+            {
+                Name = "Backlog",
+                SortOrder = 1,
+                GameIds = ["steam:570", "custom:path:abc", "epic:legendary:Game"]
+            }
+        ]);
+
+        Assert.Contains("\"Name\": \"Backlog\"", json);
+        Assert.Contains("steam:570", json);
+        Assert.Contains("epic:legendary:Game", json);
+        Assert.DoesNotContain("custom:path:abc", json);
+    }
+
+    [Fact]
+    public void Serialize_writes_favorites_and_drops_manual_games()
+    {
+        var json = PreferencesTransfer.Serialize(
+            new AppSettings(),
+            collections: null,
+            favoriteGameIds: ["steam:570", "custom:path:abc", "epic:legendary:Game"]);
+
+        Assert.Contains("steam:570", json);
+        Assert.Contains("epic:legendary:Game", json);
+        Assert.DoesNotContain("custom:path:abc", json);
+    }
+
+    [Fact]
+    public void ReadFavorites_returns_null_when_the_file_has_no_favorites()
+    {
+        var json = """
+            {
+              "Format": "opengamehub-preferences",
+              "Version": 1,
+              "Language": "es"
+            }
+            """;
+
+        Assert.Null(PreferencesTransfer.ReadFavorites(json));
+    }
+
+    [Fact]
+    public void ReadFavorites_drops_manual_games()
+    {
+        var json = """
+            {
+              "Format": "opengamehub-preferences",
+              "Version": 1,
+              "FavoriteGameIds": ["steam:10", "custom:path:abc"]
+            }
+            """;
+
+        var favorites = PreferencesTransfer.ReadFavorites(json);
+
+        Assert.NotNull(favorites);
+        Assert.Equal(["steam:10"], favorites);
+    }
+
+    [Fact]
+    public void ReadCollections_returns_null_when_the_file_has_no_collections()
+    {
+        var json = """
+            {
+              "Format": "opengamehub-preferences",
+              "Version": 1,
+              "Language": "es"
+            }
+            """;
+
+        Assert.Null(PreferencesTransfer.ReadCollections(json));
+    }
+
+    [Fact]
+    public void ReadCollections_drops_manual_games()
+    {
+        var json = """
+            {
+              "Format": "opengamehub-preferences",
+              "Version": 1,
+              "Collections": [
+                {
+                  "Name": "RPG",
+                  "SortOrder": 0,
+                  "GameIds": ["steam:10", "custom:path:abc"]
+                }
+              ]
+            }
+            """;
+
+        var collections = PreferencesTransfer.ReadCollections(json);
+
+        Assert.NotNull(collections);
+        var collection = Assert.Single(collections);
+        Assert.Equal("RPG", collection.Name);
+        Assert.Equal(["steam:10"], collection.GameIds);
+    }
+
+    [Fact]
     public void Apply_replaces_options_and_keeps_secrets_and_accounts()
     {
         var current = new AppSettings

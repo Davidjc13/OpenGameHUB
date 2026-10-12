@@ -62,6 +62,10 @@ public sealed class CustomGameService
         return _database.DeleteGame(id);
     }
 
+    public static bool IsCustomGameId(string? gameId) =>
+        !string.IsNullOrWhiteSpace(gameId)
+        && gameId.StartsWith("custom:", StringComparison.Ordinal);
+
     public static string CreateId(string normalizedExecutablePath)
     {
         var hash = Convert.ToHexString(

@@ -73,5 +73,50 @@ public sealed class UserCollectionService
     public bool IsGameInCollection(string collectionId, string gameId) =>
         GetCollectionIdsForGame(gameId).Contains(collectionId);
 
+    public void MergeImported(IReadOnlyList<PortableCollection> collections)
+    {
+        Reload();
+        var byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var collection in _collections)
+            byName.TryAdd(collection.Name.Trim(), collection.Id);
+
+        foreach (var imported in collections
+                     .OrderBy(collection => collection.SortOrder)
+                     .ThenBy(collection => collection.Name, StringComparer.OrdinalIgnoreCase))
+        {
+            var name = imported.Name?.Trim() ?? string.Empty;
+            if (name.Length > MaxImportedNameLength)
+                name = name[..MaxImportedNameLength];
+
+            if (string.IsNullOrWhiteSpace(name) || name.Any(char.IsControl))
+                continue;
+
+            if (!byName.TryGetValue(name, out var id))
+            {
+                id = _database.CreateCollection(name).Id;
+                byName[name] = id;
+            }
+
+            foreach (var gameId in (imported.GameIds ?? []).Distinct(StringComparer.Ordinal))
+            {
+                if (!IsPortableGameId(gameId))
+                    continue;
+
+                _database.AddGameToCollection(id, gameId);
+            }
+        }
+
+        Reload();
+    }
+
+    public static bool IsPortableGameId(string? gameId) =>
+        !string.IsNullOrWhiteSpace(gameId)
+        && gameId.Length <= MaxImportedGameIdLength
+        && !gameId.Any(char.IsControl)
+        && !CustomGameService.IsCustomGameId(gameId);
+
+    private const int MaxImportedNameLength = 200;
+    private const int MaxImportedGameIdLength = 512;
+
     private static readonly HashSet<string> EmptySet = new(StringComparer.Ordinal);
 }

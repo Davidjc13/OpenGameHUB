@@ -73,6 +73,9 @@
   <data name="Install" xml:space="preserve"><value>Instalar</value></data>
   <data name="EaHowToInstall" xml:space="preserve"><value>Cómo instalar</value></data>
   <data name="ToggleFavorite" xml:space="preserve"><value>Marcar favorito</value></data>
+  <data name="FavoriteAdd" xml:space="preserve"><value>Añadir a favoritos</value></data>
+  <data name="FavoriteRemove" xml:space="preserve"><value>Quitar de favoritos</value></data>
+  <data name="FavoriteNeedsSelection" xml:space="preserve"><value>Selecciona un juego para marcarlo como favorito</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Parrilla</value></data>
   <data name="ViewList" xml:space="preserve"><value>Lista</value></data>
   <data name="ChangeCover" xml:space="preserve"><value>Cambiar portada</value></data>
@@ -318,13 +321,13 @@
   <data name="DiagnosticsHelp" xml:space="preserve"><value>Si OpenGameHUB falla, comparte el archivo de log con soporte. Los logs se guardan en: {0}</value></data>
   <data name="OpenLogsFolder" xml:space="preserve"><value>Abrir carpeta de logs</value></data>
   <data name="PreferencesTransferSection" xml:space="preserve"><value>Archivo de preferencias</value></data>
-  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Lleva a otro PC el idioma, el tema, el tamaño del texto, la calidad de las portadas, la animación de página y la vista de la biblioteca. Las claves y las cuentas conectadas se quedan en este PC.</value></data>
+  <data name="PreferencesTransferHelp" xml:space="preserve"><value>Lleva a otro PC el idioma, el tema, el tamaño del texto, la calidad de las portadas, la animación de página, la vista de la biblioteca, las colecciones y los favoritos. Los juegos añadidos a mano no entran. Las claves y las cuentas conectadas se quedan en este PC.</value></data>
   <data name="ExportPreferences" xml:space="preserve"><value>Exportar</value></data>
   <data name="ImportPreferences" xml:space="preserve"><value>Importar</value></data>
   <data name="ExportPreferencesDialogTitle" xml:space="preserve"><value>Exportar preferencias</value></data>
   <data name="ImportPreferencesDialogTitle" xml:space="preserve"><value>Importar preferencias</value></data>
   <data name="PreferencesFileFilter" xml:space="preserve"><value>Preferencias de OpenGameHUB</value></data>
-  <data name="PreferencesExported" xml:space="preserve"><value>Preferencias exportadas. No se incluyeron claves ni cuentas.</value></data>
+  <data name="PreferencesExported" xml:space="preserve"><value>Preferencias exportadas. No se incluyeron claves, cuentas ni juegos añadidos a mano.</value></data>
   <data name="PreferencesImported" xml:space="preserve"><value>Preferencias cargadas. Guarda para aplicarlas en este PC.</value></data>
   <data name="PreferencesFileInvalid" xml:space="preserve"><value>Ese archivo no es un archivo de preferencias de OpenGameHUB.</value></data>
   <data name="PreferencesFileNewer" xml:space="preserve"><value>Ese archivo de preferencias lo creó una versión más reciente de OpenGameHUB.</value></data>

@@ -37,7 +37,10 @@ public static class PreferencesTransfer
         Converters = { new JsonStringEnumConverter(allowIntegerValues: false) }
     };
 
-    public static string Serialize(AppSettings settings)
+    public static string Serialize(
+        AppSettings settings,
+        IReadOnlyList<PortableCollection>? collections = null,
+        IReadOnlyList<string>? favoriteGameIds = null)
     {
         var file = new PreferencesFile
         {
@@ -57,11 +60,25 @@ public static class PreferencesTransfer
                 ? settings.LibraryViewMode
                 : LibraryViewMode.Grid,
             GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(settings.GridCardSize),
-            PageSlideEnabled = settings.PageSlideEnabled
+            PageSlideEnabled = settings.PageSlideEnabled,
+            Collections = SanitizeCollections(collections ?? []),
+            FavoriteGameIds = SanitizeFavoriteIds(favoriteGameIds)
         };
 
         return JsonSerializer.Serialize(file, JsonOptions);
     }
+
+    /// <summary>
+    /// Collections from the file. Null when the file does not mention collections.
+    /// </summary>
+    public static IReadOnlyList<PortableCollection>? ReadCollections(string json) =>
+        Read(json).Collections;
+
+    /// <summary>
+    /// Favorite game ids from the file. Null when the file does not mention favorites.
+    /// </summary>
+    public static IReadOnlyList<string>? ReadFavorites(string json) =>
+        Read(json).FavoriteGameIds;
 
     public static AppSettings Apply(AppSettings current, string json)
     {
@@ -119,8 +136,40 @@ public static class PreferencesTransfer
         if (file.GridCardSize is { } cardSize && !double.IsFinite(cardSize))
             throw new PreferencesTransferException(PreferencesTransferFailure.InvalidFile);
 
+        if (file.Collections is not null)
+            file.Collections = SanitizeCollections(file.Collections);
+
+        if (file.FavoriteGameIds is not null)
+            file.FavoriteGameIds = SanitizeFavoriteIds(file.FavoriteGameIds);
+
         return file;
     }
+
+    private static List<PortableCollection> SanitizeCollections(IReadOnlyList<PortableCollection> collections) =>
+        collections
+            .Where(collection => collection is not null)
+            .Select(collection => new PortableCollection
+            {
+                Name = collection.Name?.Trim() ?? string.Empty,
+                SortOrder = collection.SortOrder,
+                GameIds = (collection.GameIds ?? [])
+                    .Where(UserCollectionService.IsPortableGameId)
+                    .Distinct(StringComparer.Ordinal)
+                    .OrderBy(id => id, StringComparer.Ordinal)
+                    .ToList()
+            })
+            .Where(collection =>
+                !string.IsNullOrWhiteSpace(collection.Name)
+                && collection.Name.Length <= 200
+                && !collection.Name.Any(char.IsControl))
+            .ToList();
+
+    private static List<string> SanitizeFavoriteIds(IReadOnlyList<string>? gameIds) =>
+        (gameIds ?? [])
+            .Where(UserCollectionService.IsPortableGameId)
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(id => id, StringComparer.Ordinal)
+            .ToList();
 
     private sealed class PreferencesFile
     {
@@ -133,5 +182,7 @@ public static class PreferencesTransfer
         public LibraryViewMode? LibraryViewMode { get; set; }
         public double? GridCardSize { get; set; }
         public bool? PageSlideEnabled { get; set; }
+        public List<PortableCollection>? Collections { get; set; }
+        public List<string>? FavoriteGameIds { get; set; }
     }
 }

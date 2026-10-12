@@ -69,6 +69,21 @@
                         Content="{Binding ActionLabel}"
                         Click="OnPlayClick"/>
                 <Button Classes="icon"
+                        Classes.favorite-on="{Binding IsFavorite}"
+                        ToolTip.Tip="{Binding FavoriteToolTip}"
+                        Click="OnFavoriteClick">
+                    <Panel>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeartOutline}"
+                                  IsVisible="{Binding !IsFavorite}"/>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeart}"
+                                  IsVisible="{Binding IsFavorite}"/>
+                    </Panel>
+                </Button>
+                <Button Classes="icon"
                         ToolTip.Tip="{Binding ManageGameLabel}"
                         Click="OnManageClick">
                     <PathIcon Width="16"

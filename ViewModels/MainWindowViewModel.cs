@@ -201,7 +201,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 _libraryService.Settings,
                 Onboarding.ResetSession,
                 ScheduleDevRelaunch,
-                ClearDevLocalDatabase)));
+                ClearDevLocalDatabase,
+                _libraryService.Collections,
+                _libraryService)));
             ApplyLocalization();
 
             if (_pendingDevRelaunch)
@@ -254,6 +256,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void ApplyLocalization()
     {
         Strings.Refresh();
+        Library.ReloadFavoritesFromDatabase();
         Sidebar.RebuildSortOptions();
         Sidebar.RebuildPlatformFilters();
         Sidebar.RebuildLibraryCollections();

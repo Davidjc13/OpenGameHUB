@@ -114,6 +114,15 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public bool HasSelectedGame => SelectedGame is not null;
 
+    public bool SelectedGameIsFavorite => SelectedGame?.IsFavorite == true;
+
+    public string FavoriteSelectedToolTip =>
+        SelectedGame is null
+            ? Loc.T("FavoriteNeedsSelection")
+            : SelectedGame.IsFavorite
+                ? Loc.T("FavoriteRemove")
+                : Loc.T("FavoriteAdd");
+
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
 
     public string SelectedGameActionLabel => SelectedGame?.ActionLabel ?? Loc.T("Play");
@@ -181,6 +190,23 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         ApplyFilter();
     }
 
+    public void ReloadFavoritesFromDatabase()
+    {
+        var favorites = _library.GetFavoriteGameIds();
+        foreach (var game in _allGames)
+        {
+            var favorite = favorites.Contains(game.Source.Id)
+                || game.Source.AlternateListings.Any(alternate => favorites.Contains(alternate.Id));
+            game.Source.IsFavorite = favorite;
+            foreach (var alternate in game.Source.AlternateListings)
+                alternate.IsFavorite = favorites.Contains(alternate.Id);
+            game.IsFavorite = favorite;
+        }
+
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
+    }
+
     public void ApplyLocalization(bool releaseCoversOnQualityChange)
     {
         var previousQuality = CoverQualityMode;
@@ -196,6 +222,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameTitle));
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(HasSelectedGame));
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
+        ApplyGameMembership();
         ApplyFilter();
         ApplyVisibleCovers();
     }
@@ -297,6 +326,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
         OnPropertyChanged(nameof(HasSelectedGame));
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         _sidebar.OnSelectedGameChanged();
     }
 
@@ -609,8 +640,11 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         if (game is null)
             return;
 
-        game.IsFavorite = !game.IsFavorite;
-        _library.ToggleFavorite(game.Source);
+        var favorite = !game.IsFavorite;
+        game.IsFavorite = favorite;
+        _library.SetFavorite(game.Source, favorite);
+        OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         _sidebar.RebuildLibraryCollections();
         ApplyFilter();
         _setStatusText(game.IsFavorite

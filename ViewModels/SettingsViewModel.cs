@@ -19,19 +19,27 @@ public partial class SettingsViewModel : ViewModelBase
     private readonly Action? _onDevSessionReset;
     private readonly Action? _onDevRelaunchRequested;
     private readonly Action? _onDevClearLocalDatabase;
+    private readonly UserCollectionService? _collections;
+    private readonly GameLibraryService? _library;
     private LibraryViewMode _libraryViewMode;
     private double _gridCardSize;
+    private IReadOnlyList<PortableCollection>? _importedCollections;
+    private IReadOnlyList<string>? _importedFavorites;
 
     public SettingsViewModel(
         SettingsService settingsService,
         Action? onDevSessionReset = null,
         Action? onDevRelaunchRequested = null,
-        Action? onDevClearLocalDatabase = null)
+        Action? onDevClearLocalDatabase = null,
+        UserCollectionService? collections = null,
+        GameLibraryService? library = null)
     {
         _settingsService = settingsService;
         _onDevSessionReset = onDevSessionReset;
         _onDevRelaunchRequested = onDevRelaunchRequested;
         _onDevClearLocalDatabase = onDevClearLocalDatabase;
+        _collections = collections;
+        _library = library;
         var current = settingsService.Current;
         IgdbClientId = current.IgdbClientId;
         IgdbClientSecret = current.IgdbClientSecret;
@@ -415,7 +423,9 @@ public partial class SettingsViewModel : ViewModelBase
             draft.LibraryViewMode = _libraryViewMode;
             draft.GridCardSize = _gridCardSize;
             draft.PageSlideEnabled = PageSlideEnabled;
-            await File.WriteAllTextAsync(path, PreferencesTransfer.Serialize(draft));
+            await File.WriteAllTextAsync(
+                path,
+                PreferencesTransfer.Serialize(draft, CurrentCollections(), CurrentFavorites()));
             StatusMessage = Loc.T("PreferencesExported");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -451,7 +461,10 @@ public partial class SettingsViewModel : ViewModelBase
                 return;
             }
 
-            var applied = PreferencesTransfer.Apply(_settingsService.Current, await File.ReadAllTextAsync(path));
+            var json = await File.ReadAllTextAsync(path);
+            var applied = PreferencesTransfer.Apply(_settingsService.Current, json);
+            _importedCollections = PreferencesTransfer.ReadCollections(json);
+            _importedFavorites = PreferencesTransfer.ReadFavorites(json);
             SelectedLanguage = LocalizationService.ResolveLanguage(applied.Language);
             SelectedCoverQuality = applied.CoverQualityMode;
             SelectedUiFontScale = UiFontScaleService.Normalize(applied.UiFontScale);
@@ -476,6 +489,34 @@ public partial class SettingsViewModel : ViewModelBase
                 details: "preferences import");
             StatusMessage = Loc.T("PreferencesFileReadFailed");
         }
+    }
+
+    private IReadOnlyList<PortableCollection> CurrentCollections()
+    {
+        if (_importedCollections is not null)
+            return _importedCollections;
+
+        if (_collections is null)
+            return [];
+
+        return _collections.UserCollections
+            .Select(collection => new PortableCollection
+            {
+                Name = collection.Name,
+                SortOrder = collection.SortOrder,
+                GameIds = _collections.GetGameIdsForCollection(collection.Id)
+                    .Where(UserCollectionService.IsPortableGameId)
+                    .ToList()
+            })
+            .ToList();
+    }
+
+    private IReadOnlyList<string> CurrentFavorites()
+    {
+        if (_importedFavorites is not null)
+            return _importedFavorites;
+
+        return _library?.GetPortableFavoriteIds() ?? [];
     }
 
     private static FilePickerFileType PreferencesFileType() =>
@@ -585,6 +626,12 @@ public partial class SettingsViewModel : ViewModelBase
             EpicDisplayName = current.EpicDisplayName,
             XboxGamertag = current.XboxGamertag
         });
+
+        if (_importedCollections is not null)
+            _collections?.MergeImported(_importedCollections);
+
+        if (_importedFavorites is not null)
+            _library?.MergeImportedFavorites(_importedFavorites);
 
         Loc.Service.SetLanguage(_settingsService.Current.Language);
         UiFontScaleService.Apply(_settingsService.Current.UiFontScale);

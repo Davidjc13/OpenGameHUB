@@ -64,6 +64,13 @@
     <Style Selector="Button.icon:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource BrushBgHover}"/>
     </Style>
+    <Style Selector="Button.favorite-on">
+        <Setter Property="Foreground" Value="{StaticResource BrushFavorite}"/>
+    </Style>
+    <Style Selector="Button.card-hover-action.favorite-on">
+        <Setter Property="Opacity" Value="1"/>
+        <Setter Property="IsHitTestVisible" Value="True"/>
+    </Style>
 
     <Style Selector="Button.card-hover-action">
         <Setter Property="Opacity" Value="0"/>

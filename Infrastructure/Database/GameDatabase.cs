@@ -56,6 +56,10 @@ public sealed class GameDatabase : IDisposable
 
             CREATE INDEX IF NOT EXISTS idx_collection_games_game
                 ON collection_games(game_id);
+
+            CREATE TABLE IF NOT EXISTS saved_favorites (
+                game_id TEXT PRIMARY KEY
+            );
             """);
     }
 
@@ -161,6 +165,7 @@ public sealed class GameDatabase : IDisposable
         if (list.Count == 0)
             return;
 
+        var rememberedFavorites = GetRememberedFavoriteIds();
         var favorites = _connection.Query<(string Id, int IsFavorite)>(
                 "SELECT id, is_favorite FROM games WHERE is_favorite = 1")
             .ToDictionary(x => x.Id, x => x.IsFavorite == 1);
@@ -190,6 +195,7 @@ public sealed class GameDatabase : IDisposable
         foreach (var game in list)
         {
             game.IsFavorite = favorites.TryGetValue(game.Id, out var fav) && fav
+                || rememberedFavorites.Contains(game.Id)
                 || favoriteKeys.Contains(FavoriteKey((int)game.Platform, game.PlatformGameId, game.InstallPath))
                 || favoriteTitles.Contains(MetadataSearchHelper.NormalizeTitle(game.Title).ToLowerInvariant());
 
@@ -211,11 +217,20 @@ public sealed class GameDatabase : IDisposable
                 game.LastPlayed = lastPlayed;
         }
 
+        var existingIds = _connection.Query<string>("SELECT id FROM games")
+            .ToHashSet(StringComparer.Ordinal);
+
         UpsertGames(list);
 
-        var scannedIds = list.Select(g => g.Id).ToArray();
-        _connection.Execute("DELETE FROM games WHERE id NOT IN @Ids", new { Ids = scannedIds });
-        PurgeOrphanCollectionGames();
+        var scannedIds = list.Select(g => g.Id).ToHashSet(StringComparer.Ordinal);
+        var removedIds = existingIds.Where(id => !scannedIds.Contains(id)).ToArray();
+        if (removedIds.Length == 0)
+            return;
+
+        _connection.Execute("DELETE FROM games WHERE id IN @Ids", new { Ids = removedIds });
+        _connection.Execute(
+            "DELETE FROM collection_games WHERE game_id IN @Ids",
+            new { Ids = removedIds });
     }
 
     public IReadOnlyList<UserCollection> GetUserCollections()
@@ -325,10 +340,6 @@ public sealed class GameDatabase : IDisposable
             "SELECT COUNT(*) FROM collection_games WHERE collection_id = @CollectionId",
             new { CollectionId = collectionId });
 
-    internal void PurgeOrphanCollectionGames() =>
-        _connection.Execute(
-            "DELETE FROM collection_games WHERE game_id NOT IN (SELECT id FROM games)");
-
     private static string FavoriteKey(int platform, string platformGameId, string? installPath) =>
         $"{platform}|{NormalizePath(installPath) ?? platformGameId}";
 
@@ -402,13 +413,44 @@ public sealed class GameDatabase : IDisposable
         _connection.Execute(
             "UPDATE games SET is_favorite = @IsFavorite WHERE id = @Id",
             new { Id = id, IsFavorite = isFavorite ? 1 : 0 });
+
+        if (isFavorite)
+            RememberFavorite(id);
+        else
+            ForgetFavorite(id);
     }
+
+    public void RememberFavorite(string gameId) =>
+        _connection.Execute(
+            "INSERT OR IGNORE INTO saved_favorites (game_id) VALUES (@Id)",
+            new { Id = gameId });
+
+    public void ForgetFavorite(string gameId) =>
+        _connection.Execute(
+            "DELETE FROM saved_favorites WHERE game_id = @Id",
+            new { Id = gameId });
+
+    public HashSet<string> GetFavoriteGameIds()
+    {
+        var ids = _connection.Query<string>("SELECT id FROM games WHERE is_favorite = 1")
+            .ToHashSet(StringComparer.Ordinal);
+        ids.UnionWith(GetRememberedFavoriteIds());
+        return ids;
+    }
+
+    private HashSet<string> GetRememberedFavoriteIds() =>
+        _connection.Query<string>("SELECT game_id FROM saved_favorites")
+            .ToHashSet(StringComparer.Ordinal);
 
     public bool DeleteGame(string id)
     {
         var deleted = _connection.Execute("DELETE FROM games WHERE id = @Id", new { Id = id });
         if (deleted > 0)
-            PurgeOrphanCollectionGames();
+        {
+            _connection.Execute(
+                "DELETE FROM collection_games WHERE game_id = @Id",
+                new { Id = id });
+        }
 
         return deleted > 0;
     }

@@ -69,16 +69,34 @@
                     MinWidth="96"
                     Content="{Binding ActionLabel}"
                     Click="OnPlayClick"/>
-            <Button Classes="manage-icon card-hover-action"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Top"
-                    Margin="10"
-                    ToolTip.Tip="{Binding ManageGameLabel}"
-                    Click="OnManageClick">
-                <PathIcon Width="16"
-                          Height="16"
-                          Data="{StaticResource GeometrySettings}"/>
-            </Button>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="10"
+                        Spacing="6">
+                <Button Classes="manage-icon card-hover-action"
+                        Classes.favorite-on="{Binding IsFavorite}"
+                        ToolTip.Tip="{Binding FavoriteToolTip}"
+                        Click="OnFavoriteClick">
+                    <Panel>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeartOutline}"
+                                  IsVisible="{Binding !IsFavorite}"/>
+                        <PathIcon Width="16"
+                                  Height="16"
+                                  Data="{StaticResource GeometryHeart}"
+                                  IsVisible="{Binding IsFavorite}"/>
+                    </Panel>
+                </Button>
+                <Button Classes="manage-icon card-hover-action"
+                        ToolTip.Tip="{Binding ManageGameLabel}"
+                        Click="OnManageClick">
+                    <PathIcon Width="16"
+                              Height="16"
+                              Data="{StaticResource GeometrySettings}"/>
+                </Button>
+            </StackPanel>
         </Panel>
     </Border>
 </UserControl>
