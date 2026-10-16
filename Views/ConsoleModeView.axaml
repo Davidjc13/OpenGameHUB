@@ -47,8 +47,8 @@
                         IsVisible="{Binding Media.IsAvailable}"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Right"
-                        MaxWidth="360">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="2">
+                        MaxWidth="440">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*" ColumnSpacing="2">
                         <Border Width="36"
                                 Height="36"
                                 CornerRadius="18"
@@ -74,7 +74,24 @@
                                 Command="{Binding Media.NextCommand}">
                             <TextBlock Text="&#xE893;" Classes="console-media-glyph"/>
                         </Button>
-                        <StackPanel Grid.Column="4"
+                        <Button Grid.Column="4"
+                                Classes="console-media-button"
+                                ToolTip.Tip="{Binding Media.VolumeToolTip}"
+                                IsEnabled="{Binding Media.CanControlVolume}">
+                            <TextBlock Text="{Binding Media.VolumeGlyph}" Classes="console-media-glyph"/>
+                            <Button.Flyout>
+                                <Flyout Placement="Bottom">
+                                    <StackPanel Width="180" Spacing="8" Margin="14,10">
+                                        <TextBlock Text="{Binding Media.VolumeToolTip}"
+                                                   Classes="text-secondary"/>
+                                        <Slider Minimum="0"
+                                                Maximum="100"
+                                                Value="{Binding Media.Volume, Mode=TwoWay}"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </Button.Flyout>
+                        </Button>
+                        <StackPanel Grid.Column="5"
                                     VerticalAlignment="Center"
                                     Margin="8,0,8,0"
                                     MinWidth="0">

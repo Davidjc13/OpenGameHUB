@@ -59,9 +59,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppSubtitle" xml:space="preserve"><value>Biblioteca unificada · instalados y juegos en la nube</value></data>
-  <data name="Settings" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="Settings" xml:space="preserve"><value>Ajustes (Ctrl+,)</value></data>
   <data name="RefreshLibrary" xml:space="preserve"><value>Refrescar biblioteca</value></data>
-  <data name="SearchPlaceholder" xml:space="preserve"><value>Buscar juegos...</value></data>
+  <data name="RefreshLibraryToolTip" xml:space="preserve"><value>Refrescar biblioteca (F5)</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Buscar juegos... (Ctrl+F)</value></data>
   <data name="Platforms" xml:space="preserve"><value>Plataformas</value></data>
   <data name="Sort" xml:space="preserve"><value>Ordenar</value></data>
   <data name="Filters" xml:space="preserve"><value>Filtros</value></data>
@@ -77,7 +78,9 @@
   <data name="FavoriteRemove" xml:space="preserve"><value>Quitar de favoritos</value></data>
   <data name="FavoriteNeedsSelection" xml:space="preserve"><value>Selecciona un juego para marcarlo como favorito</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Parrilla</value></data>
+  <data name="ViewGridToolTip" xml:space="preserve"><value>Parrilla (Ctrl+1)</value></data>
   <data name="ViewList" xml:space="preserve"><value>Lista</value></data>
+  <data name="ViewListToolTip" xml:space="preserve"><value>Lista (Ctrl+2)</value></data>
   <data name="ChangeCover" xml:space="preserve"><value>Cambiar portada</value></data>
   <data name="ResetCover" xml:space="preserve"><value>Restaurar portada</value></data>
   <data name="ChangeCoverDialogTitle" xml:space="preserve"><value>Elegir imagen de portada</value></data>
@@ -91,7 +94,9 @@
   <data name="ShowingGamesCount" xml:space="preserve"><value>Ningún juego coincide con los filtros</value></data>
   <data name="ShowingGamesPage" xml:space="preserve"><value>Página {0} de {1} · {2} visibles de {3} juegos</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Anterior</value></data>
+  <data name="PreviousPageToolTip" xml:space="preserve"><value>Página anterior (Re Pág)</value></data>
   <data name="NextPage" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="NextPageToolTip" xml:space="preserve"><value>Página siguiente (Av Pág)</value></data>
   <data name="SortLastPlayedDesc" xml:space="preserve"><value>Jugado más reciente</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Nombre A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Nombre Z-A</value></data>
@@ -370,7 +375,7 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="IgdbClientSecretOptional" xml:space="preserve"><value>IGDB Client Secret (opcional)</value></data>
   <data name="SteamGridDbApiKeyOptional" xml:space="preserve"><value>SteamGridDB API Key (opcional)</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancelar</value></data>
-  <data name="Close" xml:space="preserve"><value>Cerrar</value></data>
+  <data name="Close" xml:space="preserve"><value>Cerrar (Esc)</value></data>
   <data name="Save" xml:space="preserve"><value>Guardar</value></data>
   <data name="SettingsSaved" xml:space="preserve"><value>Ajustes guardados.</value></data>
   <data name="NoLaunchMethod" xml:space="preserve"><value>No hay un método de lanzamiento disponible para este juego.</value></data>
@@ -401,7 +406,7 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Iniciar sesión</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Se canceló el inicio de sesión de Steam.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Credenciales de Steam capturadas. Probando conexión...</value></data>
-  <data name="AddCustomGame" xml:space="preserve"><value>Añadir juego personalizado</value></data>
+  <data name="AddCustomGame" xml:space="preserve"><value>Añadir juego personalizado (Ctrl+N)</value></data>
   <data name="AddCustomGameShort" xml:space="preserve"><value>Añadir juego</value></data>
   <data name="AddCustomGameTitle" xml:space="preserve"><value>Añadir juego personalizado</value></data>
   <data name="AddCustomGamePrompt" xml:space="preserve"><value>Selecciona un programa instalado o busca un archivo ejecutable.</value></data>
@@ -444,10 +449,16 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="ConsoleInstalled" xml:space="preserve"><value>Instalados</value></data>
   <data name="ConsoleFavorites" xml:space="preserve"><value>Favoritos</value></data>
   <data name="ConsoleEmpty" xml:space="preserve"><value>No hay juegos en esta vista</value></data>
-  <data name="ConsoleHint" xml:space="preserve"><value>Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  X o M música  ·  F11 o Esc salir</value></data>
-  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F buscar  ·  Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  X o M música  ·  F11 o Esc salir</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar (Ctrl+F)</value></data>
   <data name="MediaPlay" xml:space="preserve"><value>Reproducir</value></data>
   <data name="MediaPause" xml:space="preserve"><value>Pausar</value></data>
   <data name="MediaPrevious" xml:space="preserve"><value>Anterior</value></data>
   <data name="MediaNext" xml:space="preserve"><value>Siguiente</value></data>
+  <data name="MediaVolume" xml:space="preserve"><value>Volumen</value></data>
+  <data name="MediaMuted" xml:space="preserve"><value>Silenciado</value></data>
+  <data name="MediaVolumeUnavailable" xml:space="preserve"><value>Este reproductor no permite cambiar el volumen</value></data>
+  <data name="DiscordSection" xml:space="preserve"><value>Discord</value></data>
+  <data name="DiscordApplicationIdPlaceholder" xml:space="preserve"><value>Application ID de Discord</value></data>
+  <data name="DiscordApplicationIdHelp" xml:space="preserve"><value>Opcional. En pantalla completa, Discord muestra el juego seleccionado. Pega el Application ID del portal de desarrolladores de Discord. Al lanzar un juego, la pantalla completa se minimiza para que el overlay de Discord pueda quedar sobre el juego. El altavoz controla la app de música y no toca la voz de Discord.</value></data>
 </root>

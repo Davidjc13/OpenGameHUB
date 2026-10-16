@@ -8,7 +8,8 @@ public sealed record SystemMediaSnapshot(
     bool CanToggle,
     bool CanNext,
     bool CanPrevious,
-    string ArtworkKey)
+    string ArtworkKey,
+    string SourceAppId = "")
 {
     public static SystemMediaSnapshot None { get; } = new(
         false,

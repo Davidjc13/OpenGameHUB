@@ -27,6 +27,12 @@ public partial class ConsoleModeView : UserControl
         Dispatcher.UIThread.Post(ScrollToFocusedGame, DispatcherPriority.Input);
     }
 
+    public void FocusSearch()
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+    }
+
     public bool IsConsoleSearch(IInputElement? element) => ReferenceEquals(element, SearchBox);
 
     protected override void OnDataContextChanged(EventArgs e)

@@ -346,7 +346,8 @@ public sealed class WindowsSystemMediaController : ISystemMediaController
             CanPrevious: controls.IsPreviousEnabled,
             ArtworkKey: hasArtwork
                 ? $"{session.SourceAppUserModelId}|{title}|{artist}|{album}"
-                : string.Empty);
+                : string.Empty,
+            SourceAppId: session.SourceAppUserModelId ?? string.Empty);
     }
 
     private GlobalSystemMediaTransportControlsSession? ChooseSession()

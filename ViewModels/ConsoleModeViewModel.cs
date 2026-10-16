@@ -7,6 +7,7 @@ using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure.Media;
 using OpenGameHUB.Services.Media;
+using OpenGameHUB.Services.Presence;
 using OpenGameHUB.ViewModels.MainWindow;
 
 namespace OpenGameHUB.ViewModels;
@@ -15,20 +16,30 @@ public partial class ConsoleModeViewModel : ViewModelBase
 {
     private readonly MainWindowLibraryViewModel _library;
     private readonly Action _exit;
+    private readonly IDiscordPresence? _discord;
+    private readonly Func<string?>? _discordApplicationId;
     private readonly List<ConsoleCategoryItem> _categories = [];
     private GameItemViewModel? _watchedGame;
     private int _categoryIndex;
     private bool _suppressSearchRefresh;
     private bool _syncingFocus;
+    private bool _presenceSuspended;
 
     public ConsoleModeViewModel(
         MainWindowLibraryViewModel library,
         Action exit,
-        ISystemMediaController? media = null)
+        ISystemMediaController? media = null,
+        IMediaVolumeController? volume = null,
+        IDiscordPresence? discord = null,
+        Func<string?>? discordApplicationId = null)
     {
         _library = library;
         _exit = exit;
-        Media = new SystemMediaViewModel(media ?? new WindowsSystemMediaController());
+        _discord = discord;
+        _discordApplicationId = discordApplicationId;
+        Media = new SystemMediaViewModel(
+            media ?? new WindowsSystemMediaController(),
+            volume: volume ?? new WindowsMediaVolume());
         Categories = new ObservableCollection<ConsoleCategoryItem>();
         Games = new ObservableCollection<GameItemViewModel>();
         _library.LibraryContentsChanged += OnLibraryContentsChanged;
@@ -107,6 +118,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
         _categoryIndex = 0;
         _library.ClearSelection();
         _library.SetConsoleCoverMode(false);
+        PublishPresence();
     }
 
     public void ApplyLocalization()
@@ -328,6 +340,34 @@ public partial class ConsoleModeViewModel : ViewModelBase
             _library.LoadConsoleCovers(Games, Math.Max(FocusedIndex, 0));
 
         NotifyHero();
+        PublishPresence();
+    }
+
+    public void SuspendPresence()
+    {
+        _presenceSuspended = true;
+        PublishPresence();
+    }
+
+    public void ResumePresence()
+    {
+        if (!_presenceSuspended)
+            return;
+
+        _presenceSuspended = false;
+        PublishPresence();
+    }
+
+    private void PublishPresence()
+    {
+        if (_discord is null)
+            return;
+
+        DiscordActivity? activity = null;
+        if (IsActive && !_presenceSuspended && FocusedGame is { } game && !string.IsNullOrWhiteSpace(game.Title))
+            activity = new DiscordActivity(game.Title, game.PlatformLabel);
+
+        _discord.Publish(_discordApplicationId?.Invoke(), activity);
     }
 
     private void MarkCategorySelection()

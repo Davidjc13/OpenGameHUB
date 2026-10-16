@@ -20,6 +20,7 @@ public sealed class AppSettings
     public string EpicAccountId { get; set; } = string.Empty;
     public string EpicDisplayName { get; set; } = string.Empty;
     public string XboxGamertag { get; set; } = string.Empty;
+    public string DiscordApplicationId { get; set; } = string.Empty;
 
     public bool HasEpicAuth => !string.IsNullOrWhiteSpace(EpicAccountId);
 
@@ -53,6 +54,7 @@ public sealed class AppSettings
             DismissLegendaryPrompt = DismissLegendaryPrompt,
             EpicAccountId = EpicAccountId,
             EpicDisplayName = EpicDisplayName,
-            XboxGamertag = XboxGamertag
+            XboxGamertag = XboxGamertag,
+            DiscordApplicationId = DiscordApplicationId
         };
 }

@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Infrastructure.Discord;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Services.Configuration;
 using OpenGameHUB.Services.Games;
@@ -60,7 +61,11 @@ public partial class MainWindowViewModel : ViewModelBase
             window => Onboarding.ShowDialogAsync(window));
 
         libraryRef = Library;
-        Console = new ConsoleModeViewModel(Library, ExitConsoleMode);
+        Console = new ConsoleModeViewModel(
+            Library,
+            ExitConsoleMode,
+            discord: new DiscordIpcPresence(),
+            discordApplicationId: () => _libraryService.Settings.Current.DiscordApplicationId);
 
         Updates = new MainWindowUpdatesViewModel(
             text => StatusText = text,

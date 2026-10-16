@@ -164,6 +164,7 @@ public partial class SteamSetupViewModel : ViewModelBase
                 GridCardSize = current.GridCardSize,
                 PageSlideEnabled = current.PageSlideEnabled,
                 XboxGamertag = current.XboxGamertag,
+                DiscordApplicationId = current.DiscordApplicationId,
                 DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
                 DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
                 DismissLegendaryPrompt = current.DismissLegendaryPrompt,

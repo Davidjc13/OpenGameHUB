@@ -59,9 +59,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppSubtitle" xml:space="preserve"><value>Unified library · installed and cloud games</value></data>
-  <data name="Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings" xml:space="preserve"><value>Settings (Ctrl+,)</value></data>
   <data name="RefreshLibrary" xml:space="preserve"><value>Refresh library</value></data>
-  <data name="SearchPlaceholder" xml:space="preserve"><value>Search games...</value></data>
+  <data name="RefreshLibraryToolTip" xml:space="preserve"><value>Refresh library (F5)</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search games... (Ctrl+F)</value></data>
   <data name="Platforms" xml:space="preserve"><value>Platforms</value></data>
   <data name="Sort" xml:space="preserve"><value>Sort</value></data>
   <data name="Filters" xml:space="preserve"><value>Filters</value></data>
@@ -77,7 +78,9 @@
   <data name="FavoriteRemove" xml:space="preserve"><value>Remove from favorites</value></data>
   <data name="FavoriteNeedsSelection" xml:space="preserve"><value>Select a game to add it to favorites</value></data>
   <data name="ViewGrid" xml:space="preserve"><value>Grid</value></data>
+  <data name="ViewGridToolTip" xml:space="preserve"><value>Grid (Ctrl+1)</value></data>
   <data name="ViewList" xml:space="preserve"><value>List</value></data>
+  <data name="ViewListToolTip" xml:space="preserve"><value>List (Ctrl+2)</value></data>
   <data name="ChangeCover" xml:space="preserve"><value>Change cover</value></data>
   <data name="ResetCover" xml:space="preserve"><value>Reset cover</value></data>
   <data name="ChangeCoverDialogTitle" xml:space="preserve"><value>Choose a cover image</value></data>
@@ -91,7 +94,9 @@
   <data name="ShowingGamesCount" xml:space="preserve"><value>No games match your filters</value></data>
   <data name="ShowingGamesPage" xml:space="preserve"><value>Page {0} of {1} · showing {2} of {3} games</value></data>
   <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
+  <data name="PreviousPageToolTip" xml:space="preserve"><value>Previous page (Page Up)</value></data>
   <data name="NextPage" xml:space="preserve"><value>Next</value></data>
+  <data name="NextPageToolTip" xml:space="preserve"><value>Next page (Page Down)</value></data>
   <data name="SortLastPlayedDesc" xml:space="preserve"><value>Recently played</value></data>
   <data name="SortTitleAsc" xml:space="preserve"><value>Name A-Z</value></data>
   <data name="SortTitleDesc" xml:space="preserve"><value>Name Z-A</value></data>
@@ -370,7 +375,7 @@ You can share this log file when reporting the issue.</value></data>
   <data name="IgdbClientSecretOptional" xml:space="preserve"><value>IGDB Client Secret (optional)</value></data>
   <data name="SteamGridDbApiKeyOptional" xml:space="preserve"><value>SteamGridDB API Key (optional)</value></data>
   <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Close" xml:space="preserve"><value>Close (Esc)</value></data>
   <data name="Save" xml:space="preserve"><value>Save</value></data>
   <data name="SettingsSaved" xml:space="preserve"><value>Settings saved.</value></data>
   <data name="NoLaunchMethod" xml:space="preserve"><value>No launch method is available for this game.</value></data>
@@ -401,7 +406,7 @@ You can share this log file when reporting the issue.</value></data>
   <data name="SteamSetupSignInWithBrowser" xml:space="preserve"><value>Sign in</value></data>
   <data name="SteamSetupBrowserCancelled" xml:space="preserve"><value>Steam sign-in was cancelled.</value></data>
   <data name="SteamSetupBrowserCaptured" xml:space="preserve"><value>Steam credentials captured. Testing connection...</value></data>
-  <data name="AddCustomGame" xml:space="preserve"><value>Add custom game</value></data>
+  <data name="AddCustomGame" xml:space="preserve"><value>Add custom game (Ctrl+N)</value></data>
   <data name="AddCustomGameShort" xml:space="preserve"><value>Add game</value></data>
   <data name="AddCustomGameTitle" xml:space="preserve"><value>Add custom game</value></data>
   <data name="AddCustomGamePrompt" xml:space="preserve"><value>Select an installed program or browse for an executable file.</value></data>
@@ -444,10 +449,16 @@ You can share this log file when reporting the issue.</value></data>
   <data name="ConsoleInstalled" xml:space="preserve"><value>Installed</value></data>
   <data name="ConsoleFavorites" xml:space="preserve"><value>Favorites</value></data>
   <data name="ConsoleEmpty" xml:space="preserve"><value>No games in this view</value></data>
-  <data name="ConsoleHint" xml:space="preserve"><value>Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  F11 or Esc exit</value></data>
-  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F search  ·  Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  F11 or Esc exit</value></data>
+  <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search (Ctrl+F)</value></data>
   <data name="MediaPlay" xml:space="preserve"><value>Play</value></data>
   <data name="MediaPause" xml:space="preserve"><value>Pause</value></data>
   <data name="MediaPrevious" xml:space="preserve"><value>Previous</value></data>
   <data name="MediaNext" xml:space="preserve"><value>Next</value></data>
+  <data name="MediaVolume" xml:space="preserve"><value>Volume</value></data>
+  <data name="MediaMuted" xml:space="preserve"><value>Muted</value></data>
+  <data name="MediaVolumeUnavailable" xml:space="preserve"><value>This player does not expose its volume</value></data>
+  <data name="DiscordSection" xml:space="preserve"><value>Discord</value></data>
+  <data name="DiscordApplicationIdPlaceholder" xml:space="preserve"><value>Discord Application ID</value></data>
+  <data name="DiscordApplicationIdHelp" xml:space="preserve"><value>Optional. In full screen, Discord shows the selected game. Paste an Application ID from the Discord developer portal. Launching a game minimizes full screen so Discord's overlay can sit on the game. The speaker controls the music app and leaves Discord voice alone.</value></data>
 </root>

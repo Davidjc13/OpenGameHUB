@@ -48,6 +48,7 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
         SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
         PageSlideEnabled = current.PageSlideEnabled;
+        DiscordApplicationId = current.DiscordApplicationId;
         _libraryViewMode = current.LibraryViewMode;
         _gridCardSize = current.GridCardSize;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
@@ -150,6 +151,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private bool _pageSlideEnabled;
 
+    [ObservableProperty]
+    private string _discordApplicationId = string.Empty;
+
     partial void OnSelectedThemeModeChanged(ThemeMode value) =>
         OnPropertyChanged(nameof(SelectedThemeModeOption));
 
@@ -242,7 +246,8 @@ public partial class SettingsViewModel : ViewModelBase
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
             EpicDisplayName = current.EpicDisplayName,
-            XboxGamertag = current.XboxGamertag
+            XboxGamertag = current.XboxGamertag,
+            DiscordApplicationId = current.DiscordApplicationId
         });
 
         RefreshSteamStatus();
@@ -619,6 +624,7 @@ public partial class SettingsViewModel : ViewModelBase
             LibraryViewMode = _libraryViewMode,
             GridCardSize = _gridCardSize,
             PageSlideEnabled = PageSlideEnabled,
+            DiscordApplicationId = DiscordApplicationId.Trim(),
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
