@@ -77,30 +77,32 @@ internal static class BattleNetDesktopScanner
     private static IEnumerable<UninstallProgramEntry> ReadUninstallPrograms()
     {
         foreach (var hive in new[] { RegistryHive.LocalMachine, RegistryHive.CurrentUser })
-        foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
         {
-            using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-            using var uninstallKey = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-            if (uninstallKey is null)
-                continue;
-
-            foreach (var subKeyName in uninstallKey.GetSubKeyNames())
+            foreach (var view in new[] { RegistryView.Registry64, RegistryView.Registry32 })
             {
-                using var subKey = uninstallKey.OpenSubKey(subKeyName);
-                if (subKey is null)
+                using var baseKey = RegistryKey.OpenBaseKey(hive, view);
+                using var uninstallKey = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                if (uninstallKey is null)
                     continue;
 
-                var uninstallString = subKey.GetValue("UninstallString") as string;
-                if (string.IsNullOrWhiteSpace(uninstallString)
-                    || !uninstallString.Contains("Battle.net", StringComparison.OrdinalIgnoreCase))
+                foreach (var subKeyName in uninstallKey.GetSubKeyNames())
                 {
-                    continue;
-                }
+                    using var subKey = uninstallKey.OpenSubKey(subKeyName);
+                    if (subKey is null)
+                        continue;
 
-                yield return new UninstallProgramEntry(
-                    subKey.GetValue("DisplayName") as string ?? string.Empty,
-                    subKey.GetValue("InstallLocation") as string ?? string.Empty,
-                    uninstallString);
+                    var uninstallString = subKey.GetValue("UninstallString") as string;
+                    if (string.IsNullOrWhiteSpace(uninstallString)
+                        || !uninstallString.Contains("Battle.net", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    yield return new UninstallProgramEntry(
+                        subKey.GetValue("DisplayName") as string ?? string.Empty,
+                        subKey.GetValue("InstallLocation") as string ?? string.Empty,
+                        uninstallString);
+                }
             }
         }
     }
