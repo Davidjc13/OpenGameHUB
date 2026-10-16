@@ -19,6 +19,7 @@ public sealed class MetadataService
     private readonly RockstarCoverClient _rockstarCoverClient = new();
     private readonly EpicCoverClient _epicCoverClient = new();
     private readonly EaCoverClient _eaCoverClient = new();
+    private readonly BattleNetCoverClient _battleNetCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
 
@@ -260,6 +261,11 @@ public sealed class MetadataService
         else if (game.Platform == Platform.Rockstar)
         {
             urls.AddRange(await _rockstarCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.BattleNet)
+        {
+            urls.AddRange(await _battleNetCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+            urls.AddRange(await _steamStoreSearchClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else
         {

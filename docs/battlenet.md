@@ -28,6 +28,10 @@ OpenGameHUB combines GameLib’s installed scan with **`BattleNetCloudLibraryPro
 
 Game names and launch product codes come from embedded **`Providers/BattleNet/Resources/BattleNetGames.json`** (GameLib catalog + newer titles). New Battle.net releases may require updating this file.
 
+## Covers
+
+`BattleNetCoverClient` resolves covers from that same catalog. `CoverUrl` is a vertical card on `bnetproduct-a.akamaihd.net` when that file still responds. Other titles use a public IGDB image id (`IgdbCoverId`), which does not need an IGDB API key. Titles without either value (Heroes of the Storm, Blizzard Arcade Collection, Warcraft Rumble, Warcraft I/II Remastered) fall through to Steam search, Wikipedia, and IGDB/SteamGridDB when those keys are configured.
+
 ## Installation
 
 ```

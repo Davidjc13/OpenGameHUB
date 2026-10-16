@@ -27,6 +27,12 @@ internal sealed class BattleNetCatalogGame
 
     [JsonPropertyName("Aliases")]
     public List<string> Aliases { get; set; } = [];
+
+    [JsonPropertyName("CoverUrl")]
+    public string? CoverUrl { get; set; }
+
+    [JsonPropertyName("IgdbCoverId")]
+    public string? IgdbCoverId { get; set; }
 }
 
 internal sealed record BattleNetCatalogEntry(

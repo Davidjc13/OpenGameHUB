@@ -14,6 +14,7 @@ internal static class CoverImageHostPolicy
         "unrealengine.com",
         "ubistatic3-a.akamaihd.net",
         "media-rockstargames-com.akamaized.net",
+        "bnetproduct-a.akamaihd.net",
     ];
 
     internal static bool IsHostAllowed(string? host) =>
