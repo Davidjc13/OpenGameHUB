@@ -299,6 +299,16 @@
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Connections reset. Refresh the library to replay onboarding prompts.</value></data>
   <data name="DevClearLocalDatabase" xml:space="preserve"><value>Clear local database</value></data>
   <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Local database cleared. The library will refresh when you close settings.</value></data>
+  <data name="DevMetricsTitle" xml:space="preserve"><value>Dev metrics</value></data>
+  <data name="DevMetricsWorkingSet" xml:space="preserve"><value>Working set: {0} MB</value></data>
+  <data name="DevMetricsPrivateMemory" xml:space="preserve"><value>Private memory: {0} MB</value></data>
+  <data name="DevMetricsManagedHeap" xml:space="preserve"><value>Managed heap: {0} MB</value></data>
+  <data name="DevMetricsThreads" xml:space="preserve"><value>Threads: {0} (pool {1})</value></data>
+  <data name="DevMetricsGames" xml:space="preserve"><value>Covers loaded: {0} / {1} games</value></data>
+  <data name="DevMetricsPageBound" xml:space="preserve"><value>Page bound items: {0}</value></data>
+  <data name="DevMetricsState" xml:space="preserve"><value>Refreshing: {0} | Suppress covers: {1} | Quality: {2}</value></data>
+  <data name="DevMetricsYes" xml:space="preserve"><value>yes</value></data>
+  <data name="DevMetricsNo" xml:space="preserve"><value>no</value></data>
   <data name="AppUpdateSection" xml:space="preserve"><value>Updates</value></data>
   <data name="AppCurrentVersion" xml:space="preserve"><value>Current version: {0}</value></data>
   <data name="AppCheckForUpdates" xml:space="preserve"><value>Check for updates</value></data>

@@ -63,6 +63,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public IReadOnlyList<GameItemViewModel> AllGames => _allGames;
 
+    /// <summary>Dev metrics: block cover decode while library refresh rebuilds view models.</summary>
+    public bool IsCoverLoadingSuppressed => _suppressCoverLoading;
+
     public event EventHandler? LibraryContentsChanged;
 
     public event EventHandler? GameLaunched;

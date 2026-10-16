@@ -72,6 +72,8 @@ public partial class MainWindowViewModel : ViewModelBase
             text => StatusText = text,
             ScheduleStatusClear);
 
+        DevMetrics = new MainWindowDevMetricsViewModel(Library);
+
         StatusText = Loc.T("LoadingLibrary");
         Library.LoadCachedGames();
         _ = RefreshLibraryCommand.ExecuteAsync(null);
@@ -83,6 +85,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowSidebarViewModel Sidebar { get; }
     public MainWindowLibraryViewModel Library { get; }
     public ConsoleModeViewModel Console { get; }
+
+    public MainWindowDevMetricsViewModel DevMetrics { get; }
+
+    public bool ShowDevMetricsOverlay => DevMetrics.IsEnabled && !IsConsoleMode;
 
     [ObservableProperty]
     private bool _isConsoleMode;
@@ -96,6 +102,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Console.Activate();
         else
             Console.Deactivate();
+
+        OnPropertyChanged(nameof(ShowDevMetricsOverlay));
     }
 
     [RelayCommand]

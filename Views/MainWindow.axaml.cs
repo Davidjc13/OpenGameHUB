@@ -89,7 +89,10 @@ public partial class MainWindow : Window
         }
 
         if (_windowVm is not null)
+        {
             _windowVm.PropertyChanged -= OnViewModelPropertyChanged;
+            _windowVm.DevMetrics.Dispose();
+        }
 
         base.OnClosed(e);
     }
