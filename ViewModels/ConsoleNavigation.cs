@@ -85,14 +85,12 @@ public static class ConsoleNavigation
                 return MoveHorizontal(state, input, categoryCount, gameCount);
             case ConsoleInput.MoveUp:
             case ConsoleInput.MoveDown:
-            {
                 var menu = ShiftMenu(state.Menu, input == ConsoleInput.MoveDown ? 1 : -1, categoryCount, gameCount, hasMedia);
                 return (state with
                 {
                     Menu = menu,
                     SearchFocused = menu == ConsoleMenuRegion.Search
                 }, ConsoleInputEffect.None);
-            }
             case ConsoleInput.PreviousCategory:
                 return (state with
                 {
