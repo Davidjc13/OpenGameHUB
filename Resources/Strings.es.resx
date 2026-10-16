@@ -131,6 +131,27 @@
   <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client no está instalado.</value></data>
   <data name="SyncingRockstarLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Rockstar...</value></data>
   <data name="RockstarCloudHint" xml:space="preserve"><value> · Biblioteca Rockstar vía Rockstar Games Launcher</value></data>
+  <data name="SyncingBattleNetLibrary" xml:space="preserve"><value>Sincronizando biblioteca de Battle.net...</value></data>
+  <data name="BattleNetCloudHint" xml:space="preserve"><value> · Biblioteca Battle.net vía cliente Battle.net</value></data>
+  <data name="BattleNetCloudHintConnectAccount" xml:space="preserve"><value> · Conecta tu cuenta Battle.net en Ajustes para la biblioteca completa</value></data>
+  <data name="BattleNetLauncherNotInstalled" xml:space="preserve"><value>Battle.net no está instalado.</value></data>
+  <data name="BattleNetLauncherInstallStarted" xml:space="preserve"><value>Battle.net abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
+  <data name="BattleNetLibrarySection" xml:space="preserve"><value>Biblioteca Battle.net</value></data>
+  <data name="BattleNetConnectAccount" xml:space="preserve"><value>Conectar cuenta Battle.net</value></data>
+  <data name="BattleNetDisconnectAccount" xml:space="preserve"><value>Desconectar</value></data>
+  <data name="BattleNetAuthStarted" xml:space="preserve"><value>Inicia sesión en Battle.net en el navegador…</value></data>
+  <data name="BattleNetAuthCancelled" xml:space="preserve"><value>Se canceló el inicio de sesión en Battle.net.</value></data>
+  <data name="BattleNetConnected" xml:space="preserve"><value>Cuenta Battle.net conectada.</value></data>
+  <data name="BattleNetConnectFailed" xml:space="preserve"><value>No se pudo conectar la cuenta Battle.net: {0}</value></data>
+  <data name="BattleNetLibrarySyncFailed" xml:space="preserve"><value>Iniciaste sesión en Battle.net, pero no se pudo descargar la biblioteca. Vuelve a intentarlo o abre el cliente Battle.net una vez y reconecta.</value></data>
+  <data name="BattleNetLibrarySyncFailedHint" xml:space="preserve"><value>Cuenta Battle.net vinculada, pero falló la sincronización de la biblioteca ({0}). Pulsa F5 para refrescar; los juegos instalados siguen leyéndose del cliente Battle.net.</value></data>
+  <data name="BattleNetLibrarySyncNotAuthenticated" xml:space="preserve"><value>La sesión de Battle.net expiró antes de sincronizar la biblioteca. Conecta de nuevo.</value></data>
+  <data name="BattleNetDisconnected" xml:space="preserve"><value>Cuenta Battle.net desconectada.</value></data>
+  <data name="BattleNetNotConnectedStatus" xml:space="preserve"><value>Sin conectar — solo aparecen juegos sincronizados por el cliente Battle.net.</value></data>
+  <data name="BattleNetConnectedStatus" xml:space="preserve"><value>Conectado</value></data>
+  <data name="BattleNetConnectedStatusNamed" xml:space="preserve"><value>Conectado ({0})</value></data>
+  <data name="EmbeddedBrowserBattleNetTitle" xml:space="preserve"><value>Iniciar sesión en Battle.net</value></data>
+  <data name="EmbeddedBrowserBattleNetIntro" xml:space="preserve"><value>Completa los dos pasos del login de Blizzard (correo/contraseña y, si aparece, autenticador o SMS). La ventana se cerrará al llegar al resumen de tu cuenta.</value></data>
   <data name="RockstarLauncherInstallStarted" xml:space="preserve"><value>Rockstar Games Launcher abierto para instalar {0}. Refresca la biblioteca cuando termine.</value></data>
   <data name="RockstarLauncherNotInstalled" xml:space="preserve"><value>Rockstar Games Launcher no está instalado.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparando herramientas de Epic...</value></data>

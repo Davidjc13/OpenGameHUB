@@ -131,6 +131,27 @@
   <data name="RiotClientNotInstalled" xml:space="preserve"><value>Riot Client is not installed.</value></data>
   <data name="SyncingRockstarLibrary" xml:space="preserve"><value>Syncing Rockstar library...</value></data>
   <data name="RockstarCloudHint" xml:space="preserve"><value> · Rockstar library via Rockstar Games Launcher</value></data>
+  <data name="SyncingBattleNetLibrary" xml:space="preserve"><value>Syncing Battle.net library...</value></data>
+  <data name="BattleNetCloudHint" xml:space="preserve"><value> · Battle.net library via Battle.net client</value></data>
+  <data name="BattleNetCloudHintConnectAccount" xml:space="preserve"><value> · Connect Battle.net account in Settings for full library</value></data>
+  <data name="BattleNetLauncherNotInstalled" xml:space="preserve"><value>Battle.net is not installed.</value></data>
+  <data name="BattleNetLauncherInstallStarted" xml:space="preserve"><value>Battle.net opened to install {0}. Refresh your library when it finishes.</value></data>
+  <data name="BattleNetLibrarySection" xml:space="preserve"><value>Battle.net library</value></data>
+  <data name="BattleNetConnectAccount" xml:space="preserve"><value>Connect Battle.net account</value></data>
+  <data name="BattleNetDisconnectAccount" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="BattleNetAuthStarted" xml:space="preserve"><value>Sign in to Battle.net in the browser…</value></data>
+  <data name="BattleNetAuthCancelled" xml:space="preserve"><value>Battle.net sign-in was cancelled.</value></data>
+  <data name="BattleNetConnected" xml:space="preserve"><value>Battle.net account connected.</value></data>
+  <data name="BattleNetConnectFailed" xml:space="preserve"><value>Could not connect Battle.net account: {0}</value></data>
+  <data name="BattleNetLibrarySyncFailed" xml:space="preserve"><value>Battle.net signed in, but the game library could not be downloaded. Try again or open the Battle.net client once, then reconnect.</value></data>
+  <data name="BattleNetLibrarySyncFailedHint" xml:space="preserve"><value>Battle.net account linked, but library sync failed ({0}). Press F5 to refresh; installed games are still read from the Battle.net client.</value></data>
+  <data name="BattleNetLibrarySyncNotAuthenticated" xml:space="preserve"><value>Battle.net session expired before the library could sync. Please connect again.</value></data>
+  <data name="BattleNetDisconnected" xml:space="preserve"><value>Battle.net account disconnected.</value></data>
+  <data name="BattleNetNotConnectedStatus" xml:space="preserve"><value>Not connected — only games synced by the Battle.net client appear.</value></data>
+  <data name="BattleNetConnectedStatus" xml:space="preserve"><value>Connected</value></data>
+  <data name="BattleNetConnectedStatusNamed" xml:space="preserve"><value>Connected ({0})</value></data>
+  <data name="EmbeddedBrowserBattleNetTitle" xml:space="preserve"><value>Sign in to Battle.net</value></data>
+  <data name="EmbeddedBrowserBattleNetIntro" xml:space="preserve"><value>Complete both Blizzard login steps (email/password, then authenticator or SMS if prompted). The window closes when you reach your account overview.</value></data>
   <data name="RockstarLauncherInstallStarted" xml:space="preserve"><value>Rockstar Games Launcher opened to install {0}. Refresh your library when it finishes.</value></data>
   <data name="RockstarLauncherNotInstalled" xml:space="preserve"><value>Rockstar Games Launcher is not installed.</value></data>
   <data name="PreparingEpicLibrary" xml:space="preserve"><value>Preparing Epic library tools...</value></data>

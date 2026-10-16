@@ -6,6 +6,7 @@ using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Xbox;
 using OpenGameHUB.Services.Auth;
@@ -61,6 +62,7 @@ public partial class SettingsViewModel : ViewModelBase
         RefreshSteamStatus();
         RefreshEpicStatus();
         RefreshXboxStatus();
+        RefreshBattleNetStatus();
     }
 
     public bool IsSteamApiConnected => _settingsService.Current.IsSteamApiConfigured;
@@ -76,12 +78,19 @@ public partial class SettingsViewModel : ViewModelBase
 
     public bool CanConnectXbox => !IsXboxConnected && EmbeddedBrowserService.IsAvailable;
 
+    public bool IsBattleNetSectionVisible => BattleNetCatalogReader.IsLauncherInstalled();
+
+    public bool IsBattleNetConnected => _settingsService.Current.HasBattleNetAuth;
+
+    public bool CanConnectBattleNet =>
+        IsBattleNetSectionVisible && !IsBattleNetConnected && EmbeddedBrowserService.IsAvailable;
+
     public bool CanConnectEpic =>
         LegendaryClient.IsAvailable() && !IsEpicConnected && EmbeddedBrowserService.IsAvailable;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
 
-    public string DiagnosticsHelp => Loc.T("DiagnosticsHelp", AppLog.LogFilePath);
+    public string DiagnosticsHelp => Loc.T("DiagnosticsHelp", AppLog.LogDirectory);
 
     public LocalizedStrings Strings { get; }
     public SettingsUpdatesViewModel Updates { get; }
@@ -94,6 +103,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _xboxStatusText = string.Empty;
+
+    [ObservableProperty]
+    private string _battleNetStatusText = string.Empty;
 
     [ObservableProperty]
     private string _igdbClientId = string.Empty;
@@ -252,12 +264,60 @@ public partial class SettingsViewModel : ViewModelBase
             EpicAccountId = current.EpicAccountId,
             EpicDisplayName = current.EpicDisplayName,
             XboxGamertag = current.XboxGamertag,
+            BattleNetDisplayName = current.BattleNetDisplayName,
             DiscordApplicationId = current.DiscordApplicationId
         });
 
         RefreshSteamStatus();
         OnPropertyChanged(nameof(IsSteamApiConnected));
         StatusMessage = Loc.T("SteamApiDisconnected");
+    }
+
+    [RelayCommand]
+    private async Task ConnectBattleNetAsync()
+    {
+        try
+        {
+            StatusMessage = Loc.T("BattleNetAuthStarted");
+            await BattleNetAuthService.SignInAsync(_settingsService, GetOwnerWindow());
+            RefreshBattleNetStatus();
+            OnPropertyChanged(nameof(IsBattleNetConnected));
+            OnPropertyChanged(nameof(CanConnectBattleNet));
+            StatusMessage = Loc.T("BattleNetConnected");
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(SettingsViewModel),
+                operation: "ConnectBattleNetAsync",
+                exception: ex,
+                platform: Platform.BattleNet);
+            StatusMessage = Loc.T("BattleNetConnectFailed", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private void DisconnectBattleNet()
+    {
+        BattleNetAuthHelper.Clear(_settingsService);
+        RefreshBattleNetStatus();
+        OnPropertyChanged(nameof(IsBattleNetConnected));
+        OnPropertyChanged(nameof(CanConnectBattleNet));
+        StatusMessage = Loc.T("BattleNetDisconnected");
+    }
+
+    private void RefreshBattleNetStatus()
+    {
+        if (!IsBattleNetConnected)
+        {
+            BattleNetStatusText = Loc.T("BattleNetNotConnectedStatus");
+            return;
+        }
+
+        var name = _settingsService.Current.BattleNetDisplayName;
+        BattleNetStatusText = string.IsNullOrWhiteSpace(name)
+            ? Loc.T("BattleNetConnectedStatus")
+            : Loc.T("BattleNetConnectedStatusNamed", name);
     }
 
     [RelayCommand]
@@ -371,13 +431,17 @@ public partial class SettingsViewModel : ViewModelBase
     private void DevResetConnections()
     {
         DevModeService.ResetPlatformConnections();
+        BattleNetAuthHelper.Clear(_settingsService);
         _settingsService.Save(DevModeService.ResetConnectionSettings(_settingsService.Current));
 
         RefreshSteamStatus();
         RefreshEpicStatus();
+        RefreshBattleNetStatus();
         OnPropertyChanged(nameof(IsSteamApiConnected));
         OnPropertyChanged(nameof(IsEpicConnected));
         OnPropertyChanged(nameof(CanConnectEpic));
+        OnPropertyChanged(nameof(IsBattleNetConnected));
+        OnPropertyChanged(nameof(CanConnectBattleNet));
 
         _onDevSessionReset?.Invoke();
         StatusMessage = Loc.T("DevResetConnectionsDone");
@@ -638,7 +702,8 @@ public partial class SettingsViewModel : ViewModelBase
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
             EpicAccountId = current.EpicAccountId,
             EpicDisplayName = current.EpicDisplayName,
-            XboxGamertag = current.XboxGamertag
+            XboxGamertag = current.XboxGamertag,
+            BattleNetDisplayName = current.BattleNetDisplayName
         });
 
         if (_importedCollections is not null)

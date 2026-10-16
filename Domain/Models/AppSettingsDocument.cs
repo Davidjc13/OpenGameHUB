@@ -21,6 +21,7 @@ internal sealed class AppSettingsDocument
     public string EpicAccountId { get; set; } = string.Empty;
     public string EpicDisplayName { get; set; } = string.Empty;
     public string XboxGamertag { get; set; } = string.Empty;
+    public string BattleNetDisplayName { get; set; } = string.Empty;
     public string DiscordApplicationId { get; set; } = string.Empty;
 
     public static AppSettingsDocument From(AppSettings settings) =>
@@ -42,6 +43,7 @@ internal sealed class AppSettingsDocument
             EpicAccountId = settings.EpicAccountId,
             EpicDisplayName = settings.EpicDisplayName,
             XboxGamertag = settings.XboxGamertag,
+            BattleNetDisplayName = settings.BattleNetDisplayName,
             DiscordApplicationId = settings.DiscordApplicationId
         };
 
@@ -64,6 +66,7 @@ internal sealed class AppSettingsDocument
             EpicAccountId = EpicAccountId,
             EpicDisplayName = EpicDisplayName,
             XboxGamertag = XboxGamertag,
+            BattleNetDisplayName = BattleNetDisplayName,
             DiscordApplicationId = DiscordApplicationId,
             SteamApiKey = secrets.SteamApiKey,
             IgdbClientSecret = secrets.IgdbClientSecret,

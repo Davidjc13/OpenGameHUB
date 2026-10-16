@@ -15,14 +15,26 @@ internal static class EmbeddedBrowserService
             throw new InvalidOperationException(Loc.T("EmbeddedBrowserRuntimeMissing"));
     }
 
+    public static Task<T?> ShowCaptureAsync<T>(
+        IAuthCaptureStrategy strategy,
+        Window owner,
+        Func<object, T?>? convert = null) where T : class =>
+        ShowCaptureAsync(strategy, owner, profilePath: null, deleteProfileOnClose: true, convert);
+
     public static async Task<T?> ShowCaptureAsync<T>(
         IAuthCaptureStrategy strategy,
         Window owner,
+        string? profilePath,
+        bool deleteProfileOnClose,
         Func<object, T?>? convert = null) where T : class
     {
         EnsureAvailable();
 
-        var profilePath = WebView2AuthProfile.CreateSessionFolder();
+        var ownsProfile = string.IsNullOrWhiteSpace(profilePath);
+        profilePath = ownsProfile
+            ? WebView2AuthProfile.CreateSessionFolder()
+            : profilePath!;
+
         try
         {
             // OAuth codes are exchanged over HTTP; resulting tokens stay in DPAPI-backed stores.
@@ -40,7 +52,8 @@ internal static class EmbeddedBrowserService
         }
         finally
         {
-            WebView2AuthProfile.DeleteSessionFolder(profilePath);
+            if (ownsProfile || deleteProfileOnClose)
+                WebView2AuthProfile.DeleteSessionFolder(profilePath);
         }
     }
 }

@@ -15,6 +15,18 @@ internal static class AppDiagnostics
         var detailSuffix = string.IsNullOrWhiteSpace(details) ? string.Empty : $" | details={details}";
         var message =
             $"[{area}] operation={operation} platform={platformLabel} exception={exception.GetType().Name}: {exception.Message}{detailSuffix}{Environment.NewLine}{exception}";
-        AppLog.Error(message);
+        AppLog.Error(message, platform);
+    }
+
+    public static void ReportInfo(
+        string area,
+        string operation,
+        Platform platform,
+        string? details = null)
+    {
+        var detailSuffix = string.IsNullOrWhiteSpace(details) ? string.Empty : $" | details={details}";
+        AppLog.Information(
+            platform,
+            $"[{area}] operation={operation} platform={platform}{detailSuffix}");
     }
 }

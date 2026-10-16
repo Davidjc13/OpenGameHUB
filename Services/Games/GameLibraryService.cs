@@ -3,6 +3,7 @@ using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Rockstar;
@@ -41,6 +42,7 @@ public sealed class GameLibraryService : IDisposable
             new RiotCloudLibraryProvider(),
             new GogCloudLibraryProvider(),
             new RockstarCloudLibraryProvider(),
+            new BattleNetCloudLibraryProvider(),
             _xboxCloudProvider
         ];
         _launchService = new GameLaunchService(_cloudProviders);
@@ -76,6 +78,12 @@ public sealed class GameLibraryService : IDisposable
 
     public bool IsRockstarCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.Rockstar && p.IsAvailable());
+
+    public bool IsBattleNetCloudAvailable =>
+        _cloudProviders.Any(p => p.Platform == Platform.BattleNet && p.IsAvailable());
+
+    public bool IsBattleNetConnected =>
+        _settingsService.Current.HasBattleNetAuth;
 
     public bool IsXboxCloudAvailable =>
         _cloudProviders.Any(p => p.Platform == Platform.GamePass && p.IsAvailable());
@@ -157,6 +165,11 @@ public sealed class GameLibraryService : IDisposable
                     _settingsService.Current.SteamId,
                     cancellationToken);
                 _steamCloudProvider.SetOwnedGames(steamOwned);
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "RefreshLibraryAsync.SyncSteamApi",
+                    Platform.Steam,
+                    $"ownedCount={steamOwned.Count}");
             }
             catch (Exception ex)
             {
@@ -175,6 +188,11 @@ public sealed class GameLibraryService : IDisposable
             {
                 steamOwned = await LoadLocalSteamLibraryAsync(cancellationToken);
                 _steamCloudProvider.SetOwnedGames(steamOwned);
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "RefreshLibraryAsync.SyncSteamLocal",
+                    Platform.Steam,
+                    $"ownedCount={steamOwned.Count}");
             }
             catch (Exception ex)
             {
@@ -199,6 +217,11 @@ public sealed class GameLibraryService : IDisposable
             try
             {
                 await LegendaryBootstrap.EnsureInstalledAsync(progress, downloadCts.Token);
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "RefreshLibraryAsync.PrepareEpicLibrary",
+                    Platform.Epic,
+                    "Legendary bootstrap ready");
             }
             catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
             {
@@ -223,6 +246,11 @@ public sealed class GameLibraryService : IDisposable
                 await _xboxCloudProvider.LoadLibraryAsync(cancellationToken);
                 var gamertag = await new XboxAccountClient().GetGamertagAsync(cancellationToken);
                 XboxAuthHelper.PersistProfile(_settingsService, gamertag);
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "RefreshLibraryAsync.SyncXboxLibrary",
+                    Platform.GamePass,
+                    $"gamertag={gamertag ?? "(none)"}");
             }
             catch (Exception ex)
             {
@@ -367,15 +395,32 @@ public sealed class GameLibraryService : IDisposable
         ISet<Platform> failedCloudPlatforms)
     {
         var games = _installedGameScanner.Scan(cancellationToken).ToList();
-        games.AddRange(EaDesktopScanner.Scan());
-        games.AddRange(GogDesktopScanner.Scan());
-        games.AddRange(XboxGamePassScanner.Scan());
-        games.AddRange(EpicManifestScanner.ScanInstalled());
+        foreach (var group in games.GroupBy(game => game.Platform))
+        {
+            AppDiagnostics.ReportInfo(
+                nameof(GameLibraryService),
+                "ScanAllGames.InstalledGameScanner",
+                group.Key,
+                $"installedCount={group.Count()}");
+        }
+
+        AddScannedProviderGames(games, Platform.Ea, EaDesktopScanner.Scan);
+        AddScannedProviderGames(games, Platform.Gog, GogDesktopScanner.Scan);
+        AddScannedProviderGames(games, Platform.GamePass, XboxGamePassScanner.Scan);
+        AddScannedProviderGames(games, Platform.Epic, EpicManifestScanner.ScanInstalled);
+        AddScannedProviderGames(games, Platform.BattleNet, BattleNetDesktopScanner.Scan);
 
         foreach (var provider in _cloudProviders)
         {
             if (!provider.IsAvailable())
+            {
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "ScanAllGames.GetUninstalledLibraryGames",
+                    provider.Platform,
+                    "skipped (not available)");
                 continue;
+            }
 
             try
             {
@@ -394,10 +439,25 @@ public sealed class GameLibraryService : IDisposable
                     progress?.Report(Loc.T("SyncingGogLibrary"));
                 else if (provider.Platform == Platform.Rockstar)
                     progress?.Report(Loc.T("SyncingRockstarLibrary"));
+                else if (provider.Platform == Platform.BattleNet)
+                    progress?.Report(Loc.T("SyncingBattleNetLibrary"));
                 else if (provider.Platform == Platform.GamePass)
                     progress?.Report(Loc.T("SyncingXboxLibrary"));
+                else if (provider.Platform == Platform.Steam)
+                    progress?.Report(Loc.T("SyncingSteamLibrary"));
 
+                var before = games.Count;
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "ScanAllGames.GetUninstalledLibraryGames",
+                    provider.Platform,
+                    "started");
                 games.AddRange(provider.GetUninstalledLibraryGames(games, cancellationToken));
+                AppDiagnostics.ReportInfo(
+                    nameof(GameLibraryService),
+                    "ScanAllGames.GetUninstalledLibraryGames",
+                    provider.Platform,
+                    $"addedCount={games.Count - before}");
             }
             catch (Exception ex)
             {
@@ -411,8 +471,28 @@ public sealed class GameLibraryService : IDisposable
             }
         }
 
+        var customBefore = games.Count;
         games.AddRange(_customGameService.LoadAll());
+        AppDiagnostics.ReportInfo(
+            nameof(GameLibraryService),
+            "ScanAllGames.CustomGames",
+            Platform.Custom,
+            $"addedCount={games.Count - customBefore}");
         return GameLibraryMerger.Deduplicate(games);
+    }
+
+    private static void AddScannedProviderGames(
+        List<UnifiedGame> games,
+        Platform platform,
+        Func<IReadOnlyList<UnifiedGame>> scan)
+    {
+        var before = games.Count;
+        games.AddRange(scan());
+        AppDiagnostics.ReportInfo(
+            nameof(GameLibraryService),
+            "ScanAllGames.DesktopScanner",
+            platform,
+            $"addedCount={games.Count - before}");
     }
 
     private static void EnrichTransientCatalogCovers(IReadOnlyList<UnifiedGame> games)

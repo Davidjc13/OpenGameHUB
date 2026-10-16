@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Xbox;
 
@@ -40,6 +41,7 @@ internal static class DevModeService
             EpicAccountId = string.Empty,
             EpicDisplayName = string.Empty,
             XboxGamertag = string.Empty,
+            BattleNetDisplayName = string.Empty,
             DiscordApplicationId = current.DiscordApplicationId
         };
 

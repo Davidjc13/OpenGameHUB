@@ -43,6 +43,8 @@
     <None Remove="third-party\legendary\manifest.json" />
     <EmbeddedResource Include="third-party\legendary\manifest.json"
                       LogicalName="OpenGameHUB.third-party.legendary.manifest.json" />
+    <EmbeddedResource Include="Providers\BattleNet\Resources\BattleNetGames.json"
+                      LogicalName="OpenGameHUB.Providers.BattleNet.Resources.BattleNetGames.json" />
   </ItemGroup>
 
   <ItemGroup>

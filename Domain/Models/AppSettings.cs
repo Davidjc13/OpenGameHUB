@@ -21,9 +21,12 @@ public sealed class AppSettings
     public string EpicAccountId { get; set; } = string.Empty;
     public string EpicDisplayName { get; set; } = string.Empty;
     public string XboxGamertag { get; set; } = string.Empty;
+    public string BattleNetDisplayName { get; set; } = string.Empty;
     public string DiscordApplicationId { get; set; } = string.Empty;
 
     public bool HasEpicAuth => !string.IsNullOrWhiteSpace(EpicAccountId);
+
+    public bool HasBattleNetAuth => !string.IsNullOrWhiteSpace(BattleNetDisplayName);
 
     public bool IsSteamApiConfigured =>
         !string.IsNullOrWhiteSpace(SteamApiKey) && !string.IsNullOrWhiteSpace(SteamId);
@@ -57,6 +60,7 @@ public sealed class AppSettings
             EpicAccountId = EpicAccountId,
             EpicDisplayName = EpicDisplayName,
             XboxGamertag = XboxGamertag,
+            BattleNetDisplayName = BattleNetDisplayName,
             DiscordApplicationId = DiscordApplicationId
         };
 }

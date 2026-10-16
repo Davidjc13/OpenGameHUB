@@ -2,11 +2,25 @@ namespace OpenGameHUB.Infrastructure.Browser;
 
 internal static class WebView2AuthProfile
 {
-    private static string RootDirectory =>
+    private static string AppDataRoot =>
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "OpenGameHUB",
-            "AuthProfile");
+            "OpenGameHUB");
+
+    private static string RootDirectory => Path.Combine(AppDataRoot, "AuthProfile");
+
+    public static string GetBattleNetProfilePath()
+    {
+        var path = Path.Combine(AppDataRoot, "BattleNetProfile");
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    public static void ClearBattleNetProfile()
+    {
+        var path = Path.Combine(AppDataRoot, "BattleNetProfile");
+        DeleteSessionFolder(path);
+    }
 
     public static string CreateSessionFolder()
     {

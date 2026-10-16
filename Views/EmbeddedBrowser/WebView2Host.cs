@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
@@ -8,6 +9,11 @@ using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Browser;
 
 namespace OpenGameHUB.Views.EmbeddedBrowser;
+
+internal readonly record struct WebViewJsonFetchResult(int StatusCode, string? Body, string? Error)
+{
+    public bool IsSuccess => StatusCode is >= 200 and < 300 && !string.IsNullOrWhiteSpace(Body);
+}
 
 public sealed class WebView2Host : NativeControlHost, IDisposable
 {
@@ -24,6 +30,7 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     private bool _disposed;
 
     public event EventHandler<string>? NavigationStarting;
+    public event EventHandler<string>? NavigationCompleted;
     public event EventHandler<CoreWebView2WebResourceResponseReceivedEventArgs>? AuthResponseReceived;
 
     // Setting the profile is one of the two preconditions to start WebView2; the other is the
@@ -59,6 +66,151 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
     {
         await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
         _webView!.Navigate(url);
+    }
+
+    public Task NavigateAndWaitAsync(string url, CancellationToken cancellationToken = default) =>
+        NavigateAndWaitAsync(url, requireSuccess: true, cancellationToken);
+
+    public async Task NavigateAndWaitAsync(
+        string url,
+        bool requireSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
+
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
+            _webView!.NavigationCompleted -= OnCompleted;
+            if (e.IsSuccess || !requireSuccess)
+                tcs.TrySetResult();
+            else
+                tcs.TrySetException(new InvalidOperationException($"Navigation failed for {url}."));
+        }
+
+        using var registration = cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        _webView!.NavigationCompleted += OnCompleted;
+        _webView.Navigate(url);
+        await tcs.Task.ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Calls a Battle.net (or same-site) JSON API using the WebView2 cookie jar.
+    /// Direct navigation to API URLs often reports NavigationCompleted as failed even when JSON is returned.
+    /// </summary>
+    public async Task<string?> FetchJsonWithSessionAsync(string url, CancellationToken cancellationToken = default)
+    {
+        var result = await FetchJsonResultWithSessionAsync(url, cancellationToken).ConfigureAwait(true);
+        return result.IsSuccess ? result.Body : null;
+    }
+
+    internal async Task<WebViewJsonFetchResult> FetchJsonResultWithSessionAsync(
+        string url,
+        CancellationToken cancellationToken = default)
+    {
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
+
+        var xsrf = await TryReadXsrfTokenAsync().ConfigureAwait(true);
+        var urlLiteral = JsonSerializer.Serialize(url);
+        var tokenLiteral = JsonSerializer.Serialize(xsrf ?? string.Empty);
+        var script = $$"""
+            (async () => {
+              try {
+                const headers = { 'Accept': 'application/json' };
+                const token = {{tokenLiteral}};
+                if (token) {
+                  headers['X-XSRF-TOKEN'] = token;
+                  headers['x-xsrf-token'] = token;
+                }
+                const response = await fetch({{urlLiteral}}, {
+                  credentials: 'include',
+                  headers
+                });
+                const body = await response.text();
+                return JSON.stringify({ status: response.status, body });
+              } catch (error) {
+                return JSON.stringify({ status: 0, body: '', error: String(error) });
+              }
+            })()
+            """;
+
+        var raw = await _webView!.ExecuteScriptAsync(script).ConfigureAwait(true);
+        var payload = UnwrapExecuteScriptResult(raw);
+        if (string.IsNullOrWhiteSpace(payload))
+            return new WebViewJsonFetchResult(0, null, "empty script result");
+
+        try
+        {
+            using var document = JsonDocument.Parse(payload);
+            var status = document.RootElement.TryGetProperty("status", out var statusElement)
+                && statusElement.TryGetInt32(out var code)
+                    ? code
+                    : 0;
+            var body = document.RootElement.TryGetProperty("body", out var bodyElement)
+                ? bodyElement.GetString()
+                : payload;
+            var error = document.RootElement.TryGetProperty("error", out var errorElement)
+                ? errorElement.GetString()
+                : null;
+            return new WebViewJsonFetchResult(status, body, error);
+        }
+        catch (JsonException)
+        {
+            return new WebViewJsonFetchResult(200, payload, null);
+        }
+    }
+
+    private async Task<string?> TryReadXsrfTokenAsync()
+    {
+        if (_webView is null)
+            return null;
+
+        try
+        {
+            var cookies = await _webView.CookieManager.GetCookiesAsync("https://account.battle.net/")
+                .ConfigureAwait(true);
+            var token = cookies.FirstOrDefault(cookie =>
+                cookie.Name.Contains("XSRF", StringComparison.OrdinalIgnoreCase)
+                || cookie.Name.Contains("CSRF", StringComparison.OrdinalIgnoreCase));
+            return string.IsNullOrWhiteSpace(token?.Value) ? null : token.Value;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<string?> GetDocumentTextAsync(CancellationToken cancellationToken = default)
+    {
+        await EnsureInitializedAsync(cancellationToken).ConfigureAwait(true);
+        var raw = await _webView!.ExecuteScriptAsync(
+            "document.body ? document.body.innerText : ''").ConfigureAwait(true);
+
+        return UnwrapExecuteScriptResult(raw);
+    }
+
+    /// <summary>
+    /// WebView2 returns JSON-encoded script results; large API bodies may surface as a string or as a parsed object.
+    /// </summary>
+    private static string? UnwrapExecuteScriptResult(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw) || string.Equals(raw, "null", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        try
+        {
+            using var document = JsonDocument.Parse(raw);
+            return document.RootElement.ValueKind switch
+            {
+                JsonValueKind.String => document.RootElement.GetString(),
+                JsonValueKind.Object or JsonValueKind.Array => document.RootElement.GetRawText(),
+                _ => null
+            };
+        }
+        catch (JsonException)
+        {
+            return raw;
+        }
     }
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
@@ -154,6 +306,17 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
                 NavigationStarting?.Invoke(this, e.Uri);
             };
 
+            _webView.NavigationCompleted += (_, e) =>
+            {
+                if (!e.IsSuccess || _webView?.Source is not { } source)
+                    return;
+
+                if (!AuthUrl.TryParse(source, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, AllowedHosts))
+                    return;
+
+                NavigationCompleted?.Invoke(this, source);
+            };
+
             _webView.WebResourceResponseReceived += (_, e) =>
             {
                 if (!AuthUrl.TryParse(e.Request.Uri, out var uri) || !AuthHostPolicy.IsHostAllowed(uri.Host, AllowedHosts))
@@ -162,7 +325,13 @@ public sealed class WebView2Host : NativeControlHost, IDisposable
                 AuthResponseReceived?.Invoke(this, e);
             };
 
-            _webView.NewWindowRequested += (_, e) => e.Handled = true;
+            _webView.NewWindowRequested += (_, e) =>
+            {
+                // MFA / SSO sometimes opens a popup; keep everything in this auth surface.
+                e.Handled = true;
+                if (!string.IsNullOrWhiteSpace(e.Uri))
+                    _webView?.Navigate(e.Uri);
+            };
             _webView.DownloadStarting += (_, e) => e.Cancel = true;
 
             UpdateBounds();

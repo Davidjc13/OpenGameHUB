@@ -98,6 +98,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string XboxLibrarySection => Loc.T("XboxLibrarySection");
     public string XboxConnectAccount => Loc.T("XboxConnectAccount");
     public string XboxDisconnectAccount => Loc.T("XboxDisconnectAccount");
+    public string BattleNetLibrarySection => Loc.T("BattleNetLibrarySection");
+    public string BattleNetConnectAccount => Loc.T("BattleNetConnectAccount");
+    public string BattleNetDisconnectAccount => Loc.T("BattleNetDisconnectAccount");
     public string XboxPasteAuthTitle => Loc.T("XboxPasteAuthTitle");
     public string XboxPasteAuthIntro => Loc.T("XboxPasteAuthIntro");
     public string XboxPasteAuthPlaceholder => Loc.T("XboxPasteAuthPlaceholder");

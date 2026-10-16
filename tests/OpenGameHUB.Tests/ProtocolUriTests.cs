@@ -167,6 +167,8 @@ public sealed class ProtocolUriTests
     [InlineData("com.epicgames.launcher://apps/Fortnite?action=uninstall")]
     [InlineData("com.epicgames.launcher://apps/Fortnite?action=launch&silent=true")]
     [InlineData("link2ea://openlibrary?slug=the-sims-4&platform=EA")]
+    [InlineData("battlenet://Hero/")]
+    [InlineData("battlenet://WTCG/")]
     [InlineData("shell:AppsFolder\\Microsoft.Halo_8wekyb3d8bbwe!App")]
     [InlineData("shell:AppsFolder/Microsoft.Halo_8wekyb3d8bbwe!App")]
     public void IsLaunchable_accepts_known_launcher_protocols(string url)
@@ -188,6 +190,15 @@ public sealed class ProtocolUriTests
     public void IsLaunchable_rejects_non_launcher_or_injected_urls(string? url)
     {
         Assert.False(ProtocolUri.IsLaunchable(url));
+    }
+
+    [Fact]
+    public void TryBattleNetProduct_builds_install_url()
+    {
+        Assert.True(ProtocolUri.TryBattleNetProduct("Hero", out var url));
+        Assert.Equal("battlenet://Hero/", url);
+        Assert.True(ProtocolUri.IsLaunchable(url));
+        Assert.False(ProtocolUri.TryBattleNetProduct("Hero/../evil", out _));
     }
 
     [Fact]

@@ -363,9 +363,14 @@ internal sealed class XboxAccountClient
 
             foreach (var stat in stats.EnumerateArray())
             {
-                var titleId = stat.GetProperty("titleid").GetString();
-                var value = stat.GetProperty("value").GetString();
-                if (string.IsNullOrWhiteSpace(titleId) || !int.TryParse(value, out var minutes))
+                if (!TryGetJsonProperty(stat, "titleid", "TitleId", out var titleIdElement)
+                    || !TryGetJsonProperty(stat, "value", "Value", out var valueElement))
+                {
+                    continue;
+                }
+
+                var titleId = ReadJsonElementAsString(titleIdElement);
+                if (string.IsNullOrWhiteSpace(titleId) || !TryReadInt32(valueElement, out var minutes))
                     continue;
 
                 output[titleId] = minutes;
@@ -373,6 +378,34 @@ internal sealed class XboxAccountClient
         }
 
         return output;
+    }
+
+    private static bool TryGetJsonProperty(
+        JsonElement element,
+        string primaryName,
+        string alternateName,
+        out JsonElement value) =>
+        element.TryGetProperty(primaryName, out value)
+        || element.TryGetProperty(alternateName, out value);
+
+    private static string? ReadJsonElementAsString(JsonElement element) =>
+        element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.GetRawText(),
+            _ => null
+        };
+
+    private static bool TryReadInt32(JsonElement element, out int value)
+    {
+        if (element.ValueKind == JsonValueKind.Number)
+            return element.TryGetInt32(out value);
+
+        if (element.ValueKind == JsonValueKind.String)
+            return int.TryParse(element.GetString(), out value);
+
+        value = 0;
+        return false;
     }
 
     private static void ApplyXstsHeaders(HttpRequestHeaders headers, XboxAuthorizationData xsts)

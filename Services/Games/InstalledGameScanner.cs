@@ -4,6 +4,7 @@ using GameLib.Plugin.Steam.Model;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Services.Covers;
 
 namespace OpenGameHUB.Services.Games;
@@ -117,6 +118,18 @@ internal sealed class InstalledGameScanner
             var steamExe = ResolveLauncherExecutable(launcher, "steam.exe");
             if (steamExe is not null)
                 return LaunchSpec.LauncherArgs(steamExe, $"-applaunch {steamGame.Id}");
+        }
+
+        if (platform == Platform.BattleNet)
+        {
+            var productId = BattleNetCatalogReader.ResolveOfficialProductId(
+                string.IsNullOrWhiteSpace(game.Id) ? game.Name : game.Id);
+            var battleNetExe = BattleNetCatalogReader.FindLauncherExecutable()
+                ?? ResolveLauncherExecutable(launcher);
+            if (battleNetExe is not null)
+                return LaunchSpec.LauncherArgs(
+                    battleNetExe,
+                    BattleNetCatalogReader.BuildLaunchArguments(productId));
         }
 
         if (platform == Platform.Ea && !string.IsNullOrWhiteSpace(game.LaunchString))

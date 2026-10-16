@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Web.WebView2.Core;
 using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Localization;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Services.Auth;
 using OpenGameHUB.Views.EmbeddedBrowser;
 
@@ -15,6 +16,9 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
     private readonly string _profilePath;
     private WebView2Host? _host;
     private bool _captureCompleted;
+    private bool _battleNetSyncStarted;
+    private string? _battleNetGamesJson;
+    private string? _battleNetClassicJson;
 
     public EmbeddedBrowserViewModel(IAuthCaptureStrategy strategy, string profilePath)
     {
@@ -51,6 +55,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
         host.UserDataFolder = _profilePath;
         host.AllowedHosts = _strategy.AllowedHosts;
         host.NavigationStarting += OnNavigationStarting;
+        host.NavigationCompleted += OnNavigationCompleted;
         host.AuthResponseReceived += OnAuthResponseReceived;
         _ = InitializeAsync();
     }
@@ -61,6 +66,7 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
             return;
 
         _host.NavigationStarting -= OnNavigationStarting;
+        _host.NavigationCompleted -= OnNavigationCompleted;
         _host.AuthResponseReceived -= OnAuthResponseReceived;
         _host = null;
     }
@@ -100,12 +106,68 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
 
     private void OnNavigationStarting(object? sender, string url)
     {
-        if (_captureCompleted)
+        if (_captureCompleted || _strategy.UseNavigationCompletedForCapture)
             return;
 
         var captured = _strategy.TryCaptureFromNavigation(url);
         if (captured is not null)
             CompleteCapture(captured);
+    }
+
+    private void OnNavigationCompleted(object? sender, string url)
+    {
+        if (_captureCompleted || !_strategy.UseNavigationCompletedForCapture)
+            return;
+
+        var captured = _strategy.TryCaptureFromNavigationCompleted(url);
+        if (captured is null)
+            return;
+
+        if (captured is BattleNetAuthCaptureResult)
+        {
+            BeginBattleNetSync(captured);
+            return;
+        }
+
+        CompleteCapture(captured);
+    }
+
+    private void BeginBattleNetSync(object captured)
+    {
+        if (_battleNetSyncStarted || _captureCompleted)
+            return;
+
+        _battleNetSyncStarted = true;
+        _ = CompleteBattleNetCaptureAsync(captured);
+    }
+
+    private async Task CompleteBattleNetCaptureAsync(object captured)
+    {
+        if (_host is null || _captureCompleted)
+            return;
+
+        try
+        {
+            StatusMessage = Loc.T("SyncingBattleNetLibrary");
+            IsBusy = true;
+            await BattleNetAccountClient.RefreshLibraryCacheWithHostAsync(
+                _host,
+                _battleNetGamesJson,
+                _battleNetClassicJson).ConfigureAwait(true);
+            CompleteCapture(captured);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(EmbeddedBrowserViewModel),
+                operation: "CompleteBattleNetCaptureAsync",
+                exception: ex,
+                platform: Domain.Enums.Platform.BattleNet);
+            // Login cookies are valid even when library API sync fails; finish connect and refresh with F5.
+            CompleteCapture(captured);
+            StatusMessage = Loc.T("BattleNetLibrarySyncFailedHint", ex.Message);
+            IsBusy = false;
+        }
     }
 
     private void OnAuthResponseReceived(object? sender, CoreWebView2WebResourceResponseReceivedEventArgs e)
@@ -133,7 +195,14 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
                 return;
 
             var body = await ReadCappedAsync(contentStream, MaxResponseBytes).ConfigureAwait(true);
+            RememberBattleNetLibraryPayload(e.Request.Uri, body);
             var captured = _strategy.TryCaptureFromResponse(e.Request.Uri, body);
+            if (captured is BattleNetAuthCaptureResult)
+            {
+                BeginBattleNetSync(captured);
+                return;
+            }
+
             if (captured is not null)
                 CompleteCapture(captured);
         }
@@ -141,6 +210,17 @@ internal partial class EmbeddedBrowserViewModel : ViewModelBase
         {
             // keep the browser open until the callback arrives
         }
+    }
+
+    private void RememberBattleNetLibraryPayload(string requestUrl, string body)
+    {
+        if (string.IsNullOrWhiteSpace(body) || _strategy is not BattleNetAuthCaptureStrategy)
+            return;
+
+        if (requestUrl.Contains("games-and-subs", StringComparison.OrdinalIgnoreCase))
+            _battleNetGamesJson = body;
+        else if (requestUrl.Contains("classic-games", StringComparison.OrdinalIgnoreCase))
+            _battleNetClassicJson = body;
     }
 
     private static async Task<string> ReadCappedAsync(Stream stream, int maxBytes)

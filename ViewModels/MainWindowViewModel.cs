@@ -229,6 +229,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             var wasEpicConnected = _libraryService.IsEpicConnected;
+            var wasBattleNetConnected = _libraryService.IsBattleNetConnected;
             await Onboarding.ShowDialogAsync(new SettingsWindow(new SettingsViewModel(
                 _libraryService.Settings,
                 Onboarding.ResetSession,
@@ -257,7 +258,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 Onboarding.ClearReplayOnboarding();
                 await RefreshLibraryCommand.ExecuteAsync(null);
             }
-            else if (wasEpicConnected != _libraryService.IsEpicConnected)
+            else if (wasEpicConnected != _libraryService.IsEpicConnected
+                     || wasBattleNetConnected != _libraryService.IsBattleNetConnected)
             {
                 await RefreshLibraryCommand.ExecuteAsync(null);
             }

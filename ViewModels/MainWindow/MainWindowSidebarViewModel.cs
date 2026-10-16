@@ -144,7 +144,11 @@ public partial class MainWindowSidebarViewModel : ViewModelBase
         PlatformFilters.Clear();
         PlatformFilters.Add(new PlatformFilterItem(Loc.T("AllPlatforms"), null, selected is null));
 
-        foreach (var platform in _allGames.Select(g => g.Platform).Distinct().OrderBy(p => PlatformLabels.Get(p)))
+        var platforms = _allGames.Select(g => g.Platform).ToHashSet();
+        if (_library.IsBattleNetCloudAvailable || _library.IsBattleNetConnected)
+            platforms.Add(Platform.BattleNet);
+
+        foreach (var platform in platforms.OrderBy(p => PlatformLabels.Get(p)))
         {
             var count = _allGames.Count(g => g.Platform == platform);
             PlatformFilters.Add(new PlatformFilterItem($"{PlatformLabels.Get(platform)} ({count})", platform, selected == platform));

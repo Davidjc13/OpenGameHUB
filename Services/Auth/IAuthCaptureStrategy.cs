@@ -15,4 +15,12 @@ internal interface IAuthCaptureStrategy
     object? TryCaptureFromNavigation(string url);
 
     object? TryCaptureFromResponse(string requestUrl, string responseBody);
+
+    /// <summary>
+    /// When true, <see cref="TryCaptureFromNavigationCompleted"/> is used instead of
+    /// <see cref="TryCaptureFromNavigation"/> so multi-step logins are not completed mid-flow.
+    /// </summary>
+    bool UseNavigationCompletedForCapture => false;
+
+    object? TryCaptureFromNavigationCompleted(string url) => null;
 }
