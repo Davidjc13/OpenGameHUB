@@ -1,4 +1,6 @@
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using OpenGameHUB.Converters;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OpenGameHUB.Domain.Enums;
@@ -100,6 +102,8 @@ public partial class GameItemViewModel : ViewModelBase
 
     public double GridPlaceholderOpacity => IsInstalled ? 0.28 : 0.14;
 
+    public IBrush PlaceholderBackground => PlatformBrushes.PlaceholderFor(Platform, IsInstalled);
+
     partial void OnHasCoverChanged(bool value)
     {
         OnPropertyChanged(nameof(DisplayGridCover));
@@ -124,6 +128,7 @@ public partial class GameItemViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(GridCoverOpacity));
         OnPropertyChanged(nameof(GridPlaceholderOpacity));
+        OnPropertyChanged(nameof(PlaceholderBackground));
         OnPropertyChanged(nameof(ManageGameLabel));
         OnPropertyChanged(nameof(FavoriteToolTip));
         OnPropertyChanged(nameof(AlsoOnLabel));
@@ -211,11 +216,33 @@ public partial class GameItemViewModel : ViewModelBase
         if (decodeWidth <= 0)
             return Task.CompletedTask;
 
-        if (HasCover && _loadedDecodeWidth == decodeWidth)
+        if (HasCover && CoverImage is not null && _loadedDecodeWidth >= decodeWidth)
             return Task.CompletedTask;
 
         ReleaseCover();
         return LoadCoverAsync(metadata, decodeWidth, interpolation, cancellationToken);
+    }
+
+    /// <summary>Moves the decoded cover to a rebuilt view model without extra decode or duplicate bitmaps.</summary>
+    public bool TryStealCover(out Bitmap? bitmap, out int decodeWidth)
+    {
+        bitmap = CoverImage;
+        decodeWidth = _loadedDecodeWidth;
+        if (bitmap is null)
+            return false;
+
+        CoverImage = null;
+        HasCover = false;
+        _loadedDecodeWidth = 0;
+        _loadGeneration++;
+        return true;
+    }
+
+    public void AdoptCover(Bitmap bitmap, int decodeWidth)
+    {
+        CoverImage = bitmap;
+        HasCover = true;
+        _loadedDecodeWidth = decodeWidth;
     }
 
     private async Task LoadCoverFromMetadataAsync(
@@ -243,9 +270,10 @@ public partial class GameItemViewModel : ViewModelBase
     {
         _loadGeneration++;
         _loadedDecodeWidth = 0;
-        CoverImage?.Dispose();
+        var previous = CoverImage;
         CoverImage = null;
         HasCover = false;
+        DisposeLater(previous);
     }
 
     public void RefreshCoverState()
@@ -288,11 +316,27 @@ public partial class GameItemViewModel : ViewModelBase
                 return;
             }
 
-            CoverImage?.Dispose();
+            var previous = CoverImage;
             Source.CoverPath = path;
             CoverImage = bitmap;
             HasCover = true;
             _loadedDecodeWidth = decodeWidth;
+            DisposeLater(previous);
         });
+    }
+
+    private static void DisposeLater(Bitmap? bitmap)
+    {
+        if (bitmap is null)
+            return;
+
+        try
+        {
+            Dispatcher.UIThread.Post(bitmap.Dispose, DispatcherPriority.Background);
+        }
+        catch (InvalidOperationException)
+        {
+            bitmap.Dispose();
+        }
     }
 }

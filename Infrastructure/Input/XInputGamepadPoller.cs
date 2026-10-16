@@ -19,10 +19,14 @@ public sealed class XInputGamepadPoller : IDisposable
     private const ushort X = 0x4000;
     private const ushort Y = 0x8000;
 
+    public static readonly TimeSpan InteractiveInterval = TimeSpan.FromMilliseconds(33);
+    public static readonly TimeSpan IdleInterval = TimeSpan.FromMilliseconds(400);
+
     private DispatcherTimer? _timer;
     private GamepadButtons _previous;
     private DateTime _lastPollUtc;
     private bool _hasSample;
+    private bool _interactive;
     private static bool _unavailable;
     private bool _disposed;
     private static XInputGetStateDelegate? _getState;
@@ -33,6 +37,10 @@ public sealed class XInputGamepadPoller : IDisposable
 
     public event Action<GamepadButtons, GamepadButtons, TimeSpan>? Frame;
 
+    public TimeSpan Interval => _timer?.Interval ?? IdleInterval;
+
+    public bool IsRunning => _timer?.IsEnabled == true;
+
     public void Start()
     {
         if (_disposed)
@@ -41,11 +49,18 @@ public sealed class XInputGamepadPoller : IDisposable
         _previous = default;
         _hasSample = false;
         _lastPollUtc = DateTime.UtcNow;
-        _timer ??= new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Input, Dispatcher.UIThread);
+        _timer ??= new DispatcherTimer(IdleInterval, DispatcherPriority.Input, Dispatcher.UIThread);
         _timer.Tick -= OnTick;
         _timer.Tick += OnTick;
+        ApplyInterval();
         if (!_timer.IsEnabled)
             _timer.Start();
+    }
+
+    public void SetInteractive(bool interactive)
+    {
+        _interactive = interactive;
+        ApplyInterval();
     }
 
     public void Stop() => _timer?.Stop();
@@ -68,8 +83,11 @@ public sealed class XInputGamepadPoller : IDisposable
         if (_unavailable || !TryRead(out var current))
         {
             _hasSample = false;
+            ApplyInterval();
             return;
         }
+
+        ApplyInterval(padConnected: true);
 
         if (!_hasSample)
         {
@@ -95,6 +113,16 @@ public sealed class XInputGamepadPoller : IDisposable
         }
 
         _previous = current;
+    }
+
+    private void ApplyInterval(bool padConnected = false)
+    {
+        if (_timer is null)
+            return;
+
+        var interval = _interactive || padConnected ? InteractiveInterval : IdleInterval;
+        if (_timer.Interval != interval)
+            _timer.Interval = interval;
     }
 
     private bool TryRead(out GamepadButtons buttons)

@@ -185,7 +185,9 @@ List view uses the same `GameItemViewModel` cover properties (`DisplayListCover`
 
 Large libraries + covers can use significant RAM. Mitigations live in `MainWindowLibraryViewModel` (`ApplyVisibleCovers`, pagination) and `CoverQualitySettings`.
 
-See [performance-profiling.md](performance-profiling.md) for dev overlay and external profiling (`dotnet-counters`, `dotnet-trace`, `tools/Diag`).
+See [performance-profiling.md](performance-profiling.md) for VMMap, the dev overlay, `dotnet-counters`, software rendering (`OPENGAMEHUB_RENDER_SOFTWARE=1`), and `tools/Diag`.
+
+Uninstalled tiles keep a `Border.overlay-dim` over the cover instead of lowering `Image.Opacity` (which can force extra compositor layers). `CoverImageLoader` never falls back to a full-resolution bitmap; the cap is `MaxFallbackDecodeWidth` (512). `ReleaseCover` clears the bound bitmap first and disposes it on the next UI background cycle.
 
 ### Pagination
 
@@ -265,7 +267,7 @@ The cascade pipeline maximizes coverage without requiring configuration. Custom 
 | `Services/MetadataService.cs` | Download cascade, custom cover API |
 | `Services/CoverImageProcessor.cs` | User upload resize |
 | `Services/CoverPathHelper.cs` | Cache paths |
-| `Services/CoverImageLoader.cs` | Shared load helpers |
+| `Services/CoverImageLoader.cs` | Decode throttle, width cap, no full-file fallback |
 | `Services/LocalCoverScanner.cs` | Install-folder images |
 | `Services/SafeImageDownloader.cs` / `SafeImageValidator.cs` | Validation |
 | `ViewModels/GameItemViewModel.cs` | Per-tile bitmap lifecycle |

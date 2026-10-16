@@ -76,8 +76,22 @@ public partial class MainWindowViewModel : ViewModelBase
 
         StatusText = Loc.T("LoadingLibrary");
         Library.LoadCachedGames();
-        _ = RefreshLibraryCommand.ExecuteAsync(null);
+        if (ShouldRefreshLibraryOnStartup())
+            _ = RefreshLibraryCommand.ExecuteAsync(null);
+        else if (Library.AllGames.Count > 0)
+            StatusText = Loc.T("GamesInCache", Library.AllGames.Count);
     }
+
+    internal static bool ShouldRefreshLibraryOnStartup(IReadOnlyList<GameItemViewModel> cachedGames, AppSettings settings)
+    {
+        if (cachedGames.Count == 0)
+            return true;
+
+        return settings.RefreshLibraryOnStartup;
+    }
+
+    private bool ShouldRefreshLibraryOnStartup() =>
+        ShouldRefreshLibraryOnStartup(Library.AllGames, _libraryService.Settings.Current);
 
     public LocalizedStrings Strings { get; }
     public MainWindowUpdatesViewModel Updates { get; }

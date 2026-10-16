@@ -256,7 +256,26 @@ public sealed class GameLibraryService : IDisposable
         }
 
         _metadataService.ReconcileCachedCovers(stored);
+        ReleaseTransientSyncMemory(PostSyncMemoryPhase.AfterLibraryScan);
         return _database.GetAllGames();
+    }
+
+    /// <summary>
+    /// Releases memory retained only during library sync (cloud catalogs, Steam owned list, etc.).
+    /// </summary>
+    public void ReleaseTransientSyncMemory(PostSyncMemoryPhase phase)
+    {
+        if (phase.HasFlag(PostSyncMemoryPhase.AfterLibraryScan))
+        {
+            _steamCloudProvider.ClearOwnedGames();
+            _xboxCloudProvider.ReleaseSyncCache();
+        }
+
+        if (phase.HasFlag(PostSyncMemoryPhase.AfterCoverEnrichment))
+        {
+            EpicCatalogReader.ReleaseInMemoryCache();
+            _database.ReleaseUnusedMemory();
+        }
     }
 
     public async Task EnrichCoversAsync(

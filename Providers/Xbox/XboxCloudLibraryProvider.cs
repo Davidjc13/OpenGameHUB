@@ -34,6 +34,11 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
 
     public bool IsAvailable() => _isAvailable();
 
+    /// <summary>
+    /// Drops catalog entries held only for the last sync scan. Safe after games are persisted.
+    /// </summary>
+    public void ReleaseSyncCache() => _cachedEntries = [];
+
     public async Task LoadLibraryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsAvailable())

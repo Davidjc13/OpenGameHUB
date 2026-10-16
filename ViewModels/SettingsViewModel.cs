@@ -48,6 +48,7 @@ public partial class SettingsViewModel : ViewModelBase
         SelectedUiFontScale = UiFontScaleService.Normalize(current.UiFontScale);
         SelectedThemeMode = ThemeModeService.Normalize(current.ThemeMode);
         PageSlideEnabled = current.PageSlideEnabled;
+        RefreshLibraryOnStartup = current.RefreshLibraryOnStartup;
         DiscordApplicationId = current.DiscordApplicationId;
         _libraryViewMode = current.LibraryViewMode;
         _gridCardSize = current.GridCardSize;
@@ -152,6 +153,9 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _pageSlideEnabled;
 
     [ObservableProperty]
+    private bool _refreshLibraryOnStartup;
+
+    [ObservableProperty]
     private string _discordApplicationId = string.Empty;
 
     partial void OnSelectedThemeModeChanged(ThemeMode value) =>
@@ -241,6 +245,7 @@ public partial class SettingsViewModel : ViewModelBase
             LibraryViewMode = current.LibraryViewMode,
             GridCardSize = current.GridCardSize,
             PageSlideEnabled = current.PageSlideEnabled,
+            RefreshLibraryOnStartup = current.RefreshLibraryOnStartup,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,
@@ -428,6 +433,7 @@ public partial class SettingsViewModel : ViewModelBase
             draft.LibraryViewMode = _libraryViewMode;
             draft.GridCardSize = _gridCardSize;
             draft.PageSlideEnabled = PageSlideEnabled;
+            draft.RefreshLibraryOnStartup = RefreshLibraryOnStartup;
             await File.WriteAllTextAsync(
                 path,
                 PreferencesTransfer.Serialize(draft, CurrentCollections(), CurrentFavorites()));
@@ -475,6 +481,7 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedUiFontScale = UiFontScaleService.Normalize(applied.UiFontScale);
             SelectedThemeMode = ThemeModeService.Normalize(applied.ThemeMode);
             PageSlideEnabled = applied.PageSlideEnabled;
+            RefreshLibraryOnStartup = applied.RefreshLibraryOnStartup;
             _libraryViewMode = applied.LibraryViewMode;
             _gridCardSize = applied.GridCardSize;
             StatusMessage = Loc.T("PreferencesImported");
@@ -624,6 +631,7 @@ public partial class SettingsViewModel : ViewModelBase
             LibraryViewMode = _libraryViewMode,
             GridCardSize = _gridCardSize,
             PageSlideEnabled = PageSlideEnabled,
+            RefreshLibraryOnStartup = RefreshLibraryOnStartup,
             DiscordApplicationId = DiscordApplicationId.Trim(),
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,

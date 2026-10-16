@@ -25,6 +25,7 @@ public sealed class AppResourceFormattingTests
         Assert.True(snapshot.ManagedHeapBytes >= 0);
         Assert.True(snapshot.ProcessThreadCount > 0);
         Assert.True(snapshot.ThreadPoolThreadCount >= 0);
+        Assert.True(snapshot.Gen0Collections >= 0);
     }
 
     [Fact]

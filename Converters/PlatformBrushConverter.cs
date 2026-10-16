@@ -23,6 +23,23 @@ public static class PlatformBrushes
         Platform.Custom => ThemeColors.ParseBrush("#7A5AF8"),
         _ => ThemeColors.ParseBrush("#5C5C5C")
     };
+
+    public static IBrush PlaceholderFor(Platform platform, bool installed)
+    {
+        var opacity = installed ? 0.28 : 0.14;
+        if (For(platform) is SolidColorBrush solid)
+        {
+            var color = solid.Color;
+            return new SolidColorBrush(
+                Color.FromArgb(
+                    (byte)(opacity * 255),
+                    color.R,
+                    color.G,
+                    color.B));
+        }
+
+        return For(platform);
+    }
 }
 
 public sealed class PlatformBrushConverter : IValueConverter

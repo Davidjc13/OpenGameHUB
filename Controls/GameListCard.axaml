@@ -22,10 +22,8 @@
                 <Panel>
                     <Image Source="{Binding CoverImage}"
                            Stretch="UniformToFill"
-                           IsVisible="{Binding DisplayListCover}"
-                           Opacity="{Binding GridCoverOpacity}"/>
-                    <Border Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                            Opacity="{Binding GridPlaceholderOpacity}"
+                           IsVisible="{Binding DisplayListCover}"/>
+                    <Border Background="{Binding PlaceholderBackground}"
                             IsVisible="{Binding !DisplayListCover}"/>
                     <Border Classes="overlay-dim"
                             IsVisible="{Binding !IsInstalled}"/>

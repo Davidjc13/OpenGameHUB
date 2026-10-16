@@ -25,14 +25,12 @@
                         <Image Source="{Binding CoverImage}"
                                Stretch="UniformToFill"
                                HorizontalAlignment="Center"
-                               VerticalAlignment="Center"
-                               Opacity="{Binding GridCoverOpacity}"/>
+                               VerticalAlignment="Center"/>
                         <Border Classes="overlay-dim"
                                 IsVisible="{Binding !IsInstalled}"/>
                     </Panel>
                     <Border IsVisible="{Binding !DisplayGridCover}"
-                            Background="{Binding Platform, Converter={StaticResource PlatformBrushConverter}}"
-                            Opacity="{Binding GridPlaceholderOpacity}"/>
+                            Background="{Binding PlaceholderBackground}"/>
                 </Panel>
             </Border>
 

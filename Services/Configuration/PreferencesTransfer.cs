@@ -61,6 +61,7 @@ public static class PreferencesTransfer
                 : LibraryViewMode.Grid,
             GridCardSize = LibraryGridMetrics.ClampPreferredCardWidth(settings.GridCardSize),
             PageSlideEnabled = settings.PageSlideEnabled,
+            RefreshLibraryOnStartup = settings.RefreshLibraryOnStartup,
             Collections = SanitizeCollections(collections ?? []),
             FavoriteGameIds = SanitizeFavoriteIds(favoriteGameIds)
         };
@@ -105,6 +106,9 @@ public static class PreferencesTransfer
 
         if (file.PageSlideEnabled is { } pageSlide)
             updated.PageSlideEnabled = pageSlide;
+
+        if (file.RefreshLibraryOnStartup is { } refreshOnStartup)
+            updated.RefreshLibraryOnStartup = refreshOnStartup;
 
         return updated;
     }
@@ -182,6 +186,7 @@ public static class PreferencesTransfer
         public LibraryViewMode? LibraryViewMode { get; set; }
         public double? GridCardSize { get; set; }
         public bool? PageSlideEnabled { get; set; }
+        public bool? RefreshLibraryOnStartup { get; set; }
         public List<PortableCollection>? Collections { get; set; }
         public List<string>? FavoriteGameIds { get; set; }
     }

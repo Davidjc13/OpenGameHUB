@@ -55,6 +55,9 @@ public sealed class SettingsService
                     : CoverQualityMode.Low;
             }
 
+            if (!root.TryGetProperty(nameof(AppSettingsDocument.RefreshLibraryOnStartup), out _))
+                persisted.RefreshLibraryOnStartup = true;
+
             var secrets = SettingsSecretsStore.Load();
             var migratedFromPlaintext = MigratePlaintextSecrets(root, secrets);
 

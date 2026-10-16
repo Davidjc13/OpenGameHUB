@@ -14,6 +14,7 @@ internal sealed class AppSettingsDocument
     public LibraryViewMode LibraryViewMode { get; set; } = LibraryViewMode.Grid;
     public double GridCardSize { get; set; } = 224;
     public bool PageSlideEnabled { get; set; }
+    public bool RefreshLibraryOnStartup { get; set; }
     public bool DismissSteamApiKeyPrompt { get; set; }
     public bool DismissEaLibraryPrompt { get; set; }
     public bool DismissLegendaryPrompt { get; set; }
@@ -34,6 +35,7 @@ internal sealed class AppSettingsDocument
             LibraryViewMode = settings.LibraryViewMode,
             GridCardSize = settings.GridCardSize,
             PageSlideEnabled = settings.PageSlideEnabled,
+            RefreshLibraryOnStartup = settings.RefreshLibraryOnStartup,
             DismissSteamApiKeyPrompt = settings.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = settings.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = settings.DismissLegendaryPrompt,
@@ -55,6 +57,7 @@ internal sealed class AppSettingsDocument
             LibraryViewMode = LibraryViewMode,
             GridCardSize = GridCardSize,
             PageSlideEnabled = PageSlideEnabled,
+            RefreshLibraryOnStartup = RefreshLibraryOnStartup,
             DismissSteamApiKeyPrompt = DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = DismissEaLibraryPrompt,
             DismissLegendaryPrompt = DismissLegendaryPrompt,

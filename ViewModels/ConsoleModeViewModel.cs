@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
@@ -29,6 +30,9 @@ public partial class ConsoleModeViewModel : ViewModelBase
     private readonly ConsoleMediaGuideInput _mediaGuide = new();
     private readonly GamepadRepeatState _gamepadRepeat = new();
     private readonly ConsoleOnScreenKeyboard _keyboard = new();
+    private int _backdropGeneration;
+
+    public const int HeroBackdropDecodeWidth = 96;
 
     public ConsoleModeViewModel(
         MainWindowLibraryViewModel library,
@@ -118,6 +122,11 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     public bool HasHeroCover => FocusedGame?.HasCover == true;
 
+    public bool HasHeroBackdrop => HeroBackdrop is not null;
+
+    [ObservableProperty]
+    private Bitmap? _heroBackdrop;
+
     public bool HasFocusedGame => FocusedGame is not null;
 
     public bool IsEmpty => Games.Count == 0;
@@ -198,6 +207,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
         _categoryIndex = 0;
         _library.ClearSelection();
         _library.SetConsoleCoverMode(false);
+        ClearHeroBackdrop();
         PublishPresence();
     }
 
@@ -602,6 +612,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
             _library.LoadConsoleCovers(Games, Math.Max(FocusedIndex, 0));
 
         NotifyHero();
+        RefreshHeroBackdrop();
         PublishPresence();
     }
 
@@ -664,8 +675,14 @@ public partial class ConsoleModeViewModel : ViewModelBase
     private void OnWatchedGamePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(GameItemViewModel.CoverImage)
-            or nameof(GameItemViewModel.HasCover)
-            or nameof(GameItemViewModel.ActionLabel)
+            or nameof(GameItemViewModel.HasCover))
+        {
+            NotifyHero();
+            RefreshHeroBackdrop();
+            return;
+        }
+
+        if (e.PropertyName is nameof(GameItemViewModel.ActionLabel)
             or nameof(GameItemViewModel.InstallStatus)
             or nameof(GameItemViewModel.PlaytimeLabel)
             or nameof(GameItemViewModel.IsFavorite))
@@ -682,8 +699,79 @@ public partial class ConsoleModeViewModel : ViewModelBase
         OnPropertyChanged(nameof(FocusedAction));
         OnPropertyChanged(nameof(HeroCover));
         OnPropertyChanged(nameof(HasHeroCover));
+        OnPropertyChanged(nameof(HasHeroBackdrop));
         OnPropertyChanged(nameof(HasFocusedGame));
         OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    partial void OnHeroBackdropChanged(Bitmap? value) =>
+        OnPropertyChanged(nameof(HasHeroBackdrop));
+
+    private void RefreshHeroBackdrop()
+    {
+        var generation = ++_backdropGeneration;
+        if (!IsActive || FocusedGame is null)
+        {
+            ClearHeroBackdrop(incrementGeneration: false);
+            return;
+        }
+
+        var path = CoverPathHelper.ResolveExistingPath(FocusedGame.Source);
+        if (path is null)
+        {
+            ClearHeroBackdrop(incrementGeneration: false);
+            return;
+        }
+
+        _ = LoadHeroBackdropAsync(path, generation);
+    }
+
+    private async Task LoadHeroBackdropAsync(string path, int generation)
+    {
+        var bitmap = await CoverImageLoader.LoadDecodedAsync(
+            path,
+            HeroBackdropDecodeWidth,
+            BitmapInterpolationMode.LowQuality);
+        if (bitmap is null)
+            return;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (generation != _backdropGeneration)
+            {
+                bitmap.Dispose();
+                return;
+            }
+
+            var previous = HeroBackdrop;
+            HeroBackdrop = bitmap;
+            DisposeLater(previous);
+        });
+    }
+
+    private void ClearHeroBackdrop(bool incrementGeneration = true)
+    {
+        if (incrementGeneration)
+            _backdropGeneration++;
+
+        var previous = HeroBackdrop;
+        HeroBackdrop = null;
+        DisposeLater(previous);
+    }
+
+    private static void DisposeLater(Bitmap? bitmap)
+    {
+        if (bitmap is null)
+            return;
+
+        try
+        {
+            Dispatcher.UIThread.Post(bitmap.Dispose, DispatcherPriority.Background);
+        }
+        catch (InvalidOperationException)
+        {
+            bitmap.Dispose();
+        }
     }
 
     private static string LabelFor(ConsoleCategory category) => category.Kind switch

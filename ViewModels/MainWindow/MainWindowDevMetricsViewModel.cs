@@ -49,6 +49,7 @@ public sealed partial class MainWindowDevMetricsViewModel : ObservableObject, ID
             Loc.T(
                 "DevMetricsManagedHeap",
                 AppResourceFormatting.FormatMegabytes(snapshot.ManagedHeapBytes)),
+            Loc.T("DevMetricsGen0", snapshot.Gen0Collections),
             Loc.T(
                 "DevMetricsThreads",
                 snapshot.ProcessThreadCount,

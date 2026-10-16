@@ -73,4 +73,29 @@ public sealed class XboxCloudLibraryProviderTests
         Assert.Single(uninstalled);
         Assert.Equal(240, uninstalled[0].PlaytimeMinutes);
     }
+
+    [Fact]
+    public async Task ReleaseSyncCache_clears_catalog_after_scan()
+    {
+        var catalog = new[]
+        {
+            new XboxCatalogEntry
+            {
+                Pfn = "publisher.game_pfn",
+                Title = "Catalog Game",
+                StoreProductId = "9PK09BL31FK1"
+            }
+        };
+
+        var provider = new XboxCloudLibraryProvider(
+            getCatalogAsync: _ => Task.FromResult<IReadOnlyList<XboxCatalogEntry>>(catalog),
+            getHistoryAsync: _ => Task.FromResult<IReadOnlyList<XboxCatalogEntry>>([]),
+            isAvailable: () => true);
+
+        await provider.LoadLibraryAsync();
+        Assert.Single(provider.GetUninstalledLibraryGames([]));
+
+        provider.ReleaseSyncCache();
+        Assert.Empty(provider.GetUninstalledLibraryGames([]));
+    }
 }

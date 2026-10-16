@@ -7,7 +7,8 @@ public readonly record struct AppResourceSnapshot(
     long PrivateMemoryBytes,
     long ManagedHeapBytes,
     int ProcessThreadCount,
-    int ThreadPoolThreadCount);
+    int ThreadPoolThreadCount,
+    int Gen0Collections);
 
 public static class AppResourceMonitor
 {
@@ -20,7 +21,8 @@ public static class AppResourceMonitor
             process.PrivateMemorySize64,
             GC.GetTotalMemory(forceFullCollection: false),
             process.Threads.Count,
-            ThreadPool.ThreadCount);
+            ThreadPool.ThreadCount,
+            GC.CollectionCount(0));
     }
 }
 

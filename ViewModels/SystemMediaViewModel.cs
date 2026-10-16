@@ -296,7 +296,7 @@ public partial class SystemMediaViewModel : ViewModelBase
         try
         {
             using var stream = new MemoryStream(bytes);
-            return new Bitmap(stream);
+            return Bitmap.DecodeToWidth(stream, 256, BitmapInterpolationMode.LowQuality);
         }
         catch (Exception)
         {
