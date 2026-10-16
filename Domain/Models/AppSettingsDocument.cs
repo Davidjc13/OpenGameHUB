@@ -20,6 +20,7 @@ internal sealed class AppSettingsDocument
     public string EpicAccountId { get; set; } = string.Empty;
     public string EpicDisplayName { get; set; } = string.Empty;
     public string XboxGamertag { get; set; } = string.Empty;
+    public string DiscordApplicationId { get; set; } = string.Empty;
 
     public static AppSettingsDocument From(AppSettings settings) =>
         new()
@@ -38,7 +39,8 @@ internal sealed class AppSettingsDocument
             DismissLegendaryPrompt = settings.DismissLegendaryPrompt,
             EpicAccountId = settings.EpicAccountId,
             EpicDisplayName = settings.EpicDisplayName,
-            XboxGamertag = settings.XboxGamertag
+            XboxGamertag = settings.XboxGamertag,
+            DiscordApplicationId = settings.DiscordApplicationId
         };
 
     public AppSettings ToSettings(SettingsSecrets secrets) =>
@@ -59,6 +61,7 @@ internal sealed class AppSettingsDocument
             EpicAccountId = EpicAccountId,
             EpicDisplayName = EpicDisplayName,
             XboxGamertag = XboxGamertag,
+            DiscordApplicationId = DiscordApplicationId,
             SteamApiKey = secrets.SteamApiKey,
             IgdbClientSecret = secrets.IgdbClientSecret,
             SteamGridDbApiKey = secrets.SteamGridDbApiKey

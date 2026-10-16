@@ -3,7 +3,9 @@
              xmlns:vm="using:OpenGameHUB.ViewModels"
              xmlns:conv="using:OpenGameHUB.Converters"
              x:Class="OpenGameHUB.Views.ConsoleModeView"
+             x:Name="ConsoleShell"
              x:DataType="vm:ConsoleModeViewModel"
+             Classes="console-shell"
              Background="Transparent">
 
     <Panel Background="#0B0D12">
@@ -29,67 +31,26 @@
             </Border.Background>
         </Border>
 
-        <Grid RowDefinitions="Auto,*,Auto,Auto"
+        <Grid RowDefinitions="Auto,*,Auto,Auto,Auto"
               Margin="48,32,48,28">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="24">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
                 <TextBlock Text="OpenGameHUB"
                            Classes="console-wordmark"
                            VerticalAlignment="Center"/>
                 <TextBox x:Name="SearchBox"
                          Grid.Column="1"
                          Classes="console-search"
+                         Classes.menuFocus="{Binding IsSearchMenu}"
                          MaxWidth="560"
                          HorizontalAlignment="Stretch"
+                         TextAlignment="Center"
+                         HorizontalContentAlignment="Center"
                          PlaceholderText="{Binding SearchPlaceholder}"
                          Text="{Binding SearchText, Mode=TwoWay}"/>
-                <Border Grid.Column="2"
-                        Classes="console-media"
-                        IsVisible="{Binding Media.IsAvailable}"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Right"
-                        MaxWidth="360">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="2">
-                        <Border Width="36"
-                                Height="36"
-                                CornerRadius="18"
-                                ClipToBounds="True"
-                                IsVisible="{Binding Media.HasArtwork}">
-                            <Image Source="{Binding Media.Artwork}" Stretch="UniformToFill"/>
-                        </Border>
-                        <Button Grid.Column="1"
-                                Classes="console-media-button"
-                                ToolTip.Tip="{Binding Media.PreviousToolTip}"
-                                Command="{Binding Media.PreviousCommand}">
-                            <TextBlock Text="&#xE892;" Classes="console-media-glyph"/>
-                        </Button>
-                        <Button Grid.Column="2"
-                                Classes="console-media-button console-media-toggle"
-                                ToolTip.Tip="{Binding Media.ToggleToolTip}"
-                                Command="{Binding Media.ToggleCommand}">
-                            <TextBlock Text="{Binding Media.ToggleGlyph}" Classes="console-media-glyph"/>
-                        </Button>
-                        <Button Grid.Column="3"
-                                Classes="console-media-button"
-                                ToolTip.Tip="{Binding Media.NextToolTip}"
-                                Command="{Binding Media.NextCommand}">
-                            <TextBlock Text="&#xE893;" Classes="console-media-glyph"/>
-                        </Button>
-                        <StackPanel Grid.Column="4"
-                                    VerticalAlignment="Center"
-                                    Margin="8,0,8,0"
-                                    MinWidth="0">
-                            <TextBlock Text="{Binding Media.Title}"
-                                       Classes="console-media-title"
-                                       TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding Media.Artist}"
-                                       Classes="console-media-artist"
-                                       TextTrimming="CharacterEllipsis"
-                                       IsVisible="{Binding Media.HasArtist}"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-                <Button Grid.Column="3"
+                <Button x:Name="ExitButton"
+                        Grid.Column="2"
                         Classes="console-exit"
+                        Classes.menuFocus="{Binding IsExitMenu}"
                         Content="{Binding ExitLabel}"
                         Command="{Binding ExitModeCommand}"
                         VerticalAlignment="Center"/>
@@ -112,7 +73,9 @@
                            Classes="console-meta"
                            TextWrapping="Wrap"
                            IsVisible="{Binding HasFocusedGame}"/>
-                <Button Classes="primary console-play"
+                <Button x:Name="PlayButton"
+                        Classes="primary console-play"
+                        Classes.menuFocus="{Binding IsPlayMenu}"
                         Content="{Binding FocusedAction}"
                         Command="{Binding PlayFocusedCommand}"
                         IsVisible="{Binding HasFocusedGame}"
@@ -123,28 +86,129 @@
                 <TextBlock Text="{Binding EmptyMessage}"
                            Classes="console-empty"
                            IsVisible="{Binding IsEmpty}"/>
-                <TextBlock Text="{Binding Hint}"
-                           Classes="console-hint"
-                           TextWrapping="Wrap"/>
+                <WrapPanel Classes="console-hint-row" IsVisible="{Binding UsingGamepad}">
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-face a">
+                            <TextBlock Text="A" Classes="console-pad-letter"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintPlay}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-face y">
+                            <TextBlock Text="Y" Classes="console-pad-letter"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintFavorite}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-dpad">
+                            <TextBlock Text="&#xE76B;" Classes="console-pad-glyph"/>
+                        </Border>
+                        <Border Classes="console-pad-dpad">
+                            <TextBlock Text="&#xE76C;" Classes="console-pad-glyph"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintMove}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-trigger">
+                            <TextBlock Text="LB" Classes="console-pad-caption"/>
+                        </Border>
+                        <Border Classes="console-pad-trigger">
+                            <TextBlock Text="RB" Classes="console-pad-caption"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintCategories}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-face x">
+                            <TextBlock Text="X" Classes="console-pad-letter"/>
+                        </Border>
+                        <TextBlock Text="{Binding MediaGuideTitle}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-view">
+                            <Panel Width="18" Height="12">
+                                <Border Width="11" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top"
+                                        BorderBrush="#F4F7FF" BorderThickness="1.6" CornerRadius="1"/>
+                                <Border Width="11" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                        BorderBrush="#F4F7FF" BorderThickness="1.6" CornerRadius="1"/>
+                            </Panel>
+                        </Border>
+                        <TextBlock Text="{Binding HintSearch}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-pad-face b">
+                            <TextBlock Text="B" Classes="console-pad-letter"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintBack}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </WrapPanel>
+                <WrapPanel Classes="console-hint-row" IsVisible="{Binding !UsingGamepad}">
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="Enter" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintPlay}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="Y" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintFavorite}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="← →" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintMove}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="Q E" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintCategories}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="M" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding MediaGuideTitle}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="Ctrl+F" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding HintSearch}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
+                        <Border Classes="console-keycap">
+                            <TextBlock Text="Esc" Classes="console-keycap-text"/>
+                        </Border>
+                        <TextBlock Text="{Binding ExitLabel}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </WrapPanel>
             </StackPanel>
 
-            <ItemsControl Grid.Row="2"
-                          ItemsSource="{Binding Categories}"
-                          Margin="0,0,0,12">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ConsoleCategoryItem">
-                        <Button Classes="console-chip"
-                                Classes.selected="{Binding IsSelected}"
-                                Content="{Binding Label}"
-                                Command="{Binding SelectCommand}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <Border x:Name="CategoryBar"
+                    Grid.Row="2"
+                    Classes="console-categories"
+                    Classes.menuFocus="{Binding IsCategoriesMenu}"
+                    Focusable="True"
+                    Margin="0,0,0,12">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ConsoleCategoryItem">
+                            <Button Classes="console-chip"
+                                    Classes.selected="{Binding IsSelected}"
+                                    Content="{Binding Label}"
+                                    Command="{Binding SelectCommand}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
 
             <ListBox x:Name="Carousel"
                      Grid.Row="3"
@@ -154,6 +218,7 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
                      Focusable="True"
+                     Classes.menuFocus="{Binding IsGamesMenu}"
                      SelectionChanged="OnCarouselSelectionChanged"
                      DoubleTapped="OnCarouselDoubleTapped">
                 <ListBox.ItemsPanel>
@@ -190,6 +255,325 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+            <Border x:Name="MediaDock"
+                    Grid.Row="4"
+                    Classes="console-media console-media-dock"
+                    Classes.guide="{Binding MediaGuideOpen}"
+                    Classes.gamepad="{Binding UsingGamepad}"
+                    Classes.menuFocus="{Binding IsMediaMenu}"
+                    Focusable="True"
+                    HorizontalAlignment="Left"
+                    MaxWidth="720"
+                    Margin="0,16,0,0">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border Width="52"
+                                Height="52"
+                                CornerRadius="10"
+                                ClipToBounds="True"
+                                IsVisible="{Binding Media.HasArtwork}">
+                            <Image Source="{Binding Media.Artwork}" Stretch="UniformToFill"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Button Classes="console-media-button"
+                                        ToolTip.Tip="{Binding Media.PreviousToolTip}"
+                                        Command="{Binding Media.PreviousCommand}">
+                                    <StackPanel Classes="console-media-prompt" Spacing="4">
+                                        <TextBlock Text="&#xE892;" Classes="console-media-glyph"/>
+                                        <Border Classes="console-pad-dpad console-pad-badge"
+                                                IsVisible="{Binding UsingGamepad}">
+                                            <TextBlock Text="&#xE76B;" Classes="console-pad-glyph"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="console-media-button console-media-toggle"
+                                        ToolTip.Tip="{Binding Media.ToggleToolTip}"
+                                        Command="{Binding Media.ToggleCommand}">
+                                    <StackPanel Classes="console-media-prompt" Spacing="4">
+                                        <Panel Width="28" Height="28">
+                                            <Arc Width="28"
+                                                 Height="28"
+                                                 Stroke="#663D6AF2"
+                                                 StrokeThickness="2"
+                                                 StartAngle="-90"
+                                                 SweepAngle="360"
+                                                 IsVisible="{Binding MediaGuideCharging}"
+                                                 IsHitTestVisible="False"/>
+                                            <Arc Width="28"
+                                                 Height="28"
+                                                 Stroke="#F4F7FF"
+                                                 StrokeThickness="2"
+                                                 StartAngle="-90"
+                                                 SweepAngle="{Binding MediaGuideHoldSweep}"
+                                                 IsVisible="{Binding MediaGuideCharging}"
+                                                 IsHitTestVisible="False"/>
+                                            <TextBlock Text="{Binding Media.ToggleGlyph}" Classes="console-media-glyph"/>
+                                        </Panel>
+                                        <Border Classes="console-pad-face x console-pad-badge"
+                                                IsVisible="{Binding UsingGamepad}">
+                                            <TextBlock Text="X" Classes="console-pad-letter console-pad-letter-small"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="console-media-button"
+                                        ToolTip.Tip="{Binding Media.NextToolTip}"
+                                        Command="{Binding Media.NextCommand}">
+                                    <StackPanel Classes="console-media-prompt" Spacing="4">
+                                        <TextBlock Text="&#xE893;" Classes="console-media-glyph"/>
+                                        <Border Classes="console-pad-dpad console-pad-badge"
+                                                IsVisible="{Binding UsingGamepad}">
+                                            <TextBlock Text="&#xE76C;" Classes="console-pad-glyph"/>
+                                        </Border>
+                                    </StackPanel>
+                                </Button>
+                                <Button Classes="console-media-button console-media-volume"
+                                        ToolTip.Tip="{Binding Media.VolumeToolTip}"
+                                        IsEnabled="{Binding Media.CanControlVolume}">
+                                    <StackPanel Classes="console-media-prompt" Spacing="4">
+                                        <TextBlock Text="{Binding Media.VolumeGlyph}" Classes="console-media-glyph"/>
+                                        <StackPanel Classes="console-pad-badge-row"
+                                                    Orientation="Horizontal"
+                                                    Spacing="4"
+                                                    IsVisible="{Binding UsingGamepad}">
+                                            <Border Classes="console-pad-trigger console-pad-trigger-mini">
+                                                <TextBlock Text="LT" Classes="console-pad-caption console-pad-caption-mini"/>
+                                            </Border>
+                                            <Border Classes="console-pad-trigger console-pad-trigger-mini">
+                                                <TextBlock Text="RT" Classes="console-pad-caption console-pad-caption-mini"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button.Flyout>
+                                        <Flyout Placement="Top">
+                                            <StackPanel Width="180" Spacing="8" Margin="14,10">
+                                                <TextBlock Text="{Binding Media.VolumeToolTip}"
+                                                           Classes="text-secondary"/>
+                                                <Slider Minimum="0"
+                                                        Maximum="100"
+                                                        Value="{Binding Media.Volume, Mode=TwoWay}"/>
+                                            </StackPanel>
+                                        </Flyout>
+                                    </Button.Flyout>
+                                </Button>
+                                <StackPanel VerticalAlignment="Center"
+                                            Margin="8,0,8,0"
+                                            MinWidth="0"
+                                            MaxWidth="280"
+                                            IsVisible="{Binding Media.IsAvailable}">
+                                    <TextBlock Text="{Binding Media.Title}"
+                                               Classes="console-media-title"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Media.Artist}"
+                                               Classes="console-media-artist"
+                                               TextTrimming="CharacterEllipsis"
+                                               IsVisible="{Binding Media.HasArtist}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
         </Grid>
+
+        <Grid Classes="console-keyboard-overlay"
+              IsVisible="{Binding KeyboardOpen}">
+            <Border Classes="console-media-guide-scrim" IsHitTestVisible="False"/>
+            <Border Classes="console-keyboard"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,36">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding SearchText}"
+                               Classes="console-keyboard-query"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <ItemsControl ItemsSource="{Binding KeyboardRows}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="8"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ConsoleKeyboardRow">
+                                <ItemsControl ItemsSource="{Binding Keys}"
+                                              HorizontalAlignment="Center">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ConsoleKeyboardKey">
+                                            <Button Classes="console-keyboard-key"
+                                                    Classes.wide="{Binding IsWide}"
+                                                    Classes.focused="{Binding IsFocused}"
+                                                    Content="{Binding Label}"
+                                                    Command="{Binding #ConsoleShell.((vm:ConsoleModeViewModel)DataContext).SelectKeyboardKeyCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="16"
+                                HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="console-pad-face a">
+                                <TextBlock Text="A" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding HintPlay}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="console-pad-face b">
+                                <TextBlock Text="B" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding HintBack}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Classes="console-media-guide-overlay"
+              IsVisible="{Binding MediaGuideOpen}"
+              IsHitTestVisible="False">
+            <Border Classes="console-media-guide-scrim"/>
+            <Border Classes="console-media-guide"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="24">
+                    <StackPanel Spacing="10" HorizontalAlignment="Center">
+                        <Border Width="72"
+                                Height="72"
+                                CornerRadius="12"
+                                ClipToBounds="True"
+                                HorizontalAlignment="Center"
+                                IsVisible="{Binding Media.HasArtwork}">
+                            <Image Source="{Binding Media.Artwork}" Stretch="UniformToFill"/>
+                        </Border>
+                        <TextBlock Text="{Binding MediaGuideTitle}"
+                                   Classes="console-media-guide-kicker"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Media.Title}"
+                                   Classes="console-media-guide-title"
+                                   TextAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   HorizontalAlignment="Center"
+                                   MaxWidth="560"/>
+                        <TextBlock Text="{Binding Media.Artist}"
+                                   Classes="console-media-guide-line"
+                                   TextAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   HorizontalAlignment="Center"
+                                   MaxWidth="560"
+                                   IsVisible="{Binding Media.HasArtist}"/>
+                    </StackPanel>
+                    <UniformGrid Columns="4" Rows="1" HorizontalAlignment="Center">
+                        <Border Classes="console-media-guide-action">
+                            <Grid RowDefinitions="48,36,22" RowSpacing="10">
+                                <TextBlock Grid.Row="0"
+                                           Text="&#xE892;"
+                                           Classes="console-media-guide-glyph"/>
+                                <Border Grid.Row="1" Classes="console-pad-dpad console-pad-guide">
+                                    <TextBlock Text="&#xE76B;" Classes="console-pad-glyph"/>
+                                </Border>
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding MediaGuidePrevious}"
+                                           Classes="console-media-guide-caption"/>
+                            </Grid>
+                        </Border>
+                        <Border Classes="console-media-guide-action">
+                            <Grid RowDefinitions="48,36,22" RowSpacing="10">
+                                <TextBlock Grid.Row="0"
+                                           Text="{Binding Media.ToggleGlyph}"
+                                           Classes="console-media-guide-glyph"/>
+                                <Border Grid.Row="1" Classes="console-pad-face x console-pad-guide">
+                                    <TextBlock Text="X" Classes="console-pad-letter"/>
+                                </Border>
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding HintPlay}"
+                                           Classes="console-media-guide-caption"/>
+                            </Grid>
+                        </Border>
+                        <Border Classes="console-media-guide-action">
+                            <Grid RowDefinitions="48,36,22" RowSpacing="10">
+                                <TextBlock Grid.Row="0"
+                                           Text="&#xE893;"
+                                           Classes="console-media-guide-glyph"/>
+                                <Border Grid.Row="1" Classes="console-pad-dpad console-pad-guide">
+                                    <TextBlock Text="&#xE76C;" Classes="console-pad-glyph"/>
+                                </Border>
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding MediaGuideNext}"
+                                           Classes="console-media-guide-caption"/>
+                            </Grid>
+                        </Border>
+                        <Border Classes="console-media-guide-action">
+                            <Grid RowDefinitions="48,36,22" RowSpacing="10">
+                                <TextBlock Grid.Row="0"
+                                           Text="{Binding Media.VolumeGlyph}"
+                                           Classes="console-media-guide-glyph"/>
+                                <StackPanel Grid.Row="1"
+                                            Orientation="Horizontal"
+                                            Spacing="6"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center">
+                                    <Border Classes="console-pad-trigger console-pad-guide-trigger">
+                                        <TextBlock Text="LT" Classes="console-pad-caption"/>
+                                    </Border>
+                                    <Border Classes="console-pad-trigger console-pad-guide-trigger">
+                                        <TextBlock Text="RT" Classes="console-pad-caption"/>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Grid.Row="2"
+                                           Text="{Binding MediaGuideVolume}"
+                                           Classes="console-media-guide-caption"/>
+                            </Grid>
+                        </Border>
+                    </UniformGrid>
+                    <ProgressBar Classes="console-media-guide-volume"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Height="6"
+                                 Value="{Binding Media.Volume}"/>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10"
+                                HorizontalAlignment="Center">
+                        <Border Classes="console-pad-face b console-pad-guide">
+                            <TextBlock Text="B" Classes="console-pad-letter"/>
+                        </Border>
+                        <TextBlock Text="{Binding MediaGuideClose}"
+                                   Classes="console-media-guide-line"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+        <Border Classes="console-media-osd"
+                IsVisible="{Binding Media.OsdVisible}"
+                IsHitTestVisible="False"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Margin="0,0,0,36">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="{Binding Media.VolumeGlyph}"
+                           Classes="console-media-osd-glyph"
+                           VerticalAlignment="Center"/>
+                <StackPanel Width="180" Spacing="4" VerticalAlignment="Center">
+                    <ProgressBar Minimum="0"
+                                 Maximum="100"
+                                 Height="8"
+                                 Value="{Binding Media.OsdVolume}"/>
+                    <TextBlock Text="{Binding Media.OsdHint}"
+                               Classes="console-media-osd-hint"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
     </Panel>
 </UserControl>

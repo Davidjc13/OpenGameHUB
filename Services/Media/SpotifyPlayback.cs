@@ -18,7 +18,8 @@ public static class SpotifyPlayback
                 CanToggle: true,
                 CanNext: true,
                 CanPrevious: true,
-                ArtworkKey: string.Empty);
+                ArtworkKey: string.Empty,
+                SourceAppId: "Spotify.exe");
         }
 
         var split = trimmed.Split(" - ", 2, StringSplitOptions.TrimEntries);
@@ -32,7 +33,8 @@ public static class SpotifyPlayback
             CanToggle: true,
             CanNext: true,
             CanPrevious: true,
-            ArtworkKey: string.Empty);
+            ArtworkKey: string.Empty,
+            SourceAppId: "Spotify.exe");
     }
 
     private static bool IsIdle(string title) =>

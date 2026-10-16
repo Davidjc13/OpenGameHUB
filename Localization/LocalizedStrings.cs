@@ -10,6 +10,7 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string AppSubtitle => Loc.T("AppSubtitle");
     public string Settings => Loc.T("Settings");
     public string RefreshLibrary => Loc.T("RefreshLibrary");
+    public string RefreshLibraryToolTip => Loc.T("RefreshLibraryToolTip");
     public string SearchPlaceholder => Loc.T("SearchPlaceholder");
     public string Platforms => Loc.T("Platforms");
     public string Sort => Loc.T("Sort");
@@ -34,11 +35,15 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string UninstallGame => Loc.T("UninstallGame");
     public string RemoveFromLibrary => Loc.T("RemoveFromLibrary");
     public string ViewGrid => Loc.T("ViewGrid");
+    public string ViewGridToolTip => Loc.T("ViewGridToolTip");
     public string ViewList => Loc.T("ViewList");
+    public string ViewListToolTip => Loc.T("ViewListToolTip");
     public string ChangeCover => Loc.T("ChangeCover");
     public string ResetCover => Loc.T("ResetCover");
     public string PreviousPage => Loc.T("PreviousPage");
+    public string PreviousPageToolTip => Loc.T("PreviousPageToolTip");
     public string NextPage => Loc.T("NextPage");
+    public string NextPageToolTip => Loc.T("NextPageToolTip");
     public string SettingsTitle => Loc.T("SettingsTitle");
     public string SettingsWindowTitle => Loc.T("SettingsWindowTitle");
     public string SettingsDescription => Loc.T("SettingsDescription");
@@ -150,11 +155,27 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string ConsoleFavorites => Loc.T("ConsoleFavorites");
     public string ConsoleEmpty => Loc.T("ConsoleEmpty");
     public string ConsoleHint => Loc.T("ConsoleHint");
+    public string ConsoleHintCategories => Loc.T("ConsoleHintCategories");
+    public string ConsoleHintSearch => Loc.T("ConsoleHintSearch");
+    public string ConsoleHintConfirm => Loc.T("ConsoleHintConfirm");
+    public string ConsoleKeyboardSpace => Loc.T("ConsoleKeyboardSpace");
+    public string ConsoleKeyboardBackspace => Loc.T("ConsoleKeyboardBackspace");
+    public string ConsoleKeyboardDone => Loc.T("ConsoleKeyboardDone");
+    public string ConsoleHintMove => Loc.T("ConsoleHintMove");
     public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
     public string MediaPlay => Loc.T("MediaPlay");
     public string MediaPause => Loc.T("MediaPause");
     public string MediaPrevious => Loc.T("MediaPrevious");
     public string MediaNext => Loc.T("MediaNext");
+    public string MediaVolume => Loc.T("MediaVolume");
+    public string MediaMuted => Loc.T("MediaMuted");
+    public string MediaVolumeUnavailable => Loc.T("MediaVolumeUnavailable");
+    public string ConsoleMediaGuideTitle => Loc.T("ConsoleMediaGuideTitle");
+    public string ConsoleMediaGuideMute => Loc.T("ConsoleMediaGuideMute");
+    public string ConsoleMediaGuideClose => Loc.T("ConsoleMediaGuideClose");
+    public string DiscordSection => Loc.T("DiscordSection");
+    public string DiscordApplicationIdPlaceholder => Loc.T("DiscordApplicationIdPlaceholder");
+    public string DiscordApplicationIdHelp => Loc.T("DiscordApplicationIdHelp");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

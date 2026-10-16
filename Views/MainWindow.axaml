@@ -77,6 +77,7 @@
                 <Button Classes="primary"
                         VerticalAlignment="Center"
                         Content="{Binding Strings.RefreshLibrary}"
+                        ToolTip.Tip="{Binding Strings.RefreshLibraryToolTip}"
                         Command="{Binding RefreshLibraryCommand}"
                         IsEnabled="{Binding !Library.IsRefreshing}"/>
             </StackPanel>
@@ -219,10 +220,12 @@
                                 ToolTip.Tip="{Binding Strings.AddCustomGame}"
                                 Command="{Binding Sidebar.AddCustomGameCommand}"/>
                         <Button Content="{Binding Strings.ViewGrid}"
+                                ToolTip.Tip="{Binding Strings.ViewGridToolTip}"
                                 Command="{Binding Library.SetGridViewCommand}"
                                 Classes.primary="{Binding Library.IsGridView}"
                                 Classes.ghost="{Binding Library.IsListView}"/>
                         <Button Content="{Binding Strings.ViewList}"
+                                ToolTip.Tip="{Binding Strings.ViewListToolTip}"
                                 Command="{Binding Library.SetListViewCommand}"
                                 Classes.primary="{Binding Library.IsListView}"
                                 Classes.ghost="{Binding Library.IsGridView}"/>
@@ -234,6 +237,7 @@
                         <ScrollViewer x:Name="GamesScrollViewer"
                                       Grid.Row="0"
                                       Classes="library-scroll"
+                                      Focusable="True"
                                       Classes.clip-y="{Binding !Library.IsListView}"
                                       SizeChanged="OnGamesViewportSizeChanged">
                             <Grid x:Name="GamesSlideHost"
@@ -277,6 +281,7 @@
                                 <Button Grid.Column="0"
                                         Classes="ghost"
                                         Content="{Binding Strings.PreviousPage}"
+                                        ToolTip.Tip="{Binding Strings.PreviousPageToolTip}"
                                         Command="{Binding Library.PreviousPageCommand}"/>
                                 <TextBlock Grid.Column="1"
                                            VerticalAlignment="Center"
@@ -287,6 +292,7 @@
                                 <Button Grid.Column="2"
                                         Classes="ghost"
                                         Content="{Binding Strings.NextPage}"
+                                        ToolTip.Tip="{Binding Strings.NextPageToolTip}"
                                         Command="{Binding Library.NextPageCommand}"/>
                             </Grid>
                         </Border>

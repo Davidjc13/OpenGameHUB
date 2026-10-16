@@ -5,8 +5,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
+using OpenGameHUB.Infrastructure.Input;
 using OpenGameHUB.Infrastructure.Media;
 using OpenGameHUB.Services.Media;
+using OpenGameHUB.Services.Presence;
 using OpenGameHUB.ViewModels.MainWindow;
 
 namespace OpenGameHUB.ViewModels;
@@ -15,20 +17,36 @@ public partial class ConsoleModeViewModel : ViewModelBase
 {
     private readonly MainWindowLibraryViewModel _library;
     private readonly Action _exit;
+    private readonly IDiscordPresence? _discord;
+    private readonly Func<string?>? _discordApplicationId;
+    private readonly Func<bool> _animationsEnabled;
     private readonly List<ConsoleCategoryItem> _categories = [];
     private GameItemViewModel? _watchedGame;
     private int _categoryIndex;
     private bool _suppressSearchRefresh;
     private bool _syncingFocus;
+    private bool _presenceSuspended;
+    private readonly ConsoleMediaGuideInput _mediaGuide = new();
+    private readonly GamepadRepeatState _gamepadRepeat = new();
+    private readonly ConsoleOnScreenKeyboard _keyboard = new();
 
     public ConsoleModeViewModel(
         MainWindowLibraryViewModel library,
         Action exit,
-        ISystemMediaController? media = null)
+        ISystemMediaController? media = null,
+        IMediaVolumeController? volume = null,
+        IDiscordPresence? discord = null,
+        Func<string?>? discordApplicationId = null,
+        Func<bool>? animationsEnabled = null)
     {
         _library = library;
         _exit = exit;
-        Media = new SystemMediaViewModel(media ?? new WindowsSystemMediaController());
+        _discord = discord;
+        _discordApplicationId = discordApplicationId;
+        _animationsEnabled = animationsEnabled ?? (() => false);
+        Media = new SystemMediaViewModel(
+            media ?? new WindowsSystemMediaController(),
+            volume: volume ?? new WindowsMediaVolume());
         Categories = new ObservableCollection<ConsoleCategoryItem>();
         Games = new ObservableCollection<GameItemViewModel>();
         _library.LibraryContentsChanged += OnLibraryContentsChanged;
@@ -42,15 +60,49 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     public event EventHandler? FocusRequested;
 
+    public event EventHandler? SearchRequested;
+
     public bool IsActive { get; private set; }
 
     public string ExitLabel => Loc.T("ExitConsoleMode");
 
     public string SearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
 
-    public string Hint => Loc.T("ConsoleHint");
+    public string HintPlay => MenuRegion == ConsoleMenuRegion.Exit
+        ? ExitLabel
+        : KeyboardOpen || MenuRegion is ConsoleMenuRegion.Search or ConsoleMenuRegion.Categories
+            ? Loc.T("ConsoleHintConfirm")
+            : Loc.T("MediaPlay");
+
+    public string HintBack => KeyboardOpen ? Loc.T("ConsoleMediaGuideClose") : ExitLabel;
+
+    public string HintFavorite => Loc.T("ConsoleFavorites");
+
+    public string HintCategories => Loc.T("ConsoleHintCategories");
+
+    public string HintSearch => Loc.T("ConsoleHintSearch");
+
+    public string HintMove => Loc.T("ConsoleHintMove");
 
     public string EmptyMessage => Loc.T("ConsoleEmpty");
+
+    public string MediaGuideTitle => Loc.T("ConsoleMediaGuideTitle");
+
+    public string MediaGuidePrevious => Loc.T("MediaPrevious");
+
+    public string MediaGuideNext => Loc.T("MediaNext");
+
+    public string MediaGuideVolume => Loc.T("MediaVolume");
+
+    public string MediaGuideMute => Loc.T("ConsoleMediaGuideMute");
+
+    public string MediaGuideClose => Loc.T("ConsoleMediaGuideClose");
+
+    public string KeyboardSpace => Loc.T("ConsoleKeyboardSpace");
+
+    public string KeyboardBackspace => Loc.T("ConsoleKeyboardBackspace");
+
+    public string KeyboardDone => Loc.T("ConsoleKeyboardDone");
 
     public string FocusedTitle => FocusedGame?.Title ?? string.Empty;
 
@@ -82,6 +134,38 @@ public partial class ConsoleModeViewModel : ViewModelBase
     [ObservableProperty]
     private GameItemViewModel? _focusedGame;
 
+    [ObservableProperty]
+    private bool _mediaGuideOpen;
+
+    [ObservableProperty]
+    private bool _mediaGuideCharging;
+
+    [ObservableProperty]
+    private double _mediaGuideHoldSweep;
+
+    [ObservableProperty]
+    private bool _usingGamepad;
+
+    [ObservableProperty]
+    private bool _keyboardOpen;
+
+    [ObservableProperty]
+    private ConsoleMenuRegion _menuRegion = ConsoleMenuRegion.Games;
+
+    public bool IsSearchMenu => MenuRegion == ConsoleMenuRegion.Search;
+
+    public bool IsPlayMenu => MenuRegion == ConsoleMenuRegion.Play;
+
+    public bool IsCategoriesMenu => MenuRegion == ConsoleMenuRegion.Categories;
+
+    public bool IsGamesMenu => MenuRegion == ConsoleMenuRegion.Games;
+
+    public bool IsMediaMenu => MenuRegion == ConsoleMenuRegion.Media;
+
+    public bool IsExitMenu => MenuRegion == ConsoleMenuRegion.Exit;
+
+    public ObservableCollection<ConsoleKeyboardRow> KeyboardRows { get; } = [];
+
     public void Activate()
     {
         if (IsActive)
@@ -99,22 +183,46 @@ public partial class ConsoleModeViewModel : ViewModelBase
             return;
 
         IsActive = false;
+        _mediaGuide.Reset();
+        _gamepadRepeat.Reset();
+        MediaGuideOpen = false;
+        MediaGuideCharging = false;
+        MediaGuideHoldSweep = 0;
         Media.Stop();
+        CloseSearchKeyboard();
         SearchFocused = false;
+        MenuRegion = ConsoleMenuRegion.Games;
         _suppressSearchRefresh = true;
         SearchText = string.Empty;
         _suppressSearchRefresh = false;
         _categoryIndex = 0;
         _library.ClearSelection();
         _library.SetConsoleCoverMode(false);
+        PublishPresence();
     }
 
     public void ApplyLocalization()
     {
         OnPropertyChanged(nameof(ExitLabel));
         OnPropertyChanged(nameof(SearchPlaceholder));
-        OnPropertyChanged(nameof(Hint));
+        OnPropertyChanged(nameof(HintPlay));
+        OnPropertyChanged(nameof(HintBack));
+        OnPropertyChanged(nameof(HintFavorite));
+        OnPropertyChanged(nameof(HintCategories));
+        OnPropertyChanged(nameof(HintSearch));
+        OnPropertyChanged(nameof(HintMove));
         OnPropertyChanged(nameof(EmptyMessage));
+        OnPropertyChanged(nameof(MediaGuideTitle));
+        OnPropertyChanged(nameof(MediaGuidePrevious));
+        OnPropertyChanged(nameof(MediaGuideNext));
+        OnPropertyChanged(nameof(MediaGuideVolume));
+        OnPropertyChanged(nameof(MediaGuideMute));
+        OnPropertyChanged(nameof(MediaGuideClose));
+        OnPropertyChanged(nameof(KeyboardSpace));
+        OnPropertyChanged(nameof(KeyboardBackspace));
+        OnPropertyChanged(nameof(KeyboardDone));
+        if (KeyboardOpen)
+            PublishKeyboard();
         Media.ApplyLocalization();
         NotifyHero();
         if (!IsActive)
@@ -123,18 +231,58 @@ public partial class ConsoleModeViewModel : ViewModelBase
         Rebuild(FocusedGame?.Source.Id);
     }
 
+    public void NoteGamepad() => UsingGamepad = true;
+
+    public void NoteKeyboardOrMouse() => UsingGamepad = false;
+
+    public void ProcessGamepad(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
+    {
+        if (!IsActive)
+            return;
+
+        var (actions, blockNavigation) = _mediaGuide.Process(previous, current, elapsed);
+        foreach (var action in actions)
+            ApplyMediaAction(action);
+
+        MediaGuideOpen = _mediaGuide.IsGuideOpen;
+        var charging = _mediaGuide.IsCharging && _animationsEnabled();
+        MediaGuideCharging = charging;
+        MediaGuideHoldSweep = charging ? _mediaGuide.HoldProgress * 360 : 0;
+        if (blockNavigation)
+        {
+            _gamepadRepeat.Reset();
+            return;
+        }
+
+        var inputs = GamepadInput.Collect(previous, current, _gamepadRepeat, elapsed);
+        if (KeyboardOpen)
+        {
+            foreach (var input in inputs)
+                ApplyKeyboardInput(input);
+            return;
+        }
+
+        foreach (var input in inputs)
+            ApplyInput(input);
+    }
+
     public void ApplyInput(ConsoleInput input, bool textConsumesHorizontal = false)
     {
         if (!IsActive)
             return;
 
-        var state = new ConsoleNavigationState(_categoryIndex, Math.Max(FocusedIndex, 0), SearchFocused);
+        var state = new ConsoleNavigationState(
+            _categoryIndex,
+            Math.Max(FocusedIndex, 0),
+            SearchFocused,
+            MenuRegion);
         var (next, effect) = ConsoleNavigation.Apply(
             state,
             input,
             Categories.Count,
             Games.Count,
-            textConsumesHorizontal);
+            textConsumesHorizontal,
+            hasMedia: Media.IsAvailable);
 
         if (effect == ConsoleInputEffect.MediaToggle)
         {
@@ -164,10 +312,19 @@ public partial class ConsoleModeViewModel : ViewModelBase
         }
 
         SearchFocused = next.SearchFocused;
+        MenuRegion = next.Menu;
         if (effect == ConsoleInputEffect.ClearSearch)
         {
             SearchText = string.Empty;
+            CloseSearchKeyboard();
+            MenuRegion = ConsoleMenuRegion.Games;
             FocusRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (effect == ConsoleInputEffect.OpenSearch)
+        {
+            OpenSearchKeyboard();
             return;
         }
 
@@ -186,11 +343,49 @@ public partial class ConsoleModeViewModel : ViewModelBase
         else if (effect == ConsoleInputEffect.Favorite)
             ToggleFocusedFavorite();
 
-        if (input is ConsoleInput.MoveLeft or ConsoleInput.MoveRight
-            or ConsoleInput.MoveUp or ConsoleInput.MoveDown
-            or ConsoleInput.PreviousCategory or ConsoleInput.NextCategory)
+        if (MenuRegion == ConsoleMenuRegion.Games
+            && input is ConsoleInput.MoveLeft or ConsoleInput.MoveRight
+                or ConsoleInput.PreviousCategory or ConsoleInput.NextCategory)
         {
             FocusRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void ApplyMediaAction(ConsoleMediaAction action)
+    {
+        switch (action)
+        {
+            case ConsoleMediaAction.TogglePlay:
+                ApplyInput(ConsoleInput.MediaToggle);
+                break;
+            case ConsoleMediaAction.SkipPrev:
+                ApplyInput(ConsoleInput.MediaPrevious);
+                break;
+            case ConsoleMediaAction.SkipNext:
+                ApplyInput(ConsoleInput.MediaNext);
+                break;
+            case ConsoleMediaAction.VolumeUp:
+                Media.BumpVolume(SystemMediaViewModel.VolumeStep);
+                break;
+            case ConsoleMediaAction.VolumeDown:
+                Media.BumpVolume(-SystemMediaViewModel.VolumeStep);
+                break;
+            case ConsoleMediaAction.Mute:
+                Media.ToggleMute();
+                break;
+            case ConsoleMediaAction.Search:
+                if (KeyboardOpen)
+                    CloseSearchKeyboard();
+                else
+                    OpenSearchKeyboard();
+                SearchRequested?.Invoke(this, EventArgs.Empty);
+                break;
+            case ConsoleMediaAction.GuideOpened:
+                MediaGuideOpen = true;
+                break;
+            case ConsoleMediaAction.GuideClosed:
+                MediaGuideOpen = false;
+                break;
         }
     }
 
@@ -205,6 +400,85 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
         _categoryIndex = index;
         PublishFiltered(0);
+    }
+
+    public void OpenSearchKeyboard()
+    {
+        KeyboardOpen = true;
+        SearchFocused = true;
+        MenuRegion = ConsoleMenuRegion.Search;
+        PublishKeyboard();
+        _keyboard.ResetFocus();
+    }
+
+    public void CloseSearchKeyboard()
+    {
+        KeyboardOpen = false;
+        SearchFocused = false;
+        if (MenuRegion == ConsoleMenuRegion.Search)
+            MenuRegion = ConsoleMenuRegion.Games;
+    }
+
+    private void ApplyKeyboardInput(ConsoleInput input)
+    {
+        if (input == ConsoleInput.Back)
+        {
+            CloseSearchKeyboard();
+            FocusRequested?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (input == ConsoleInput.Activate)
+        {
+            var result = _keyboard.Activate(SearchText);
+            if (result.Text != SearchText)
+                SearchText = result.Text;
+            if (result.Close)
+            {
+                CloseSearchKeyboard();
+                FocusRequested?.Invoke(this, EventArgs.Empty);
+            }
+
+            return;
+        }
+
+        _keyboard.Move(input);
+    }
+
+    [RelayCommand]
+    private void SelectKeyboardKey(ConsoleKeyboardKey? key)
+    {
+        if (key is null || !KeyboardOpen)
+            return;
+
+        _keyboard.Focus(key);
+        ApplyKeyboardInput(ConsoleInput.Activate);
+    }
+
+    private void PublishKeyboard()
+    {
+        _keyboard.Rebuild(KeyboardSpace, KeyboardBackspace, KeyboardDone);
+        KeyboardRows.Clear();
+        foreach (var row in _keyboard.Rows)
+            KeyboardRows.Add(new ConsoleKeyboardRow(row));
+    }
+
+    partial void OnKeyboardOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HintPlay));
+        OnPropertyChanged(nameof(HintBack));
+    }
+
+    partial void OnMenuRegionChanged(ConsoleMenuRegion value)
+    {
+        SearchFocused = value == ConsoleMenuRegion.Search || KeyboardOpen;
+        OnPropertyChanged(nameof(HintPlay));
+        OnPropertyChanged(nameof(IsSearchMenu));
+        OnPropertyChanged(nameof(IsPlayMenu));
+        OnPropertyChanged(nameof(IsCategoriesMenu));
+        OnPropertyChanged(nameof(IsGamesMenu));
+        OnPropertyChanged(nameof(IsMediaMenu));
+        OnPropertyChanged(nameof(IsExitMenu));
     }
 
     [RelayCommand]
@@ -328,6 +602,34 @@ public partial class ConsoleModeViewModel : ViewModelBase
             _library.LoadConsoleCovers(Games, Math.Max(FocusedIndex, 0));
 
         NotifyHero();
+        PublishPresence();
+    }
+
+    public void SuspendPresence()
+    {
+        _presenceSuspended = true;
+        PublishPresence();
+    }
+
+    public void ResumePresence()
+    {
+        if (!_presenceSuspended)
+            return;
+
+        _presenceSuspended = false;
+        PublishPresence();
+    }
+
+    private void PublishPresence()
+    {
+        if (_discord is null)
+            return;
+
+        DiscordActivity? activity = null;
+        if (IsActive && !_presenceSuspended && FocusedGame is { } game && !string.IsNullOrWhiteSpace(game.Title))
+            activity = new DiscordActivity(game.Title, game.PlatformLabel);
+
+        _discord.Publish(_discordApplicationId?.Invoke(), activity);
     }
 
     private void MarkCategorySelection()

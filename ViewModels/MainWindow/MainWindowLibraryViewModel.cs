@@ -65,6 +65,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public event EventHandler? LibraryContentsChanged;
 
+    public event EventHandler? GameLaunched;
+
     private bool _consoleCoverMode;
 
     [ObservableProperty]
@@ -119,9 +121,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     public string FavoriteSelectedToolTip =>
         SelectedGame is null
             ? Loc.T("FavoriteNeedsSelection")
-            : SelectedGame.IsFavorite
+            : (SelectedGame.IsFavorite
                 ? Loc.T("FavoriteRemove")
-                : Loc.T("FavoriteAdd");
+                : Loc.T("FavoriteAdd"))
+                + " (Ctrl+D)";
 
     public string SelectedGameTitle => SelectedGame?.Title ?? Loc.T("SelectGame");
 
@@ -447,6 +450,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                         _setStatusText(Loc.T(installResult.PreInstallStatusKey));
                     _setStatusText(Loc.T(installResult.StatusKey!, installResult.StatusArgs ?? [SelectedGame.Title]));
                     _scheduleStatusClear(TimeSpan.FromSeconds(8));
+                    NotifyGameLaunched();
                     return;
                 case GameInstallOutcome.ManualInstallNotice:
                     await ShowEaManualInstallNoticeAsync(SelectedGame.Title);
@@ -465,6 +469,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             _setStatusText(launchTarget.IsInstalled
                 ? Loc.T("LaunchingGame", launchedTitle)
                 : Loc.T("StartingInstallLaunch", launchedTitle));
+            NotifyGameLaunched();
         }
         catch (Exception ex)
         {
@@ -826,6 +831,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     }
 
     public void ClearSelection() => SelectedGame = null;
+
+    private void NotifyGameLaunched() => GameLaunched?.Invoke(this, EventArgs.Empty);
 
     public void SetConsoleCoverMode(bool active)
     {

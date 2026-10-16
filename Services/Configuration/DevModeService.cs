@@ -39,7 +39,8 @@ internal static class DevModeService
             DismissLegendaryPrompt = false,
             EpicAccountId = string.Empty,
             EpicDisplayName = string.Empty,
-            XboxGamertag = string.Empty
+            XboxGamertag = string.Empty,
+            DiscordApplicationId = current.DiscordApplicationId
         };
 
     public static void ResetPlatformConnections()
