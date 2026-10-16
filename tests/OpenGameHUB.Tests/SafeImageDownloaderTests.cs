@@ -13,6 +13,7 @@ public sealed class SafeImageDownloaderTests
     [InlineData("https://ubistatic3-a.akamaihd.net/orbit/uplay_launcher_3_0/assets/thumb.jpg", true)]
     [InlineData("https://media-rockstargames-com.akamaized.net/rockstargames-newsite/img/global/games/fob/1280/gta.jpg", true)]
     [InlineData("https://bnetproduct-a.akamaihd.net/5e/cover.jpg", true)]
+    [InlineData("https://store-images.s-microsoft.com/image/apps.1.poster", true)]
     [InlineData("https://cdn.example.com/cover.jpg", false)]
     [InlineData("https://evilsteamstatic.com/cover.jpg", false)]
     [InlineData("https://steamstatic.com.evil.tld/cover.jpg", false)]

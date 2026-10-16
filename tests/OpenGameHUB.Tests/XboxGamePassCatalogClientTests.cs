@@ -11,7 +11,12 @@ public sealed class XboxGamePassCatalogClientTests
         const string json = """
             {
               "ProductId": "9PK09BL31FK1",
-              "LocalizedProperties": [{ "ProductTitle": "DOOM Eternal (PC)" }],
+              "LocalizedProperties": [{
+                "ProductTitle": "DOOM Eternal (PC)",
+                "Images": [
+                  { "ImagePurpose": "Poster", "Width": 720, "Height": 1080, "Uri": "//store-images.s-microsoft.com/image/poster" }
+                ]
+              }],
               "Properties": {
                 "PackageFamilyName": "BethesdaSoftworks.DOOMEternal_3275kfvn8vcwc"
               }
@@ -25,6 +30,7 @@ public sealed class XboxGamePassCatalogClientTests
         Assert.Equal("9PK09BL31FK1", entry.StoreProductId);
         Assert.Equal("BethesdaSoftworks.DOOMEternal_3275kfvn8vcwc", entry.Pfn);
         Assert.Equal("DOOM Eternal", entry.Title);
+        Assert.Equal("https://store-images.s-microsoft.com/image/poster", entry.CoverUrl);
     }
 
     [Fact]

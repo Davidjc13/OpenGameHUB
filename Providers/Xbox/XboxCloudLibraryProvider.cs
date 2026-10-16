@@ -127,6 +127,7 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
                     : entry.StoreProductId ?? string.Empty,
                 Title = entry.Title,
                 IsInstalled = false,
+                CatalogCoverUrl = entry.CoverUrl,
                 PlaytimeMinutes = entry.PlaytimeMinutes ?? 0,
                 LaunchSpec = XboxCatalogReader.BuildInstallLaunchSpec(entry)
             };
