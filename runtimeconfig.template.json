@@ -1,0 +1,7 @@
+{
+  "configProperties": {
+    "System.GC.Concurrent": false,
+    "System.GC.ConserveMemory": 8,
+    "System.Globalization.UseNls": true
+  }
+}

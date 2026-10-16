@@ -409,5 +409,21 @@
         <views:ConsoleModeView x:Name="ConsoleView"
                                DataContext="{Binding Console}"
                                IsVisible="False"/>
+
+        <Border Classes="panel"
+                ZIndex="100"
+                Margin="0,0,12,12"
+                Padding="10,8"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                MaxWidth="320"
+                Opacity="0.92"
+                IsHitTestVisible="False"
+                IsVisible="{Binding ShowDevMetricsOverlay}">
+            <TextBlock Text="{Binding DevMetrics.MetricsText}"
+                       Classes="text-caption"
+                       FontFamily="Consolas,Courier New,monospace"
+                       TextWrapping="Wrap"/>
+        </Border>
     </Grid>
 </Window>

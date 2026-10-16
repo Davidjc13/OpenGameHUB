@@ -186,9 +186,19 @@ internal static class EpicCatalogReader
 
     private static void ClearCache(string metadataDirectory)
     {
-        AssetsByAppName.Clear();
-        CoverUrlByTitle.Clear();
+        ReleaseInMemoryCache();
         _cachedMetadataDirectory = metadataDirectory;
         _cacheBuiltAt = DateTime.UtcNow;
+    }
+
+    /// <summary>
+    /// Frees in-memory Legendary metadata indexes. Cover URLs already copied onto <see cref="UnifiedGame"/> remain.
+    /// </summary>
+    internal static void ReleaseInMemoryCache()
+    {
+        AssetsByAppName.Clear();
+        CoverUrlByTitle.Clear();
+        _cachedMetadataDirectory = null;
+        _cacheBuiltAt = DateTime.MinValue;
     }
 }

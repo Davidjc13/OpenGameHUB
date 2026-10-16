@@ -158,6 +158,13 @@
                                    Classes="text-help"
                                    TextWrapping="Wrap"/>
 
+                        <CheckBox Content="{Binding Strings.RefreshLibraryOnStartup}"
+                                  IsChecked="{Binding RefreshLibraryOnStartup}"
+                                  Margin="0,8,0,0"/>
+                        <TextBlock Text="{Binding Strings.RefreshLibraryOnStartupHelp}"
+                                   Classes="text-help"
+                                   TextWrapping="Wrap"/>
+
                         <TextBlock Text="{Binding Strings.DiscordSection}"
                                    Classes="text-caption"
                                    Margin="0,8,0,0"/>

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -62,6 +63,9 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     public ObservableCollection<GameItemViewModel> Games { get; }
 
     public IReadOnlyList<GameItemViewModel> AllGames => _allGames;
+
+    /// <summary>Dev metrics: block cover decode while library refresh rebuilds view models.</summary>
+    public bool IsCoverLoadingSuppressed => _suppressCoverLoading;
 
     public event EventHandler? LibraryContentsChanged;
 
@@ -166,17 +170,136 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public void LoadCachedGames()
     {
-        var cached = _library.LoadCachedGames();
-        if (cached.Count == 0)
+        if (!RebuildLibraryFromDatabase(preserveCurrentPage: false))
             return;
 
-        _allGames = GameItemViewModelFactory.CreateGrouped(cached);
+        _setStatusText(Loc.T("GamesInCache", _allGames.Count));
+    }
+
+    /// <summary>
+    /// Re-reads SQLite and rebuilds view models (same path as cold start without F5).
+    /// </summary>
+    private bool RebuildLibraryFromDatabase(bool preserveCurrentPage)
+    {
+        var cached = _library.LoadCachedGames();
+        if (cached.Count == 0)
+        {
+            ReleaseAllGameCovers();
+            _allGames = [];
+            ApplyFilter();
+            return false;
+        }
+
+        ReplaceAllGames(cached, preserveCurrentPage);
+        return true;
+    }
+
+    private void ReplaceAllGames(IReadOnlyList<UnifiedGame> unifiedGames, bool preserveCurrentPage)
+    {
+        var page = CurrentPage;
+        var selectedId = SelectedGame?.Source.Id;
+        var coverHandoff = CaptureCoverHandoff();
+
+        var nextGames = GameItemViewModelFactory.CreateGrouped(unifiedGames);
+        RestoreCoverHandoff(nextGames, coverHandoff);
+        DisposeOrphanCoverHandoff(coverHandoff);
+
+        _allGames = nextGames;
         ApplyGameMembership();
         _sidebar.RebuildAll(_allGames);
         ApplyFilter();
+
+        if (preserveCurrentPage)
+        {
+            var target = Math.Clamp(page, 1, TotalPages);
+            if (target != CurrentPage)
+                CurrentPage = target;
+        }
+
+        SelectedGame = FindGameById(selectedId);
+
         _suppressCoverLoading = false;
         ApplyVisibleCovers();
-        _setStatusText(Loc.T("GamesInCache", _allGames.Count));
+    }
+
+    private Dictionary<string, (Bitmap Bitmap, int DecodeWidth)> CaptureCoverHandoff()
+    {
+        var handoff = new Dictionary<string, (Bitmap, int)>(StringComparer.Ordinal);
+
+        void Capture(GameItemViewModel? game)
+        {
+            if (game is null || !game.TryStealCover(out var bitmap, out var decodeWidth) || bitmap is null)
+                return;
+
+            MergeCoverHandoff(handoff, game.Source.Id, bitmap, decodeWidth);
+        }
+
+        foreach (var game in Games)
+            Capture(game);
+
+        if (SelectedGame is not null && !Games.Contains(SelectedGame))
+            Capture(SelectedGame);
+
+        return handoff;
+    }
+
+    private static void MergeCoverHandoff(
+        Dictionary<string, (Bitmap Bitmap, int DecodeWidth)> handoff,
+        string gameId,
+        Bitmap bitmap,
+        int decodeWidth)
+    {
+        if (handoff.TryGetValue(gameId, out var existing))
+        {
+            if (decodeWidth <= existing.DecodeWidth)
+            {
+                bitmap.Dispose();
+                return;
+            }
+
+            existing.Bitmap.Dispose();
+        }
+
+        handoff[gameId] = (bitmap, decodeWidth);
+    }
+
+    private static void RestoreCoverHandoff(
+        IReadOnlyList<GameItemViewModel> games,
+        Dictionary<string, (Bitmap Bitmap, int DecodeWidth)> handoff)
+    {
+        foreach (var game in games)
+        {
+            if (!handoff.Remove(game.Source.Id, out var asset))
+                continue;
+
+            game.AdoptCover(asset.Bitmap, asset.DecodeWidth);
+        }
+    }
+
+    private static void DisposeOrphanCoverHandoff(Dictionary<string, (Bitmap Bitmap, int DecodeWidth)> handoff)
+    {
+        foreach (var (_, asset) in handoff)
+            asset.Bitmap.Dispose();
+
+        handoff.Clear();
+    }
+
+    private GameItemViewModel? FindGameById(string? gameId)
+    {
+        if (string.IsNullOrEmpty(gameId))
+            return null;
+
+        foreach (var game in _allGames)
+        {
+            if (string.Equals(game.Source.Id, gameId, StringComparison.Ordinal))
+                return game;
+
+            if (game.Source.AlternateListings.Any(
+                    alternate => string.Equals(alternate.Id, gameId, StringComparison.Ordinal)))
+                return game;
+        }
+
+        return null;
     }
 
     public void ReplaceAllGames(IReadOnlyList<GameItemViewModel> games)
@@ -351,20 +474,12 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                 Dispatcher.UIThread.Post(() => _setStatusText(message)));
 
             await RunOnUiThreadAsync(() => _setStatusText(Loc.T("ScanningLaunchers")));
-            var games = await _library.RefreshLibraryAsync(progress, token).ConfigureAwait(false);
+            var refreshedGames = await _library.RefreshLibraryAsync(progress, token).ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
 
             await RunOnUiThreadAsync(() =>
             {
-                ReleaseAllGameCovers();
-                SelectedGame = null;
-                _previousSelectedGame = null;
-
-                _allGames = GameItemViewModelFactory.CreateGrouped(games);
-                ApplyGameMembership();
-                _suppressCoverLoading = false;
-                _sidebar.RebuildAll(_allGames);
-                ApplyFilter();
+                ReplaceAllGames(refreshedGames, preserveCurrentPage: true);
 
                 var epicHint = IsEpicCloudAvailable ? Loc.T("EpicCloudHint") : string.Empty;
                 var steamHint = IsSteamCloudAvailable
@@ -957,7 +1072,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     {
         var maxCovers = CoverProfile.BackgroundMaxCovers;
         if (maxCovers <= 0)
+        {
+            SchedulePostSyncIdleBaseline();
             return;
+        }
 
         _coverCts?.Cancel();
         _coverCts?.Dispose();
@@ -990,16 +1108,41 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             }
             finally
             {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    if (!IsRefreshing)
-                    {
-                        ApplyVisibleCovers();
-                        _scheduleStatusClear(TimeSpan.FromSeconds(2));
-                    }
-                });
+                SchedulePostSyncIdleBaseline();
             }
         }, token);
+    }
+
+    /// <summary>
+    /// Drops sync-era graphs, reloads from SQLite like a restart without F5, then compacts/trims on a background thread.
+    /// </summary>
+    private void SchedulePostSyncIdleBaseline()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                _library.ReleaseTransientSyncMemory(PostSyncMemoryPhase.AfterCoverEnrichment);
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (IsRefreshing)
+                        return;
+
+                    RebuildLibraryFromDatabase(preserveCurrentPage: true);
+                    _scheduleStatusClear(TimeSpan.FromSeconds(2));
+                });
+
+                PostSyncMemoryCleanup.ApplyIdleBaselineAfterSync();
+            }
+            catch (Exception ex)
+            {
+                AppDiagnostics.ReportError(
+                    area: nameof(MainWindowLibraryViewModel),
+                    operation: nameof(SchedulePostSyncIdleBaseline),
+                    exception: ex);
+            }
+        });
     }
 
     private void ApplyGameMembership()

@@ -17,6 +17,7 @@ Transparent technical documentation: what each piece does, where it gets data fr
 | [epic-and-legendary.md](epic-and-legendary.md) | Auth, cloud library, installation |
 | [ea-desktop.md](ea-desktop.md) | Encrypted cache, logs, registry scan, onboarding |
 | [metadata-and-covers.md](metadata-and-covers.md) | Cover pipeline, custom covers, grid/list, memory |
+| [performance-profiling.md](performance-profiling.md) | CPU/RAM profiling, dev overlay, `dotnet-counters`, `tools/Diag` |
 | [riot.md](riot.md) | Riot Client catalog, install, covers |
 | [xbox.md](xbox.md) | Xbox / Game Pass installed games, launch, covers (cloud pending) |
 | [ui-and-viewmodels.md](ui-and-viewmodels.md) | Avalonia, MVVM, windows and onboarding |

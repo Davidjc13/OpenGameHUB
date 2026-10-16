@@ -15,6 +15,10 @@
     <InformationalVersion>dev</InformationalVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="OpenGameHUB.Tests" />
     <Folder Include="Domain\" />

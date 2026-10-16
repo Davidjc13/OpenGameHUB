@@ -28,7 +28,7 @@ internal static class CoverQualitySettings
         ShowDetailCover: true,
         GridDecodeWidth: 96,
         ListDecodeWidth: 64,
-        DetailDecodeWidth: 160,
+        DetailDecodeWidth: 96,
         BackgroundMaxCovers: 8,
         PageSize: 16,
         Interpolation: BitmapInterpolationMode.LowQuality);

@@ -299,6 +299,17 @@
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Conexiones restablecidas. Actualiza la biblioteca para volver a ver los avisos.</value></data>
   <data name="DevClearLocalDatabase" xml:space="preserve"><value>Borrar base de datos local</value></data>
   <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Base de datos local borrada. La biblioteca se actualizará al cerrar ajustes.</value></data>
+  <data name="DevMetricsTitle" xml:space="preserve"><value>Métricas dev</value></data>
+  <data name="DevMetricsWorkingSet" xml:space="preserve"><value>Working set: {0} MB</value></data>
+  <data name="DevMetricsPrivateMemory" xml:space="preserve"><value>Memoria privada: {0} MB</value></data>
+  <data name="DevMetricsManagedHeap" xml:space="preserve"><value>Heap administrado: {0} MB</value></data>
+  <data name="DevMetricsGen0" xml:space="preserve"><value>Colecciones Gen0: {0}</value></data>
+  <data name="DevMetricsThreads" xml:space="preserve"><value>Hilos: {0} (pool {1})</value></data>
+  <data name="DevMetricsGames" xml:space="preserve"><value>Portadas cargadas: {0} / {1} juegos</value></data>
+  <data name="DevMetricsPageBound" xml:space="preserve"><value>Elementos en página: {0}</value></data>
+  <data name="DevMetricsState" xml:space="preserve"><value>Refrescando: {0} | Portadas suprimidas: {1} | Calidad: {2}</value></data>
+  <data name="DevMetricsYes" xml:space="preserve"><value>sí</value></data>
+  <data name="DevMetricsNo" xml:space="preserve"><value>no</value></data>
   <data name="AppUpdateSection" xml:space="preserve"><value>Actualizaciones</value></data>
   <data name="AppCurrentVersion" xml:space="preserve"><value>Versión actual: {0}</value></data>
   <data name="AppCheckForUpdates" xml:space="preserve"><value>Buscar actualizaciones</value></data>
@@ -367,6 +378,8 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra grande</value></data>
   <data name="UiFontScaleHelp" xml:space="preserve"><value>Ajusta el tamaño del texto en toda la aplicación. Útil para mejorar la legibilidad en pantallas grandes o de alta densidad.</value></data>
   <data name="PageSlideEnabled" xml:space="preserve"><value>Deslizar al cambiar de página</value></data>
+  <data name="RefreshLibraryOnStartup" xml:space="preserve"><value>Actualizar biblioteca al iniciar</value></data>
+  <data name="RefreshLibraryOnStartupHelp" xml:space="preserve"><value>Si está desactivado, OpenGameHUB carga la caché local y omite el escaneo completo hasta que pulses F5. Ahorra memoria y trabajo al arrancar.</value></data>
   <data name="PageSlideHelp" xml:space="preserve"><value>La biblioteca se desliza en vertical entre páginas. Siguiente entra desde abajo y anterior desde arriba.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Opcional: IGDB o SteamGridDB mejoran la calidad de algunas portadas.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>

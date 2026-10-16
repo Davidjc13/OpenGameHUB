@@ -84,6 +84,18 @@ public sealed class GameDatabase : IDisposable
             """);
     }
 
+    public void ReleaseUnusedMemory()
+    {
+        try
+        {
+            _connection.Execute("PRAGMA shrink_memory");
+        }
+        catch
+        {
+            // shrink_memory unavailable on some SQLite builds
+        }
+    }
+
     public IReadOnlyList<UnifiedGame> GetAllGames()
     {
         const string sql = """

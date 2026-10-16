@@ -72,10 +72,26 @@ public partial class MainWindowViewModel : ViewModelBase
             text => StatusText = text,
             ScheduleStatusClear);
 
+        DevMetrics = new MainWindowDevMetricsViewModel(Library);
+
         StatusText = Loc.T("LoadingLibrary");
         Library.LoadCachedGames();
-        _ = RefreshLibraryCommand.ExecuteAsync(null);
+        if (ShouldRefreshLibraryOnStartup())
+            _ = RefreshLibraryCommand.ExecuteAsync(null);
+        else if (Library.AllGames.Count > 0)
+            StatusText = Loc.T("GamesInCache", Library.AllGames.Count);
     }
+
+    internal static bool ShouldRefreshLibraryOnStartup(IReadOnlyList<GameItemViewModel> cachedGames, AppSettings settings)
+    {
+        if (cachedGames.Count == 0)
+            return true;
+
+        return settings.RefreshLibraryOnStartup;
+    }
+
+    private bool ShouldRefreshLibraryOnStartup() =>
+        ShouldRefreshLibraryOnStartup(Library.AllGames, _libraryService.Settings.Current);
 
     public LocalizedStrings Strings { get; }
     public MainWindowUpdatesViewModel Updates { get; }
@@ -83,6 +99,10 @@ public partial class MainWindowViewModel : ViewModelBase
     public MainWindowSidebarViewModel Sidebar { get; }
     public MainWindowLibraryViewModel Library { get; }
     public ConsoleModeViewModel Console { get; }
+
+    public MainWindowDevMetricsViewModel DevMetrics { get; }
+
+    public bool ShowDevMetricsOverlay => DevMetrics.IsEnabled && !IsConsoleMode;
 
     [ObservableProperty]
     private bool _isConsoleMode;
@@ -96,6 +116,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Console.Activate();
         else
             Console.Deactivate();
+
+        OnPropertyChanged(nameof(ShowDevMetricsOverlay));
     }
 
     [RelayCommand]

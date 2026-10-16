@@ -10,14 +10,10 @@
 
     <Panel Background="#0B0D12">
         <Border IsHitTestVisible="False" ClipToBounds="True">
-            <Image Source="{Binding HeroCover}"
+            <Image Source="{Binding HeroBackdrop}"
                    Stretch="UniformToFill"
                    Opacity="0.55"
-                   IsVisible="{Binding HasHeroCover}">
-                <Image.Effect>
-                    <BlurEffect Radius="36"/>
-                </Image.Effect>
-            </Image>
+                   IsVisible="{Binding HasHeroBackdrop}"/>
         </Border>
 
         <Border IsHitTestVisible="False">
@@ -232,7 +228,6 @@
                             <Panel>
                                 <Image Source="{Binding CoverImage}"
                                        Stretch="UniformToFill"
-                                       Opacity="{Binding GridCoverOpacity}"
                                        IsVisible="{Binding HasCover}"/>
                                 <Border Background="{Binding Platform, Converter={x:Static conv:PlatformBrushConverter.Instance}}"
                                         Opacity="0.9"

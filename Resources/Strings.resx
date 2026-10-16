@@ -299,6 +299,17 @@
   <data name="DevResetConnectionsDone" xml:space="preserve"><value>Connections reset. Refresh the library to replay onboarding prompts.</value></data>
   <data name="DevClearLocalDatabase" xml:space="preserve"><value>Clear local database</value></data>
   <data name="DevClearLocalDatabaseDone" xml:space="preserve"><value>Local database cleared. The library will refresh when you close settings.</value></data>
+  <data name="DevMetricsTitle" xml:space="preserve"><value>Dev metrics</value></data>
+  <data name="DevMetricsWorkingSet" xml:space="preserve"><value>Working set: {0} MB</value></data>
+  <data name="DevMetricsPrivateMemory" xml:space="preserve"><value>Private memory: {0} MB</value></data>
+  <data name="DevMetricsManagedHeap" xml:space="preserve"><value>Managed heap: {0} MB</value></data>
+  <data name="DevMetricsGen0" xml:space="preserve"><value>Gen0 collections: {0}</value></data>
+  <data name="DevMetricsThreads" xml:space="preserve"><value>Threads: {0} (pool {1})</value></data>
+  <data name="DevMetricsGames" xml:space="preserve"><value>Covers loaded: {0} / {1} games</value></data>
+  <data name="DevMetricsPageBound" xml:space="preserve"><value>Page bound items: {0}</value></data>
+  <data name="DevMetricsState" xml:space="preserve"><value>Refreshing: {0} | Suppress covers: {1} | Quality: {2}</value></data>
+  <data name="DevMetricsYes" xml:space="preserve"><value>yes</value></data>
+  <data name="DevMetricsNo" xml:space="preserve"><value>no</value></data>
   <data name="AppUpdateSection" xml:space="preserve"><value>Updates</value></data>
   <data name="AppCurrentVersion" xml:space="preserve"><value>Current version: {0}</value></data>
   <data name="AppCheckForUpdates" xml:space="preserve"><value>Check for updates</value></data>
@@ -367,6 +378,8 @@ You can share this log file when reporting the issue.</value></data>
   <data name="UiFontScaleExtraLarge" xml:space="preserve"><value>Extra large</value></data>
   <data name="UiFontScaleHelp" xml:space="preserve"><value>Adjusts text size across the app. Useful for readability on high-DPI or large screens.</value></data>
   <data name="PageSlideEnabled" xml:space="preserve"><value>Slide when changing page</value></data>
+  <data name="RefreshLibraryOnStartup" xml:space="preserve"><value>Refresh library on startup</value></data>
+  <data name="RefreshLibraryOnStartupHelp" xml:space="preserve"><value>When off, OpenGameHUB loads from the local cache and skips the full launcher scan until you press F5. Saves memory and startup work.</value></data>
   <data name="PageSlideHelp" xml:space="preserve"><value>The library slides vertically between pages. Next enters from below and previous from above.</value></data>
   <data name="CoverArtHelp" xml:space="preserve"><value>Optional: IGDB or SteamGridDB can improve cover quality.</value></data>
   <data name="SteamApiKeyPlaceholder" xml:space="preserve"><value>Steam API Key</value></data>

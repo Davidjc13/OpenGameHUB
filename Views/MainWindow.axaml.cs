@@ -70,6 +70,7 @@ public partial class MainWindow : Window
         AddHandler(PointerPressedEvent, OnPointerUsed, RoutingStrategies.Tunnel);
         _gamepad.Frame += OnGamepadFrame;
         _gamepad.Start();
+        _gamepad.SetInteractive(false);
         QueueViewportUpdate();
     }
 
@@ -89,7 +90,10 @@ public partial class MainWindow : Window
         }
 
         if (_windowVm is not null)
+        {
             _windowVm.PropertyChanged -= OnViewModelPropertyChanged;
+            _windowVm.DevMetrics.Dispose();
+        }
 
         base.OnClosed(e);
     }
@@ -103,8 +107,10 @@ public partial class MainWindow : Window
     private void ApplyConsoleChrome(bool enabled)
     {
         _windowGamepadRepeat.Reset();
+        _gamepad.SetInteractive(enabled);
         if (enabled)
         {
+            _gamepad.Start();
             ConsoleView.IsVisible = true;
             EnterConsoleChrome();
             Dispatcher.UIThread.Post(() => ConsoleView.FocusCarousel(), DispatcherPriority.Input);

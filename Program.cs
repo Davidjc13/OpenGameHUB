@@ -36,9 +36,38 @@ sealed class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(CreateWin32Options())
 #if DEBUG
             .WithDeveloperTools()
 #endif
             .WithInterFont()
             .LogToTrace();
+
+    internal static bool UseSoftwareRendering =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("OPENGAMEHUB_RENDER_SOFTWARE"),
+            "1",
+            StringComparison.Ordinal);
+
+    internal static bool UseLowMemoryComposition =>
+        UseSoftwareRendering
+        || string.Equals(
+            Environment.GetEnvironmentVariable("OPENGAMEHUB_LOW_MEMORY"),
+            "1",
+            StringComparison.Ordinal);
+
+    private static Win32PlatformOptions CreateWin32Options()
+    {
+        var options = new Win32PlatformOptions
+        {
+            RenderingMode = UseSoftwareRendering
+                ? [Win32RenderingMode.Software]
+                : [Win32RenderingMode.AngleEgl, Win32RenderingMode.Software]
+        };
+
+        if (UseLowMemoryComposition)
+            options.CompositionMode = [Win32CompositionMode.RedirectionSurface];
+
+        return options;
+    }
 }

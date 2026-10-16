@@ -153,8 +153,9 @@ Title normalization for search and deduplication:
 
 | Setting | Field | Effect |
 |---------|-------|--------|
-| Show grid covers | `AppSettings.ShowGridCovers` | If `false`, grid/list do not load bitmaps (saves RAM); detail panel can still load on selection |
+| Cover quality | `AppSettings.CoverQualityMode` (`Low` / `High` / `None`) | Controls decode sizes, whether library/detail covers load, background download cap — see `CoverQualitySettings` |
 | Library layout | `AppSettings.LibraryViewMode` | `Grid` or `List` — persisted across sessions |
+| Grid card size | `AppSettings.GridCardSize` | User slider; `LibraryGridMetrics` derives columns, rows, and page size from viewport + card width |
 
 ### Main window commands
 
@@ -182,41 +183,47 @@ List view uses the same `GameItemViewModel` cover properties (`DisplayListCover`
 
 ## Memory management
 
-Large libraries + covers can use significant RAM. Mitigations in `MainWindowViewModel`:
+Large libraries + covers can use significant RAM. Mitigations live in `MainWindowLibraryViewModel` (`ApplyVisibleCovers`, pagination) and `CoverQualitySettings`.
+
+See [performance-profiling.md](performance-profiling.md) for VMMap, the dev overlay, `dotnet-counters`, software rendering (`OPENGAMEHUB_RENDER_SOFTWARE=1`), and `tools/Diag`.
+
+Uninstalled tiles keep a `Border.overlay-dim` over the cover instead of lowering `Image.Opacity` (which can force extra compositor layers). `CoverImageLoader` never falls back to a full-resolution bitmap; the cap is `MaxFallbackDecodeWidth` (512). `ReleaseCover` clears the bound bitmap first and disposes it on the next UI background cycle.
 
 ### Pagination
 
-`PageSize = 24` — only the current page is bound to `Games`; covers load for visible rows only.
+`LibraryGridMetrics.Calculate` sets `PageSize` and `RenderCount` from viewport size and grid card width (not a fixed page size). `ApplyCurrentPage` binds only the current slice to `Games`; covers load for visible rows only.
 
 ### `ApplyVisibleCovers`
 
-Called on page change, cover setting toggle, and after custom cover update:
+Called on page change, cover quality toggle, and after custom cover update:
 
 ```
 If _suppressCoverLoading:
   → all games ShowCoverInGrid = false (startup / refresh in progress)
 
-If NOT ShowGridCovers:
+If CoverQualityMode.None (no library covers):
   → hide all grid covers
-  → ReleaseCover() on every game except SelectedGame
+  → ReleaseCover() on every game except SelectedGame (if detail covers disabled)
   → optional GC.Collect (optimized)
 
 Else:
   → ReleaseCover() on games NOT on current page (except SelectedGame)
-  → ShowCoverInGrid = true + LoadCoverAsync() for current page items without cover
+  → ShowCoverInGrid = true + EnsureCoverAsync() for current page items
 ```
+
+Decode width comes from the active profile (`GridDecodeWidth` / `ListDecodeWidth` / `DetailDecodeWidth`).
 
 ### Refresh lifecycle
 
 ```
-MainWindowViewModel starts with _suppressCoverLoading = true
+MainWindowLibraryViewModel starts with _suppressCoverLoading = true
 
 RefreshLibraryAsync completes:
   → ReleaseAllGameCovers() (dispose all old bitmaps)
   → replace _allGames with new GameItemViewModel instances
   → _suppressCoverLoading = false
   → ApplyFilter() → ApplyVisibleCovers()
-  → StartBackgroundCoverEnrichment() (batch download up to limit)
+  → StartBackgroundCoverEnrichment() (batch download up to BackgroundMaxCovers)
 ```
 
 **Why suppress during refresh:** avoids loading covers for VMs that are about to be discarded, which caused ~40 MB extra peak RAM at startup.
@@ -260,11 +267,13 @@ The cascade pipeline maximizes coverage without requiring configuration. Custom 
 | `Services/MetadataService.cs` | Download cascade, custom cover API |
 | `Services/CoverImageProcessor.cs` | User upload resize |
 | `Services/CoverPathHelper.cs` | Cache paths |
-| `Services/CoverImageLoader.cs` | Shared load helpers |
+| `Services/CoverImageLoader.cs` | Decode throttle, width cap, no full-file fallback |
 | `Services/LocalCoverScanner.cs` | Install-folder images |
 | `Services/SafeImageDownloader.cs` / `SafeImageValidator.cs` | Validation |
 | `ViewModels/GameItemViewModel.cs` | Per-tile bitmap lifecycle |
-| `ViewModels/MainWindowViewModel.cs` | `ApplyVisibleCovers`, custom cover commands |
+| `ViewModels/MainWindow/MainWindowLibraryViewModel.cs` | `ApplyVisibleCovers`, pagination, custom cover commands |
+| `ViewModels/MainWindow/MainWindowDevMetricsViewModel.cs` | Dev-only RAM/cover counters overlay |
+| `Infrastructure/AppResourceSnapshot.cs` | Process and GC snapshot helpers |
 | `Data/GameDatabase.cs` | `custom_cover` column, migration |
 | `Models/UnifiedGame.cs` | `HasCustomCover`, `CoverPath` |
 | `Models/LibraryViewMode.cs` | Grid vs List enum |

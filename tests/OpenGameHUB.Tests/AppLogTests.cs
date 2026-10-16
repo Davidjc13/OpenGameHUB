@@ -20,7 +20,14 @@ public sealed class AppLogTests : IDisposable
     {
         AppLog.ShutdownForTests();
         AppLog.MaxLogFileBytes = _originalMaxLogFileBytes;
-        AppLog.Initialize();
+        try
+        {
+            AppLog.Initialize();
+        }
+        catch (IOException)
+        {
+            // Production log may be held by a running OpenGameHUB instance.
+        }
 
         try
         {
