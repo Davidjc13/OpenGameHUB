@@ -8,24 +8,33 @@ namespace OpenGameHUB.ViewModels;
 
 public partial class SystemMediaViewModel : ViewModelBase
 {
+    public const int VolumeStep = 5;
+
+    private static readonly TimeSpan OsdDuration = TimeSpan.FromSeconds(2);
+
     private readonly ISystemMediaController _media;
     private readonly IMediaVolumeController _volumeController;
     private readonly Action<Action> _invoke;
+    private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private string _artworkKey = string.Empty;
     private string _sourceAppId = string.Empty;
     private string? _volumeProcess;
     private int _artworkRequest;
     private bool _subscribed;
     private bool _suppressVolume;
+    private double _levelBeforeMute = 100;
+    private CancellationTokenSource? _osdHide;
 
     public SystemMediaViewModel(
         ISystemMediaController media,
         Action<Action>? invoke = null,
-        IMediaVolumeController? volume = null)
+        IMediaVolumeController? volume = null,
+        Func<TimeSpan, CancellationToken, Task>? delay = null)
     {
         _media = media;
         _volumeController = volume ?? DisabledMediaVolume.Instance;
         _invoke = invoke ?? InvokeOnUiThread;
+        _delay = delay ?? ((duration, token) => Task.Delay(duration, token));
     }
 
     [ObservableProperty]
@@ -61,6 +70,18 @@ public partial class SystemMediaViewModel : ViewModelBase
     [ObservableProperty]
     private bool _canControlVolume;
 
+    [ObservableProperty]
+    private bool _osdVisible;
+
+    [ObservableProperty]
+    private double _osdVolume = 100;
+
+    [ObservableProperty]
+    private bool _osdMuted;
+
+    [ObservableProperty]
+    private string _osdHint = string.Empty;
+
     public bool HasArtist => !string.IsNullOrWhiteSpace(Artist);
 
     public bool HasArtwork => Artwork is not null;
@@ -94,7 +115,11 @@ public partial class SystemMediaViewModel : ViewModelBase
         _invoke(() => Apply(_media.Current));
     }
 
-    public void Stop() => _media.Stop();
+    public void Stop()
+    {
+        HideOsd();
+        _media.Stop();
+    }
 
     public void ApplyLocalization()
     {
@@ -102,6 +127,48 @@ public partial class SystemMediaViewModel : ViewModelBase
         OnPropertyChanged(nameof(PreviousToolTip));
         OnPropertyChanged(nameof(NextToolTip));
         NotifyVolumeChrome();
+        if (OsdVisible)
+            RefreshOsdHint();
+    }
+
+    public void BumpVolume(int deltaPercent)
+    {
+        EnsureVolumeSession();
+        if (CanControlVolume)
+        {
+            if (IsMuted)
+            {
+                var restored = _levelBeforeMute > 0.5 ? _levelBeforeMute : 100;
+                SetMutedState(false);
+                ApplyVolume(restored, muted: false);
+            }
+
+            ApplyVolume(Math.Clamp(Volume + deltaPercent, 0, 100), muted: false);
+        }
+
+        PulseOsd();
+    }
+
+    public void ToggleMute()
+    {
+        EnsureVolumeSession();
+        if (CanControlVolume)
+        {
+            if (IsMuted)
+            {
+                var restored = _levelBeforeMute > 0.5 ? _levelBeforeMute : 100;
+                SetMutedState(false);
+                ApplyVolume(restored, muted: false);
+            }
+            else
+            {
+                _levelBeforeMute = Volume > 0.5 ? Volume : 100;
+                SetMutedState(true);
+                ApplySessionVolume(Volume, muted: true);
+            }
+        }
+
+        PulseOsd();
     }
 
     [RelayCommand(CanExecute = nameof(CanToggle))]
@@ -147,9 +214,9 @@ public partial class SystemMediaViewModel : ViewModelBase
             _suppressVolume = false;
         }
 
-        if (_volumeProcess is not null)
-            _volumeController.TrySet(_volumeProcess, level, muted);
-
+        ApplySessionVolume(value, muted);
+        if (!muted)
+            _levelBeforeMute = value;
         NotifyVolumeChrome();
     }
 
@@ -239,17 +306,36 @@ public partial class SystemMediaViewModel : ViewModelBase
 
     private void SyncVolume(string sourceAppId)
     {
-        if (string.Equals(sourceAppId, _sourceAppId, StringComparison.Ordinal))
+        var sameSource = string.Equals(sourceAppId, _sourceAppId, StringComparison.Ordinal);
+        if (sameSource && CanControlVolume)
             return;
 
         _sourceAppId = sourceAppId;
         _volumeProcess = MediaVolumeTarget.ProcessName(sourceAppId);
+        ApplyResolvedVolume(_volumeController.TryGet(_volumeProcess, out var level) ? level : null);
+    }
+
+    private void EnsureVolumeSession()
+    {
+        if (CanControlVolume)
+            return;
+
+        if (!_volumeController.TryGet(_volumeProcess, out var level))
+            return;
+
+        ApplyResolvedVolume(level);
+    }
+
+    private void ApplyResolvedVolume(MediaVolumeLevel? resolved)
+    {
         _suppressVolume = true;
-        if (_volumeProcess is not null && _volumeController.TryGet(_volumeProcess, out var level))
+        if (resolved is { } level)
         {
             CanControlVolume = true;
             Volume = Math.Clamp(Math.Round(level.Level * 100), 0, 100);
             IsMuted = level.Muted || level.Level <= 0.001f;
+            if (!IsMuted && Volume > 0.5)
+                _levelBeforeMute = Volume;
         }
         else
         {
@@ -262,6 +348,81 @@ public partial class SystemMediaViewModel : ViewModelBase
         NotifyVolumeChrome();
     }
 
+    private void ApplyVolume(double percent, bool muted)
+    {
+        var clamped = Math.Clamp(percent, 0, 100);
+        _suppressVolume = true;
+        Volume = clamped;
+        IsMuted = muted || clamped <= 0.001;
+        _suppressVolume = false;
+        ApplySessionVolume(clamped, IsMuted);
+        NotifyVolumeChrome();
+    }
+
+    private void ApplySessionVolume(double percent, bool muted)
+    {
+        if (_volumeProcess is null)
+            return;
+
+        var level = (float)(Math.Clamp(percent, 0, 100) / 100d);
+        _volumeController.TrySet(_volumeProcess, level, muted);
+    }
+
+    private void SetMutedState(bool muted)
+    {
+        _suppressVolume = true;
+        IsMuted = muted;
+        _suppressVolume = false;
+        NotifyVolumeChrome();
+    }
+
+    private void PulseOsd()
+    {
+        OsdVolume = Volume;
+        OsdMuted = IsMuted || Volume <= 0.5;
+        RefreshOsdHint();
+        OsdVisible = true;
+        _osdHide?.Cancel();
+        _osdHide?.Dispose();
+        var cts = new CancellationTokenSource();
+        _osdHide = cts;
+        _ = HideOsdAfterDelayAsync(cts.Token);
+    }
+
+    private async Task HideOsdAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await _delay(OsdDuration, token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (token.IsCancellationRequested)
+            return;
+
+        _invoke(HideOsd);
+    }
+
+    private void HideOsd()
+    {
+        _osdHide?.Cancel();
+        _osdHide?.Dispose();
+        _osdHide = null;
+        OsdVisible = false;
+    }
+
+    private void RefreshOsdHint()
+    {
+        OsdHint = !CanControlVolume
+            ? Loc.T("MediaVolumeUnavailable")
+            : OsdMuted
+                ? Loc.T("MediaMuted")
+                : Loc.T("MediaVolume");
+    }
+
     private void NotifyVolumeChrome()
     {
         OnPropertyChanged(nameof(VolumeGlyph));
@@ -272,13 +433,13 @@ public partial class SystemMediaViewModel : ViewModelBase
     {
         public static DisabledMediaVolume Instance { get; } = new();
 
-        public bool TryGet(string processName, out MediaVolumeLevel level)
+        public bool TryGet(string? processName, out MediaVolumeLevel level)
         {
             level = default;
             return false;
         }
 
-        public bool TrySet(string processName, float level, bool muted) => false;
+        public bool TrySet(string? processName, float level, bool muted) => false;
     }
 
     private static void InvokeOnUiThread(Action action)

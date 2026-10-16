@@ -42,6 +42,7 @@ public partial class MainWindow : Window
     private double _restoreWidth;
     private double _restoreHeight;
     private readonly XInputGamepadPoller _gamepad = new();
+    private readonly GamepadRepeatState _windowGamepadRepeat = new();
     private readonly HashSet<Key> _heldKeys = [];
     private int _modalHotkeyDepth;
 
@@ -66,7 +67,8 @@ public partial class MainWindow : Window
         AddHandler(KeyDownEvent, OnConsoleKeyDown, RoutingStrategies.Tunnel);
         AddHandler(KeyUpEvent, OnLibraryKeyUp, RoutingStrategies.Tunnel);
         AddHandler(TextInputEvent, OnLibraryTextInput, RoutingStrategies.Tunnel);
-        _gamepad.Input += OnGamepadInput;
+        AddHandler(PointerPressedEvent, OnPointerUsed, RoutingStrategies.Tunnel);
+        _gamepad.Frame += OnGamepadFrame;
         _gamepad.Start();
         QueueViewportUpdate();
     }
@@ -76,7 +78,8 @@ public partial class MainWindow : Window
         RemoveHandler(KeyDownEvent, OnConsoleKeyDown);
         RemoveHandler(KeyUpEvent, OnLibraryKeyUp);
         RemoveHandler(TextInputEvent, OnLibraryTextInput);
-        _gamepad.Input -= OnGamepadInput;
+        RemoveHandler(PointerPressedEvent, OnPointerUsed);
+        _gamepad.Frame -= OnGamepadFrame;
         _gamepad.Dispose();
 
         if (_library is not null)
@@ -99,6 +102,7 @@ public partial class MainWindow : Window
 
     private void ApplyConsoleChrome(bool enabled)
     {
+        _windowGamepadRepeat.Reset();
         if (enabled)
         {
             ConsoleView.IsVisible = true;
@@ -185,14 +189,24 @@ public partial class MainWindow : Window
         _applyingChrome = false;
     }
 
-    private void OnGamepadInput(ConsoleInput input)
+    private void OnPointerUsed(object? sender, PointerPressedEventArgs e) =>
+        _windowVm?.Console.NoteKeyboardOrMouse();
+
+    private void OnGamepadFrame(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
     {
         if (_windowVm is null)
             return;
 
+        if (GamepadInput.HasActivity(previous, current))
+            _windowVm.Console.NoteGamepad();
+
         if (_windowVm.IsConsoleMode)
-            _windowVm.Console.ApplyInput(input);
-        else
+        {
+            _windowVm.Console.ProcessGamepad(previous, current, elapsed);
+            return;
+        }
+
+        foreach (var input in GamepadInput.Collect(previous, current, _windowGamepadRepeat, elapsed))
             _windowVm.ApplyWindowGamepad(input);
     }
 
@@ -200,6 +214,8 @@ public partial class MainWindow : Window
     {
         if (_windowVm is null || e.Handled)
             return;
+
+        _windowVm.Console.NoteKeyboardOrMouse();
 
         if (e.Key == Key.F11 && e.KeyModifiers == KeyModifiers.None)
         {
@@ -277,6 +293,28 @@ public partial class MainWindow : Window
 
         if (searchFocused)
             return;
+
+        if (e.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift
+            && e.Key is Key.Add or Key.OemPlus)
+        {
+            _windowVm.Console.Media.BumpVolume(SystemMediaViewModel.VolumeStep);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.KeyModifiers == KeyModifiers.None && e.Key is Key.Subtract or Key.OemMinus)
+        {
+            _windowVm.Console.Media.BumpVolume(-SystemMediaViewModel.VolumeStep);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.KeyModifiers == KeyModifiers.None && e.Key == Key.V)
+        {
+            _windowVm.Console.Media.ToggleMute();
+            e.Handled = true;
+            return;
+        }
 
         if (focused is Button && e.Key is Key.Enter or Key.Space)
             return;

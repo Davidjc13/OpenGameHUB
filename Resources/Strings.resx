@@ -449,7 +449,10 @@ You can share this log file when reporting the issue.</value></data>
   <data name="ConsoleInstalled" xml:space="preserve"><value>Installed</value></data>
   <data name="ConsoleFavorites" xml:space="preserve"><value>Favorites</value></data>
   <data name="ConsoleEmpty" xml:space="preserve"><value>No games in this view</value></data>
-  <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F search  ·  Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  F11 or Esc exit</value></data>
+  <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F search  ·  Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  hold X media  ·  V mute  ·  +/- volume  ·  F11 or Esc exit</value></data>
+  <data name="ConsoleHintCategories" xml:space="preserve"><value>Categories</value></data>
+  <data name="ConsoleHintSearch" xml:space="preserve"><value>Search</value></data>
+  <data name="ConsoleHintMove" xml:space="preserve"><value>Move</value></data>
   <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search (Ctrl+F)</value></data>
   <data name="MediaPlay" xml:space="preserve"><value>Play</value></data>
   <data name="MediaPause" xml:space="preserve"><value>Pause</value></data>
@@ -458,6 +461,9 @@ You can share this log file when reporting the issue.</value></data>
   <data name="MediaVolume" xml:space="preserve"><value>Volume</value></data>
   <data name="MediaMuted" xml:space="preserve"><value>Muted</value></data>
   <data name="MediaVolumeUnavailable" xml:space="preserve"><value>This player does not expose its volume</value></data>
+  <data name="ConsoleMediaGuideTitle" xml:space="preserve"><value>Music</value></data>
+  <data name="ConsoleMediaGuideMute" xml:space="preserve"><value>Mute</value></data>
+  <data name="ConsoleMediaGuideClose" xml:space="preserve"><value>Close</value></data>
   <data name="DiscordSection" xml:space="preserve"><value>Discord</value></data>
   <data name="DiscordApplicationIdPlaceholder" xml:space="preserve"><value>Discord Application ID</value></data>
   <data name="DiscordApplicationIdHelp" xml:space="preserve"><value>Optional. In full screen, Discord shows the selected game. Paste an Application ID from the Discord developer portal. Launching a game minimizes full screen so Discord's overlay can sit on the game. The speaker controls the music app and leaves Discord voice alone.</value></data>

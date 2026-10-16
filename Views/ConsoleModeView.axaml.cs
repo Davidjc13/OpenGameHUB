@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using OpenGameHUB.Infrastructure.Input;
 using OpenGameHUB.ViewModels;
 
 namespace OpenGameHUB.Views;
@@ -31,6 +32,8 @@ public partial class ConsoleModeView : UserControl
     {
         SearchBox.Focus();
         SearchBox.SelectAll();
+        if (_console?.UsingGamepad == true)
+            Dispatcher.UIThread.Post(static () => WindowsOnScreenKeyboard.TryShow(), DispatcherPriority.Input);
     }
 
     public bool IsConsoleSearch(IInputElement? element) => ReferenceEquals(element, SearchBox);
@@ -42,6 +45,7 @@ public partial class ConsoleModeView : UserControl
         {
             _console.PropertyChanged -= OnConsolePropertyChanged;
             _console.FocusRequested -= OnFocusRequested;
+            _console.SearchRequested -= OnSearchRequested;
         }
 
         _console = DataContext as ConsoleModeViewModel;
@@ -49,6 +53,7 @@ public partial class ConsoleModeView : UserControl
         {
             _console.PropertyChanged += OnConsolePropertyChanged;
             _console.FocusRequested += OnFocusRequested;
+            _console.SearchRequested += OnSearchRequested;
         }
     }
 
@@ -94,6 +99,8 @@ public partial class ConsoleModeView : UserControl
 
     private void OnFocusRequested(object? sender, EventArgs e) =>
         ScrollToFocusedGame(focusCarousel: true);
+
+    private void OnSearchRequested(object? sender, EventArgs e) => FocusSearch();
 
     private void OnWindowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

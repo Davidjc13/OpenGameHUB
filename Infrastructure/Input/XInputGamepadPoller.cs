@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
-using OpenGameHUB.ViewModels;
 
 namespace OpenGameHUB.Infrastructure.Input;
 
@@ -13,12 +12,13 @@ public sealed class XInputGamepadPoller : IDisposable
     private const ushort DpadRight = 0x0008;
     private const ushort LeftShoulder = 0x0100;
     private const ushort RightShoulder = 0x0200;
+    private const ushort Back = 0x0020;
+    private const ushort Menu = 0x0010;
     private const ushort A = 0x1000;
     private const ushort B = 0x2000;
     private const ushort X = 0x4000;
     private const ushort Y = 0x8000;
 
-    private readonly GamepadRepeatState _repeat = new();
     private DispatcherTimer? _timer;
     private GamepadButtons _previous;
     private DateTime _lastPollUtc;
@@ -31,14 +31,13 @@ public sealed class XInputGamepadPoller : IDisposable
     {
     }
 
-    public event Action<ConsoleInput>? Input;
+    public event Action<GamepadButtons, GamepadButtons, TimeSpan>? Frame;
 
     public void Start()
     {
         if (_disposed)
             return;
 
-        _repeat.Reset();
         _previous = default;
         _hasSample = false;
         _lastPollUtc = DateTime.UtcNow;
@@ -69,7 +68,6 @@ public sealed class XInputGamepadPoller : IDisposable
         if (_unavailable || !TryRead(out var current))
         {
             _hasSample = false;
-            _repeat.Reset();
             return;
         }
 
@@ -87,16 +85,13 @@ public sealed class XInputGamepadPoller : IDisposable
         if (elapsed < TimeSpan.Zero)
             elapsed = TimeSpan.Zero;
 
-        foreach (var input in GamepadInput.Collect(_previous, current, _repeat, elapsed))
+        try
         {
-            try
-            {
-                Input?.Invoke(input);
-            }
-            catch (Exception)
-            {
-                // Keep polling if a handler fails.
-            }
+            Frame?.Invoke(_previous, current, elapsed);
+        }
+        catch (Exception)
+        {
+            // Keep polling if a handler fails.
         }
 
         _previous = current;
@@ -128,7 +123,11 @@ public sealed class XInputGamepadPoller : IDisposable
                     Up: Has(pad.Buttons, DpadUp),
                     Down: Has(pad.Buttons, DpadDown),
                     ThumbY: pad.ThumbLY,
-                    X: Has(pad.Buttons, X));
+                    X: Has(pad.Buttons, X),
+                    LeftTrigger: pad.LeftTrigger,
+                    RightTrigger: pad.RightTrigger,
+                    Back: Has(pad.Buttons, Back),
+                    Start: Has(pad.Buttons, Menu));
                 return true;
             }
 

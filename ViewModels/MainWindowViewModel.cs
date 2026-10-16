@@ -65,7 +65,8 @@ public partial class MainWindowViewModel : ViewModelBase
             Library,
             ExitConsoleMode,
             discord: new DiscordIpcPresence(),
-            discordApplicationId: () => _libraryService.Settings.Current.DiscordApplicationId);
+            discordApplicationId: () => _libraryService.Settings.Current.DiscordApplicationId,
+            animationsEnabled: () => _libraryService.Settings.Current.PageSlideEnabled);
 
         Updates = new MainWindowUpdatesViewModel(
             text => StatusText = text,

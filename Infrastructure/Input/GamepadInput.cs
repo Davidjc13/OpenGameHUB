@@ -14,7 +14,11 @@ public readonly record struct GamepadButtons(
     bool Up = false,
     bool Down = false,
     short ThumbY = 0,
-    bool X = false);
+    bool X = false,
+    byte LeftTrigger = 0,
+    byte RightTrigger = 0,
+    bool Back = false,
+    bool Start = false);
 
 public sealed class GamepadRepeatState
 {
@@ -53,8 +57,6 @@ public static class GamepadInput
             inputs.Add(ConsoleInput.Back);
         if (Pressed(previous.Y, current.Y))
             inputs.Add(ConsoleInput.Favorite);
-        if (Pressed(previous.X, current.X))
-            inputs.Add(ConsoleInput.MediaToggle);
         if (Pressed(previous.LeftShoulder, current.LeftShoulder))
             inputs.Add(ConsoleInput.PreviousCategory);
         if (Pressed(previous.RightShoulder, current.RightShoulder))
@@ -144,6 +146,32 @@ public static class GamepadInput
         repeat.Elapsed -= RepeatInterval;
         inputs.Add(input);
     }
+
+    public static bool HasActivity(GamepadButtons previous, GamepadButtons current)
+    {
+        if (previous.A != current.A
+            || previous.B != current.B
+            || previous.X != current.X
+            || previous.Y != current.Y
+            || previous.Left != current.Left
+            || previous.Right != current.Right
+            || previous.Up != current.Up
+            || previous.Down != current.Down
+            || previous.LeftShoulder != current.LeftShoulder
+            || previous.RightShoulder != current.RightShoulder
+            || previous.Back != current.Back
+            || previous.Start != current.Start)
+        {
+            return true;
+        }
+
+        if (current.LeftTrigger >= TriggerFloor || current.RightTrigger >= TriggerFloor)
+            return true;
+
+        return Math.Abs((int)current.ThumbX) > Deadzone || Math.Abs((int)current.ThumbY) > Deadzone;
+    }
+
+    private const byte TriggerFloor = 30;
 
     private static bool Pressed(bool previous, bool current) => !previous && current;
 }

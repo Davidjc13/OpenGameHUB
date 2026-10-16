@@ -255,7 +255,7 @@ public sealed class ConsoleModeTests
     }
 
     [Fact]
-    public void Gamepad_x_toggles_media_on_the_rising_edge()
+    public void Gamepad_x_is_not_a_direct_media_toggle()
     {
         var repeat = new GamepadRepeatState();
         var pressed = new GamepadButtons(
@@ -272,7 +272,7 @@ public sealed class ConsoleModeTests
         var first = GamepadInput.Collect(default, pressed, repeat, TimeSpan.Zero);
         var held = GamepadInput.Collect(pressed, pressed, repeat, TimeSpan.FromMilliseconds(50));
 
-        Assert.Equal([ConsoleInput.MediaToggle], first);
+        Assert.Empty(first);
         Assert.Empty(held);
     }
 

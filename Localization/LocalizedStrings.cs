@@ -155,6 +155,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string ConsoleFavorites => Loc.T("ConsoleFavorites");
     public string ConsoleEmpty => Loc.T("ConsoleEmpty");
     public string ConsoleHint => Loc.T("ConsoleHint");
+    public string ConsoleHintCategories => Loc.T("ConsoleHintCategories");
+    public string ConsoleHintSearch => Loc.T("ConsoleHintSearch");
+    public string ConsoleHintMove => Loc.T("ConsoleHintMove");
     public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
     public string MediaPlay => Loc.T("MediaPlay");
     public string MediaPause => Loc.T("MediaPause");
@@ -163,6 +166,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string MediaVolume => Loc.T("MediaVolume");
     public string MediaMuted => Loc.T("MediaMuted");
     public string MediaVolumeUnavailable => Loc.T("MediaVolumeUnavailable");
+    public string ConsoleMediaGuideTitle => Loc.T("ConsoleMediaGuideTitle");
+    public string ConsoleMediaGuideMute => Loc.T("ConsoleMediaGuideMute");
+    public string ConsoleMediaGuideClose => Loc.T("ConsoleMediaGuideClose");
     public string DiscordSection => Loc.T("DiscordSection");
     public string DiscordApplicationIdPlaceholder => Loc.T("DiscordApplicationIdPlaceholder");
     public string DiscordApplicationIdHelp => Loc.T("DiscordApplicationIdHelp");

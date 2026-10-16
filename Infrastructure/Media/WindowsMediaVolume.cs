@@ -5,30 +5,29 @@ namespace OpenGameHUB.Infrastructure.Media;
 
 public sealed class WindowsMediaVolume : IMediaVolumeController
 {
-    public bool TryGet(string processName, out MediaVolumeLevel level)
+    private const int ClsCtxAll = 23;
+    private const int DataFlowRender = 0;
+
+    public bool TryGet(string? processName, out MediaVolumeLevel level)
     {
         level = default;
-        if (!CanTarget(processName))
-            return false;
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(processName)
+                && !MediaVolumeTarget.IsDiscordVoice(processName)
+                && TryReadSession(processName, out var sessionLevel))
+            {
+                level = sessionLevel;
+                return true;
+            }
+        }
+        catch (Exception ex) when (IsAudioFailure(ex))
+        {
+        }
 
         try
         {
-            MediaVolumeLevel? found = null;
-            ForEachSession(processName, volume =>
-            {
-                if (found is not null)
-                    return;
-
-                volume.GetMasterVolume(out var master);
-                volume.GetMute(out var muted);
-                found = new MediaVolumeLevel(master, muted);
-            });
-
-            if (found is not { } value)
-                return false;
-
-            level = value;
-            return true;
+            return TryReadEndpoint(out level);
         }
         catch (Exception ex) when (IsAudioFailure(ex))
         {
@@ -36,25 +35,25 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
         }
     }
 
-    public bool TrySet(string processName, float level, bool muted)
+    public bool TrySet(string? processName, float level, bool muted)
     {
-        if (!CanTarget(processName))
-            return false;
-
         var clamped = Math.Clamp(level, 0f, 1f);
         try
         {
-            var changed = false;
-            ForEachSession(processName, volume =>
+            if (!string.IsNullOrWhiteSpace(processName)
+                && !MediaVolumeTarget.IsDiscordVoice(processName)
+                && TryWriteSession(processName, clamped, muted))
             {
-                var context = Guid.Empty;
-                if (volume.SetMasterVolume(clamped, ref context) == 0
-                    && volume.SetMute(muted, ref context) == 0)
-                {
-                    changed = true;
-                }
-            });
-            return changed;
+                return true;
+            }
+        }
+        catch (Exception ex) when (IsAudioFailure(ex))
+        {
+        }
+
+        try
+        {
+            return TryWriteEndpoint(clamped, muted);
         }
         catch (Exception ex) when (IsAudioFailure(ex))
         {
@@ -62,72 +61,229 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
         }
     }
 
-    private static bool CanTarget(string processName) =>
-        !string.IsNullOrWhiteSpace(processName) && !MediaVolumeTarget.IsDiscordVoice(processName);
-
-    private static void ForEachSession(string processName, Action<ISimpleAudioVolume> visit)
+    private static bool TryReadSession(string processName, out MediaVolumeLevel level)
     {
-        var enumeratorType = new MMDeviceEnumeratorComObject();
-        var enumerator = (IMMDeviceEnumerator)enumeratorType;
-        IMMDevice? device = null;
-        IAudioSessionManager2? manager = null;
-        IAudioSessionEnumerator? sessions = null;
-        try
+        MediaVolumeLevel? found = null;
+        ForEachMatchingSession(processName, volume =>
         {
-            if (enumerator.GetDefaultAudioEndpoint(0, 1, out device) != 0 || device is null)
+            if (found is not null)
                 return;
 
-            var managerId = typeof(IAudioSessionManager2).GUID;
-            if (device.Activate(ref managerId, 23, IntPtr.Zero, out var activated) != 0
-                || activated is not IAudioSessionManager2 sessionManager)
+            if (volume.GetMasterVolume(out var master) != 0 || volume.GetMute(out var muted) != 0)
+                return;
+
+            found = new MediaVolumeLevel(master, muted);
+        });
+
+        if (found is not { } value)
+        {
+            level = default;
+            return false;
+        }
+
+        level = value;
+        return true;
+    }
+
+    private static bool TryWriteSession(string processName, float level, bool muted)
+    {
+        var changed = false;
+        ForEachMatchingSession(processName, volume =>
+        {
+            var context = Guid.Empty;
+            if (volume.SetMasterVolume(level, ref context) == 0
+                && volume.SetMute(muted, ref context) == 0)
+            {
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
+    private static bool TryReadEndpoint(out MediaVolumeLevel level)
+    {
+        MediaVolumeLevel? found = null;
+        ForEachEndpoint(endpoint =>
+        {
+            if (found is not null)
+                return;
+
+            if (endpoint.GetMasterVolumeLevelScalar(out var master) != 0
+                || endpoint.GetMute(out var muted) != 0)
             {
                 return;
             }
 
-            manager = sessionManager;
-            if (manager.GetSessionEnumerator(out sessions) != 0 || sessions is null)
-                return;
+            found = new MediaVolumeLevel(master, muted);
+        });
 
-            if (sessions.GetCount(out var count) != 0 || count <= 0)
-                return;
+        if (found is not { } value)
+        {
+            level = default;
+            return false;
+        }
 
-            for (var i = 0; i < count; i++)
+        level = value;
+        return true;
+    }
+
+    private static bool TryWriteEndpoint(float level, bool muted)
+    {
+        var changed = false;
+        ForEachEndpoint(endpoint =>
+        {
+            var context = Guid.Empty;
+            if (endpoint.SetMasterVolumeLevelScalar(level, ref context) == 0
+                && endpoint.SetMute(muted, ref context) == 0)
             {
-                IAudioSessionControl2? session = null;
-                ISimpleAudioVolume? volume = null;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
+    private static void ForEachMatchingSession(string processName, Action<ISimpleAudioVolume> visit)
+    {
+        ForEachRenderDevice(device =>
+        {
+            IAudioSessionManager2? manager = null;
+            IAudioSessionEnumerator? sessions = null;
+            try
+            {
+                if (!TryActivate(device, out manager) || manager is null)
+                    return;
+                if (manager.GetSessionEnumerator(out sessions) != 0 || sessions is null)
+                    return;
+
+                if (sessions.GetCount(out var count) != 0 || count <= 0)
+                    return;
+
+                for (var i = 0; i < count; i++)
+                {
+                    IAudioSessionControl2? session = null;
+                    ISimpleAudioVolume? volume = null;
+                    try
+                    {
+                        if (sessions.GetSession(i, out session) != 0 || session is null)
+                            continue;
+
+                        if (!SessionMatches(session, processName))
+                            continue;
+
+                        volume = QueryVolume(session);
+                        if (volume is null)
+                            continue;
+
+                        visit(volume);
+                    }
+                    finally
+                    {
+                        if (volume is not null)
+                            Marshal.ReleaseComObject(volume);
+                        if (session is not null)
+                            Marshal.ReleaseComObject(session);
+                    }
+                }
+            }
+            finally
+            {
+                if (sessions is not null)
+                    Marshal.ReleaseComObject(sessions);
+                if (manager is not null)
+                    Marshal.ReleaseComObject(manager);
+            }
+        });
+    }
+
+    private static void ForEachEndpoint(Action<IAudioEndpointVolume> visit)
+    {
+        ForEachRenderDevice(device =>
+        {
+            if (!TryActivate<IAudioEndpointVolume>(device, out var endpoint) || endpoint is null)
+                return;
+
+            try
+            {
+                visit(endpoint);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(endpoint);
+            }
+        });
+    }
+
+    private static bool TryActivate<T>(IMMDevice device, out T? instance)
+        where T : class
+    {
+        instance = null;
+        var iid = typeof(T).GUID;
+        if (device.Activate(ref iid, ClsCtxAll, IntPtr.Zero, out var pointer) != 0
+            || pointer == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        try
+        {
+            instance = (T)Marshal.GetObjectForIUnknown(pointer);
+            return instance is not null;
+        }
+        catch (Exception ex) when (IsAudioFailure(ex))
+        {
+            return false;
+        }
+        finally
+        {
+            Marshal.Release(pointer);
+        }
+    }
+
+    private static void ForEachRenderDevice(Action<IMMDevice> visit)
+    {
+        var enumeratorType = new MMDeviceEnumeratorComObject();
+        var enumerator = (IMMDeviceEnumerator)enumeratorType;
+        try
+        {
+            foreach (var role in new[] { 0, 1 })
+            {
+                IMMDevice? device = null;
                 try
                 {
-                    if (sessions.GetSession(i, out session) != 0 || session is null)
+                    if (enumerator.GetDefaultAudioEndpoint(DataFlowRender, role, out device) != 0
+                        || device is null)
+                    {
                         continue;
+                    }
 
-                    if (session.GetProcessId(out var pid) != 0 || pid == 0 || !ProcessMatches(pid, processName))
-                        continue;
-
-                    volume = QueryVolume(session);
-                    if (volume is null)
-                        continue;
-
-                    visit(volume);
+                    visit(device);
                 }
                 finally
                 {
-                    if (volume is not null)
-                        Marshal.ReleaseComObject(volume);
-                    if (session is not null)
-                        Marshal.ReleaseComObject(session);
+                    if (device is not null)
+                        Marshal.ReleaseComObject(device);
                 }
             }
         }
         finally
         {
-            if (sessions is not null)
-                Marshal.ReleaseComObject(sessions);
-            if (manager is not null)
-                Marshal.ReleaseComObject(manager);
-            if (device is not null)
-                Marshal.ReleaseComObject(device);
             Marshal.ReleaseComObject(enumerator);
         }
+    }
+
+    private static bool SessionMatches(IAudioSessionControl2 session, string processName)
+    {
+        if (session.GetProcessId(out var pid) == 0 && pid != 0 && ProcessMatches(pid, processName))
+            return true;
+
+        if (session.GetSessionIdentifier(out var identifier) == 0
+            && MatchesText(processName, ReadCoTaskString(identifier)))
+        {
+            return true;
+        }
+
+        return session.GetDisplayName(out var display) == 0
+            && MatchesText(processName, ReadCoTaskString(display));
     }
 
     private static bool ProcessMatches(uint pid, string processName)
@@ -135,11 +291,29 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
         try
         {
             using var process = System.Diagnostics.Process.GetProcessById((int)pid);
-            return process.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase);
+            return MediaVolumeTarget.MatchesProcess(processName, process.ProcessName);
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
         {
             return false;
+        }
+    }
+
+    private static bool MatchesText(string processName, string? text) =>
+        !string.IsNullOrWhiteSpace(text) && MediaVolumeTarget.MatchesProcess(processName, text);
+
+    private static string? ReadCoTaskString(IntPtr pointer)
+    {
+        if (pointer == IntPtr.Zero)
+            return null;
+
+        try
+        {
+            return Marshal.PtrToStringUni(pointer);
+        }
+        finally
+        {
+            Marshal.FreeCoTaskMem(pointer);
         }
     }
 
@@ -192,6 +366,13 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
     private interface IMMDevice
     {
         [PreserveSig]
+        int Activate(
+            ref Guid iid,
+            uint classContext,
+            IntPtr activationParams,
+            out IntPtr instance);
+
+        [PreserveSig]
         int OpenPropertyStore(int access, out IntPtr store);
 
         [PreserveSig]
@@ -199,13 +380,6 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
 
         [PreserveSig]
         int GetState(out int state);
-
-        [PreserveSig]
-        int Activate(
-            ref Guid iid,
-            uint classContext,
-            IntPtr activationParams,
-            [MarshalAs(UnmanagedType.IUnknown)] out object instance);
     }
 
     [ComImport]
@@ -293,6 +467,51 @@ public sealed class WindowsMediaVolume : IMediaVolumeController
 
         [PreserveSig]
         int GetMasterVolume(out float level);
+
+        [PreserveSig]
+        int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid eventContext);
+
+        [PreserveSig]
+        int GetMute([MarshalAs(UnmanagedType.Bool)] out bool mute);
+    }
+
+    [ComImport]
+    [Guid("5CDF2C82-841E-4546-9722-0CF74078229A")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IAudioEndpointVolume
+    {
+        [PreserveSig]
+        int RegisterControlChangeNotify(IntPtr notify);
+
+        [PreserveSig]
+        int UnregisterControlChangeNotify(IntPtr notify);
+
+        [PreserveSig]
+        int GetChannelCount(out uint count);
+
+        [PreserveSig]
+        int SetMasterVolumeLevel(float levelDb, ref Guid eventContext);
+
+        [PreserveSig]
+        int SetMasterVolumeLevelScalar(float level, ref Guid eventContext);
+
+        [PreserveSig]
+        int GetMasterVolumeLevel(out float levelDb);
+
+        [PreserveSig]
+        int GetMasterVolumeLevelScalar(out float level);
+
+        [PreserveSig]
+        int SetChannelVolumeLevel(uint channel, float levelDb, ref Guid eventContext);
+
+        [PreserveSig]
+        int SetChannelVolumeLevelScalar(uint channel, float level, ref Guid eventContext);
+
+        [PreserveSig]
+        int GetChannelVolumeLevel(uint channel, out float levelDb);
+
+        [PreserveSig]
+        int GetChannelVolumeLevelScalar(uint channel, out float level);
 
         [PreserveSig]
         int SetMute([MarshalAs(UnmanagedType.Bool)] bool mute, ref Guid eventContext);
