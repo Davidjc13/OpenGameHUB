@@ -324,19 +324,19 @@
                                             Height="300"
                                             Classes="cover-frame-lg"
                                             IsVisible="{Binding Library.ShowDetailCover}">
-                                        <Image Source="{Binding Library.SelectedGame.CoverImage}"
+                                        <Image Source="{Binding Library.SelectedGameCoverImage}"
                                                Stretch="Uniform"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"
-                                               IsVisible="{Binding Library.SelectedGame.HasCover}"/>
+                                               IsVisible="{Binding Library.SelectedGameHasCover}"/>
                                     </Border>
 
                                     <TextBlock Text="{Binding Library.SelectedGameTitle}"
                                                Classes="detail-title"
                                                TextWrapping="Wrap"/>
-                                    <TextBlock Text="{Binding Library.SelectedGame.InstallStatus, TargetNullValue=''}"
+                                    <TextBlock Text="{Binding Library.SelectedGameInstallStatus}"
                                                Classes="text-body"/>
-                                    <TextBlock Text="{Binding Library.SelectedGame.InstallPath, TargetNullValue=''}"
+                                    <TextBlock Text="{Binding Library.SelectedGameInstallPath}"
                                                TextWrapping="Wrap"
                                                Classes="text-help"/>
 

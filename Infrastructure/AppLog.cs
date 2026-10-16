@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using OpenGameHUB.Domain.Enums;
 
 namespace OpenGameHUB.Infrastructure;
 
@@ -14,6 +15,13 @@ internal static class AppLog
     public static string LogDirectory => _logDirectory;
 
     public static string LogFilePath => _logFilePath;
+
+    public static string GetPlatformLogFilePath(Platform platform)
+    {
+        var folderName = platform.ToString();
+        var fileName = $"{folderName.ToLowerInvariant()}.log";
+        return Path.Combine(_logDirectory, folderName, fileName);
+    }
 
     public static void Initialize()
     {
@@ -50,10 +58,19 @@ internal static class AppLog
         return reader.ReadToEnd();
     }
 
-    public static void Error(string message)
+    public static void Error(string message, Platform? platform = null)
     {
-        Write("ERROR", message);
+        if (platform is null or Platform.Unknown)
+            Write("ERROR", message);
+        else
+            WritePlatformLog(platform.Value, "ERROR", message);
     }
+
+    public static void Warning(Platform platform, string message) =>
+        WritePlatformLog(platform, "WARNING", message);
+
+    public static void Information(Platform platform, string message) =>
+        WritePlatformLog(platform, "Information", message);
 
     public static void Fatal(string message, Exception? exception = null)
     {
@@ -97,6 +114,7 @@ internal static class AppLog
             _logDirectory = logDirectory;
             _logFilePath = logFilePath;
             Directory.CreateDirectory(logDirectory);
+            EnsureProviderLogFolders();
             RotateIfNeeded(logFilePath);
 
             if (_listener is not null)
@@ -118,12 +136,34 @@ internal static class AppLog
         }
     }
 
+    private static void EnsureProviderLogFolders()
+    {
+        foreach (var platform in Enum.GetValues<Platform>())
+        {
+            if (platform is Platform.Unknown)
+                continue;
+
+            Directory.CreateDirectory(Path.GetDirectoryName(GetPlatformLogFilePath(platform))!);
+        }
+    }
+
     private static void Write(string level, string message)
     {
         lock (Sync)
         {
             RotateIfNeeded(_logFilePath);
             Trace.WriteLine($"{DateTime.UtcNow:O} [{level}] {message}");
+        }
+    }
+
+    private static void WritePlatformLog(Platform platform, string level, string message)
+    {
+        lock (Sync)
+        {
+            var path = GetPlatformLogFilePath(platform);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            RotateIfNeeded(path);
+            File.AppendAllText(path, $"{DateTime.UtcNow:O} [{level}] {message}{Environment.NewLine}");
         }
     }
 

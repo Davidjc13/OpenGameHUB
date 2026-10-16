@@ -1,6 +1,7 @@
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Providers.Epic;
 using OpenGameHUB.Providers.Rockstar;
 using OpenGameHUB.Providers.Xbox;
@@ -72,6 +73,20 @@ public sealed class GameInstallOrchestrator
             {
                 Outcome = GameInstallOutcome.InstallStarted,
                 StatusKey = "RockstarLauncherInstallStarted",
+                StatusArgs = [game.Title]
+            };
+        }
+
+        if (game.Platform == Platform.BattleNet)
+        {
+            var productId = game.PlatformGameId
+                ?? throw new InvalidOperationException(Loc.T("NoLaunchMethod"));
+            await Task.Run(() => BattleNetLauncherClient.StartInstall(productId), cancellationToken)
+                .ConfigureAwait(true);
+            return new GameInstallResult
+            {
+                Outcome = GameInstallOutcome.InstallStarted,
+                StatusKey = "BattleNetLauncherInstallStarted",
                 StatusArgs = [game.Title]
             };
         }

@@ -25,6 +25,7 @@ internal static class ProtocolUri
         "origin",
         "uplay",
         "goggalaxy",
+        "battlenet",
         "msxbox",
         "ms-windows-store"
     };
@@ -133,6 +134,17 @@ internal static class ProtocolUri
             return false;
 
         return TryUplayUninstall(parsed, out url);
+    }
+
+    public static bool TryBattleNetProduct(string? productId, [NotNullWhen(true)] out string url)
+    {
+        url = string.Empty;
+        productId = productId?.Trim();
+        if (!IsCatalogToken(productId))
+            return false;
+
+        url = $"battlenet://{productId}/";
+        return true;
     }
 
     public static bool TryGogOpenGameView(string? releaseKey, [NotNullWhen(true)] out string url)

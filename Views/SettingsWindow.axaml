@@ -98,6 +98,26 @@
                     </StackPanel>
                 </Border>
 
+                <Border Classes="section-card"
+                        IsVisible="{Binding IsBattleNetSectionVisible}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{Binding Strings.BattleNetLibrarySection}"
+                                   Classes="text-label"/>
+                        <TextBlock Text="{Binding BattleNetStatusText}"
+                                   Classes="text-secondary"
+                                   TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Button Content="{Binding Strings.BattleNetConnectAccount}"
+                                    Command="{Binding ConnectBattleNetCommand}"
+                                    IsEnabled="{Binding CanConnectBattleNet}"/>
+                            <Button Content="{Binding Strings.BattleNetDisconnectAccount}"
+                                    Classes="ghost"
+                                    Command="{Binding DisconnectBattleNetCommand}"
+                                    IsVisible="{Binding IsBattleNetConnected}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <Border Classes="section-card">
                     <StackPanel Spacing="8">
                         <TextBlock Text="{Binding Strings.DisplaySection}"

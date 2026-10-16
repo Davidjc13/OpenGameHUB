@@ -91,7 +91,9 @@ internal static class GameLibraryMerger
             || game.Id.StartsWith("gamepass:catalog:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("gamepass:path:", StringComparison.OrdinalIgnoreCase)
             || game.Id.StartsWith("rockstar:catalog:", StringComparison.OrdinalIgnoreCase)
-            || game.Id.StartsWith("riot:catalog:", StringComparison.OrdinalIgnoreCase))
+            || game.Id.StartsWith("riot:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("battlenet:catalog:", StringComparison.OrdinalIgnoreCase)
+            || game.Id.StartsWith("battlenet:registry:", StringComparison.OrdinalIgnoreCase))
         {
             return game.Id.ToLowerInvariant();
         }

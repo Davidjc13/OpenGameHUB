@@ -1,3 +1,4 @@
+using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Infrastructure;
 
 namespace OpenGameHUB.Tests;
@@ -52,6 +53,37 @@ public sealed class AppLogTests : IDisposable
         Assert.Contains("InvalidOperationException", contents);
         Assert.Contains("boom", contents);
         Assert.Contains("operation=Test", contents);
+    }
+
+    [Fact]
+    public void ReportError_with_platform_writes_to_platform_log_file()
+    {
+        var exception = new InvalidOperationException("platform boom");
+
+        AppDiagnostics.ReportError("AppLogTests", "PlatformOp", exception, Platform.BattleNet);
+
+        var platformLogPath = AppLog.GetPlatformLogFilePath(Platform.BattleNet);
+        Assert.True(File.Exists(platformLogPath));
+        var platformContents = File.ReadAllText(platformLogPath);
+        Assert.Contains("[ERROR]", platformContents);
+        Assert.Contains("platform boom", platformContents);
+        Assert.Contains("operation=PlatformOp", platformContents);
+        Assert.DoesNotContain("platform boom", AppLog.ReadLogContentsForTests());
+    }
+
+    [Fact]
+    public void ReportInfo_writes_to_platform_log_folder()
+    {
+        AppDiagnostics.ReportInfo("AppLogTests", "SyncSteam", Platform.Steam, "ownedCount=3");
+
+        var path = AppLog.GetPlatformLogFilePath(Platform.Steam);
+        Assert.Equal(Path.Combine(_tempDirectory, "Steam", "steam.log"), path);
+        Assert.True(File.Exists(path));
+        var contents = File.ReadAllText(path);
+        Assert.Contains("[Information]", contents);
+        Assert.Contains("operation=SyncSteam", contents);
+        Assert.Contains("ownedCount=3", contents);
+        Assert.DoesNotContain("ownedCount=3", AppLog.ReadLogContentsForTests());
     }
 
     [Fact]

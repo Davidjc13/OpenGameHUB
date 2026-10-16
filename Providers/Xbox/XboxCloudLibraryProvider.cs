@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
@@ -65,10 +64,9 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
 
         if (catalog.Count == 0)
         {
-            Trace.TraceWarning(
-                "[{0}] operation=LoadLibraryAsync catalogCount=0 platform={1}",
-                nameof(XboxCloudLibraryProvider),
-                Platform.GamePass);
+            AppLog.Warning(
+                Platform.GamePass,
+                $"[{nameof(XboxCloudLibraryProvider)}] operation=LoadLibraryAsync catalogCount=0 platform={Platform.GamePass}");
             _cachedEntries = [];
             return;
         }
@@ -89,12 +87,9 @@ public sealed class XboxCloudLibraryProvider : ICloudLibraryProvider
             _cachedEntries = catalog;
         }
 
-        Trace.TraceInformation(
-            "[{0}] operation=LoadLibraryAsync catalogCount={1} mergedCount={2} platform={3}",
-            nameof(XboxCloudLibraryProvider),
-            catalog.Count,
-            _cachedEntries.Count,
-            Platform.GamePass);
+        AppLog.Information(
+            Platform.GamePass,
+            $"[{nameof(XboxCloudLibraryProvider)}] operation=LoadLibraryAsync catalogCount={catalog.Count} mergedCount={_cachedEntries.Count} platform={Platform.GamePass}");
     }
 
     public IReadOnlyList<UnifiedGame> GetUninstalledLibraryGames(

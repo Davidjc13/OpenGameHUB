@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure;
+using OpenGameHUB.Providers.BattleNet;
 using OpenGameHUB.Providers.Epic;
 
 namespace OpenGameHUB.Services.Games;
@@ -75,6 +76,9 @@ internal sealed class GameLaunchService
                 attempts.AddRange(provider.GetInstallLaunchAttempts(game));
             }
         }
+
+        if (game.Platform == Platform.BattleNet && !string.IsNullOrWhiteSpace(game.PlatformGameId))
+            attempts.Add(() => BattleNetLauncherClient.StartLaunch(game.PlatformGameId));
 
         if (!string.IsNullOrWhiteSpace(game.LaunchSpec.Kind) &&
             !string.IsNullOrWhiteSpace(game.LaunchSpec.Value))

@@ -134,6 +134,14 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public string SelectedGameActionLabel => SelectedGame?.ActionLabel ?? Loc.T("Play");
 
+    public Bitmap? SelectedGameCoverImage => SelectedGame?.CoverImage;
+
+    public bool SelectedGameHasCover => SelectedGame?.HasCover == true;
+
+    public string SelectedGameInstallStatus => SelectedGame?.InstallStatus ?? string.Empty;
+
+    public string SelectedGameInstallPath => SelectedGame?.InstallPath ?? string.Empty;
+
     public bool IsEpicCloudAvailable => _library.IsEpicCloudAvailable;
 
     public bool IsUbisoftCloudAvailable => _library.IsUbisoftCloudAvailable;
@@ -145,6 +153,8 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
     public bool IsGogCloudAvailable => _library.IsGogCloudAvailable;
 
     public bool IsRockstarCloudAvailable => _library.IsRockstarCloudAvailable;
+
+    public bool IsBattleNetCloudAvailable => _library.IsBattleNetCloudAvailable;
 
     public bool IsXboxCloudAvailable => _library.IsXboxCloudAvailable;
 
@@ -349,6 +359,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameActionLabel));
         OnPropertyChanged(nameof(HasSelectedGame));
         OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(SelectedGameCoverImage));
+        OnPropertyChanged(nameof(SelectedGameHasCover));
+        OnPropertyChanged(nameof(SelectedGameInstallStatus));
+        OnPropertyChanged(nameof(SelectedGameInstallPath));
         OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         ApplyGameMembership();
         ApplyFilter();
@@ -453,6 +467,10 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
         OnPropertyChanged(nameof(SelectedGameHasCustomCover));
         OnPropertyChanged(nameof(HasSelectedGame));
         OnPropertyChanged(nameof(SelectedGameIsFavorite));
+        OnPropertyChanged(nameof(SelectedGameCoverImage));
+        OnPropertyChanged(nameof(SelectedGameHasCover));
+        OnPropertyChanged(nameof(SelectedGameInstallStatus));
+        OnPropertyChanged(nameof(SelectedGameInstallPath));
         OnPropertyChanged(nameof(FavoriteSelectedToolTip));
         _sidebar.OnSelectedGameChanged();
     }
@@ -496,8 +514,13 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                 var riotHint = IsRiotCloudAvailable ? Loc.T("RiotCloudHint") : string.Empty;
                 var gogHint = IsGogCloudAvailable ? Loc.T("GogCloudHint") : string.Empty;
                 var rockstarHint = IsRockstarCloudAvailable ? Loc.T("RockstarCloudHint") : string.Empty;
+                var battleNetHint = IsBattleNetCloudAvailable
+                    ? _library.IsBattleNetConnected
+                        ? Loc.T("BattleNetCloudHint")
+                        : Loc.T("BattleNetCloudHintConnectAccount")
+                    : string.Empty;
                 var xboxHint = IsXboxCloudAvailable ? Loc.T("XboxCloudHint") : string.Empty;
-                _setStatusText(Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + rockstarHint + xboxHint + epicHint);
+                _setStatusText(Loc.T("GamesInLibrary", _allGames.Count) + steamHint + ubisoftHint + eaHint + riotHint + gogHint + rockstarHint + battleNetHint + xboxHint + epicHint);
             });
 
             StartBackgroundCoverEnrichment();
