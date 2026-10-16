@@ -3,7 +3,9 @@
              xmlns:vm="using:OpenGameHUB.ViewModels"
              xmlns:conv="using:OpenGameHUB.Converters"
              x:Class="OpenGameHUB.Views.ConsoleModeView"
+             x:Name="ConsoleShell"
              x:DataType="vm:ConsoleModeViewModel"
+             Classes="console-shell"
              Background="Transparent">
 
     <Panel Background="#0B0D12">
@@ -38,12 +40,17 @@
                 <TextBox x:Name="SearchBox"
                          Grid.Column="1"
                          Classes="console-search"
+                         Classes.menuFocus="{Binding IsSearchMenu}"
                          MaxWidth="560"
                          HorizontalAlignment="Stretch"
+                         TextAlignment="Center"
+                         HorizontalContentAlignment="Center"
                          PlaceholderText="{Binding SearchPlaceholder}"
                          Text="{Binding SearchText, Mode=TwoWay}"/>
-                <Button Grid.Column="2"
+                <Button x:Name="ExitButton"
+                        Grid.Column="2"
                         Classes="console-exit"
+                        Classes.menuFocus="{Binding IsExitMenu}"
                         Content="{Binding ExitLabel}"
                         Command="{Binding ExitModeCommand}"
                         VerticalAlignment="Center"/>
@@ -66,7 +73,9 @@
                            Classes="console-meta"
                            TextWrapping="Wrap"
                            IsVisible="{Binding HasFocusedGame}"/>
-                <Button Classes="primary console-play"
+                <Button x:Name="PlayButton"
+                        Classes="primary console-play"
+                        Classes.menuFocus="{Binding IsPlayMenu}"
                         Content="{Binding FocusedAction}"
                         Command="{Binding PlayFocusedCommand}"
                         IsVisible="{Binding HasFocusedGame}"
@@ -129,7 +138,7 @@
                         <Border Classes="console-pad-face b">
                             <TextBlock Text="B" Classes="console-pad-letter"/>
                         </Border>
-                        <TextBlock Text="{Binding ExitLabel}" Classes="console-hint" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding HintBack}" Classes="console-hint" VerticalAlignment="Center"/>
                     </StackPanel>
                 </WrapPanel>
                 <WrapPanel Classes="console-hint-row" IsVisible="{Binding !UsingGamepad}">
@@ -178,23 +187,28 @@
                 </WrapPanel>
             </StackPanel>
 
-            <ItemsControl Grid.Row="2"
-                          ItemsSource="{Binding Categories}"
-                          Margin="0,0,0,12">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ConsoleCategoryItem">
-                        <Button Classes="console-chip"
-                                Classes.selected="{Binding IsSelected}"
-                                Content="{Binding Label}"
-                                Command="{Binding SelectCommand}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <Border x:Name="CategoryBar"
+                    Grid.Row="2"
+                    Classes="console-categories"
+                    Classes.menuFocus="{Binding IsCategoriesMenu}"
+                    Focusable="True"
+                    Margin="0,0,0,12">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ConsoleCategoryItem">
+                            <Button Classes="console-chip"
+                                    Classes.selected="{Binding IsSelected}"
+                                    Content="{Binding Label}"
+                                    Command="{Binding SelectCommand}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
 
             <ListBox x:Name="Carousel"
                      Grid.Row="3"
@@ -204,6 +218,7 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
                      Focusable="True"
+                     Classes.menuFocus="{Binding IsGamesMenu}"
                      SelectionChanged="OnCarouselSelectionChanged"
                      DoubleTapped="OnCarouselDoubleTapped">
                 <ListBox.ItemsPanel>
@@ -241,10 +256,13 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Border Grid.Row="4"
+            <Border x:Name="MediaDock"
+                    Grid.Row="4"
                     Classes="console-media console-media-dock"
                     Classes.guide="{Binding MediaGuideOpen}"
                     Classes.gamepad="{Binding UsingGamepad}"
+                    Classes.menuFocus="{Binding IsMediaMenu}"
+                    Focusable="True"
                     HorizontalAlignment="Left"
                     MaxWidth="720"
                     Margin="0,16,0,0">
@@ -355,6 +373,71 @@
                         </StackPanel>
                     </Grid>
                 </Border>
+        </Grid>
+
+        <Grid Classes="console-keyboard-overlay"
+              IsVisible="{Binding KeyboardOpen}">
+            <Border Classes="console-media-guide-scrim" IsHitTestVisible="False"/>
+            <Border Classes="console-keyboard"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,36">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="{Binding SearchText}"
+                               Classes="console-keyboard-query"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"/>
+                    <ItemsControl ItemsSource="{Binding KeyboardRows}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Spacing="8"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ConsoleKeyboardRow">
+                                <ItemsControl ItemsSource="{Binding Keys}"
+                                              HorizontalAlignment="Center">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ConsoleKeyboardKey">
+                                            <Button Classes="console-keyboard-key"
+                                                    Classes.wide="{Binding IsWide}"
+                                                    Classes.focused="{Binding IsFocused}"
+                                                    Content="{Binding Label}"
+                                                    Command="{Binding #ConsoleShell.((vm:ConsoleModeViewModel)DataContext).SelectKeyboardKeyCommand}"
+                                                    CommandParameter="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="16"
+                                HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="console-pad-face a">
+                                <TextBlock Text="A" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding HintPlay}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="console-pad-face b">
+                                <TextBlock Text="B" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding HintBack}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
         </Grid>
 
         <Grid Classes="console-media-guide-overlay"

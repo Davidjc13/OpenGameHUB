@@ -157,6 +157,10 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string ConsoleHint => Loc.T("ConsoleHint");
     public string ConsoleHintCategories => Loc.T("ConsoleHintCategories");
     public string ConsoleHintSearch => Loc.T("ConsoleHintSearch");
+    public string ConsoleHintConfirm => Loc.T("ConsoleHintConfirm");
+    public string ConsoleKeyboardSpace => Loc.T("ConsoleKeyboardSpace");
+    public string ConsoleKeyboardBackspace => Loc.T("ConsoleKeyboardBackspace");
+    public string ConsoleKeyboardDone => Loc.T("ConsoleKeyboardDone");
     public string ConsoleHintMove => Loc.T("ConsoleHintMove");
     public string ConsoleSearchPlaceholder => Loc.T("ConsoleSearchPlaceholder");
     public string MediaPlay => Loc.T("MediaPlay");

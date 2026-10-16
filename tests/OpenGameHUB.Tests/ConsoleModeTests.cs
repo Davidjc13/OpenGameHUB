@@ -56,15 +56,61 @@ public sealed class ConsoleModeTests
     }
 
     [Fact]
-    public void Move_up_changes_category_like_the_previous_shoulder()
+    public void Move_up_changes_the_menu_instead_of_the_category()
     {
-        var state = new ConsoleNavigationState(0, 4, false);
+        var state = new ConsoleNavigationState(0, 4, false, ConsoleMenuRegion.Games);
 
         var (next, effect) = ConsoleNavigation.Apply(state, ConsoleInput.MoveUp, 3, 8);
 
         Assert.Equal(ConsoleInputEffect.None, effect);
+        Assert.Equal(0, next.CategoryIndex);
+        Assert.Equal(4, next.GameIndex);
+        Assert.Equal(ConsoleMenuRegion.Categories, next.Menu);
+    }
+
+    [Fact]
+    public void Left_and_right_change_categories_when_that_menu_is_focused()
+    {
+        var state = new ConsoleNavigationState(1, 4, false, ConsoleMenuRegion.Categories);
+
+        var next = ConsoleNavigation.Apply(state, ConsoleInput.MoveRight, 3, 8).State;
+
         Assert.Equal(2, next.CategoryIndex);
         Assert.Equal(0, next.GameIndex);
+        Assert.Equal(ConsoleMenuRegion.Categories, next.Menu);
+    }
+
+    [Fact]
+    public void Right_from_search_moves_focus_to_exit()
+    {
+        var state = new ConsoleNavigationState(0, 1, true, ConsoleMenuRegion.Search);
+
+        var (next, effect) = ConsoleNavigation.Apply(state, ConsoleInput.MoveRight, 3, 8);
+
+        Assert.Equal(ConsoleInputEffect.None, effect);
+        Assert.Equal(ConsoleMenuRegion.Exit, next.Menu);
+        Assert.False(next.SearchFocused);
+    }
+
+    [Fact]
+    public void Left_from_exit_returns_to_search()
+    {
+        var state = new ConsoleNavigationState(0, 1, false, ConsoleMenuRegion.Exit);
+
+        var next = ConsoleNavigation.Apply(state, ConsoleInput.MoveLeft, 3, 8).State;
+
+        Assert.Equal(ConsoleMenuRegion.Search, next.Menu);
+        Assert.True(next.SearchFocused);
+    }
+
+    [Fact]
+    public void Activate_opens_search_when_the_search_menu_is_focused()
+    {
+        var state = new ConsoleNavigationState(0, 1, true, ConsoleMenuRegion.Search);
+
+        var (_, effect) = ConsoleNavigation.Apply(state, ConsoleInput.Activate, 3, 8);
+
+        Assert.Equal(ConsoleInputEffect.OpenSearch, effect);
     }
 
     [Fact]

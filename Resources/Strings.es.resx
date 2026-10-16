@@ -452,6 +452,10 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F buscar  ·  Flechas mueven  ·  Q/E o LB/RB categorías  ·  Enter o A jugar  ·  Y favorito  ·  X o M música  ·  mantén X medios  ·  V silencio  ·  +/- volumen  ·  F11 o Esc salir</value></data>
   <data name="ConsoleHintCategories" xml:space="preserve"><value>Categorías</value></data>
   <data name="ConsoleHintSearch" xml:space="preserve"><value>Buscar</value></data>
+  <data name="ConsoleHintConfirm" xml:space="preserve"><value>Confirmar</value></data>
+  <data name="ConsoleKeyboardSpace" xml:space="preserve"><value>Espacio</value></data>
+  <data name="ConsoleKeyboardBackspace" xml:space="preserve"><value>Borrar</value></data>
+  <data name="ConsoleKeyboardDone" xml:space="preserve"><value>Listo</value></data>
   <data name="ConsoleHintMove" xml:space="preserve"><value>Mover</value></data>
   <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Buscar (Ctrl+F)</value></data>
   <data name="MediaPlay" xml:space="preserve"><value>Reproducir</value></data>

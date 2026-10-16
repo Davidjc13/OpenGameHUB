@@ -452,6 +452,10 @@ You can share this log file when reporting the issue.</value></data>
   <data name="ConsoleHint" xml:space="preserve"><value>Ctrl+F search  ·  Arrows move  ·  Q/E or LB/RB categories  ·  Enter or A play  ·  Y favorite  ·  X or M music  ·  hold X media  ·  V mute  ·  +/- volume  ·  F11 or Esc exit</value></data>
   <data name="ConsoleHintCategories" xml:space="preserve"><value>Categories</value></data>
   <data name="ConsoleHintSearch" xml:space="preserve"><value>Search</value></data>
+  <data name="ConsoleHintConfirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="ConsoleKeyboardSpace" xml:space="preserve"><value>Space</value></data>
+  <data name="ConsoleKeyboardBackspace" xml:space="preserve"><value>Delete</value></data>
+  <data name="ConsoleKeyboardDone" xml:space="preserve"><value>Done</value></data>
   <data name="ConsoleHintMove" xml:space="preserve"><value>Move</value></data>
   <data name="ConsoleSearchPlaceholder" xml:space="preserve"><value>Search (Ctrl+F)</value></data>
   <data name="MediaPlay" xml:space="preserve"><value>Play</value></data>

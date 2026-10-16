@@ -1,6 +1,66 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <Style Selector="Border.console-keyboard">
+        <Setter Property="Background" Value="#F21A2030"/>
+        <Setter Property="BorderBrush" Value="#3D6AF2"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Padding" Value="24,20"/>
+        <Setter Property="MaxWidth" Value="920"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-keyboard-query">
+        <Setter Property="MinHeight" Value="32"/>
+        <Setter Property="FontSize" Value="22"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+    </Style>
+
+    <Style Selector="Button.console-keyboard-key">
+        <Setter Property="MinWidth" Value="56"/>
+        <Setter Property="MinHeight" Value="48"/>
+        <Setter Property="Padding" Value="10,8"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Background" Value="#33151A28"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+        <Setter Property="BorderBrush" Value="#3A455C"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Button.console-keyboard-key.wide">
+        <Setter Property="MinWidth" Value="140"/>
+    </Style>
+
+    <Style Selector="Button.console-keyboard-key.focused">
+        <Setter Property="Background" Value="#3D6AF2"/>
+        <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style Selector="Button.console-keyboard-key:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#262D3E"/>
+    </Style>
+
+    <Style Selector="Button.console-keyboard-key.focused:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#4F7BFF"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell Button">
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell Button /template/ ContentPresenter">
+        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
     <Style Selector="TextBlock.console-wordmark">
         <Setter Property="FontSize" Value="22"/>
         <Setter Property="FontWeight" Value="Bold"/>
@@ -18,6 +78,43 @@
         <Setter Property="BorderBrush" Value="#2C3448"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="CaretBrush" Value="#F4F7FF"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBox.console-search /template/ TextPresenter">
+        <Setter Property="TextAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBox.console-search.menuFocus">
+        <Setter Property="BorderBrush" Value="#3D6AF2"/>
+        <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
+    <Style Selector="Button.console-play.menuFocus">
+        <Setter Property="BorderBrush" Value="#F4F7FF"/>
+        <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
+    <Style Selector="Border.console-categories">
+        <Setter Property="Padding" Value="4"/>
+        <Setter Property="CornerRadius" Value="16"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="2"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style Selector="Border.console-categories.menuFocus">
+        <Setter Property="BorderBrush" Value="#3D6AF2"/>
+    </Style>
+
+    <Style Selector="ListBox.console-carousel.menuFocus">
+        <Setter Property="Opacity" Value="1"/>
+    </Style>
+
+    <Style Selector="Border.console-media-dock.menuFocus">
+        <Setter Property="BorderBrush" Value="#3D6AF2"/>
+        <Setter Property="BorderThickness" Value="2"/>
     </Style>
 
     <Style Selector="Button.console-exit">
@@ -35,6 +132,11 @@
         <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
+    <Style Selector="Button.console-exit.menuFocus">
+        <Setter Property="BorderBrush" Value="#3D6AF2"/>
+        <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
     <Style Selector="Button.console-exit:pointerover /template/ ContentPresenter">
         <Setter Property="Background" Value="#262D3E"/>
     </Style>
@@ -49,6 +151,8 @@
         <Setter Property="Foreground" Value="#D7DFF1"/>
         <Setter Property="BorderBrush" Value="#2C3448"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
     </Style>
 
     <Style Selector="Button.console-chip:pointerover /template/ ContentPresenter">

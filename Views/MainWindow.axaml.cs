@@ -291,7 +291,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (searchFocused)
+        if (searchFocused && e.Key is not Key.Up and not Key.Down)
             return;
 
         if (e.KeyModifiers is KeyModifiers.None or KeyModifiers.Shift
@@ -323,6 +323,8 @@ public partial class MainWindow : Window
         {
             Key.Left => ConsoleInput.MoveLeft,
             Key.Right => ConsoleInput.MoveRight,
+            Key.Up => ConsoleInput.MoveUp,
+            Key.Down => ConsoleInput.MoveDown,
             Key.Q => ConsoleInput.PreviousCategory,
             Key.E => ConsoleInput.NextCategory,
             Key.Enter or Key.A => ConsoleInput.Activate,

@@ -5,7 +5,6 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using OpenGameHUB.Infrastructure.Input;
 using OpenGameHUB.ViewModels;
 
 namespace OpenGameHUB.Views;
@@ -21,6 +20,11 @@ public partial class ConsoleModeView : UserControl
         InitializeComponent();
         SearchBox.GotFocus += OnSearchGotFocus;
         SearchBox.LostFocus += OnSearchLostFocus;
+        ExitButton.GotFocus += (_, _) => SetMenu(ConsoleMenuRegion.Exit);
+        PlayButton.GotFocus += (_, _) => SetMenu(ConsoleMenuRegion.Play);
+        CategoryBar.GotFocus += (_, _) => SetMenu(ConsoleMenuRegion.Categories);
+        Carousel.GotFocus += (_, _) => SetMenu(ConsoleMenuRegion.Games);
+        MediaDock.GotFocus += (_, _) => SetMenu(ConsoleMenuRegion.Media);
     }
 
     public void FocusCarousel()
@@ -28,12 +32,14 @@ public partial class ConsoleModeView : UserControl
         Dispatcher.UIThread.Post(ScrollToFocusedGame, DispatcherPriority.Input);
     }
 
-    public void FocusSearch()
+    public void FocusSearch(bool showKeyboard = false)
     {
         SearchBox.Focus();
         SearchBox.SelectAll();
-        if (_console?.UsingGamepad == true)
-            Dispatcher.UIThread.Post(static () => WindowsOnScreenKeyboard.TryShow(), DispatcherPriority.Input);
+        if (showKeyboard && _console is not null && !_console.KeyboardOpen)
+            _console.OpenSearchKeyboard();
+        else if (_console is not null)
+            _console.MenuRegion = ConsoleMenuRegion.Search;
     }
 
     public bool IsConsoleSearch(IInputElement? element) => ReferenceEquals(element, SearchBox);
@@ -82,12 +88,16 @@ public partial class ConsoleModeView : UserControl
     private void OnSearchGotFocus(object? sender, RoutedEventArgs e)
     {
         if (DataContext is ConsoleModeViewModel vm)
+        {
             vm.SearchFocused = true;
+            if (vm.MenuRegion != ConsoleMenuRegion.Search && !vm.KeyboardOpen)
+                vm.MenuRegion = ConsoleMenuRegion.Search;
+        }
     }
 
     private void OnSearchLostFocus(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is ConsoleModeViewModel vm)
+        if (DataContext is ConsoleModeViewModel vm && !vm.KeyboardOpen && vm.MenuRegion == ConsoleMenuRegion.Search)
             vm.SearchFocused = false;
     }
 
@@ -95,12 +105,55 @@ public partial class ConsoleModeView : UserControl
     {
         if (e.PropertyName == nameof(ConsoleModeViewModel.FocusedIndex))
             ScrollToFocusedGame(focusCarousel: false);
+        else if (e.PropertyName == nameof(ConsoleModeViewModel.MenuRegion))
+            ApplyMenuFocus();
+    }
+
+    private void SetMenu(ConsoleMenuRegion region)
+    {
+        if (_console is not null && _console.MenuRegion != region && !_console.KeyboardOpen)
+            _console.MenuRegion = region;
+    }
+
+    private void ApplyMenuFocus()
+    {
+        if (_console is null || _console.KeyboardOpen)
+            return;
+
+        switch (_console.MenuRegion)
+        {
+            case ConsoleMenuRegion.Search:
+                SearchBox.Focus();
+                SearchBox.SelectAll();
+                break;
+            case ConsoleMenuRegion.Exit:
+                ExitButton.Focus();
+                break;
+            case ConsoleMenuRegion.Play:
+                PlayButton.Focus();
+                break;
+            case ConsoleMenuRegion.Categories:
+                CategoryBar.Focus();
+                break;
+            case ConsoleMenuRegion.Media:
+                MediaDock.Focus();
+                break;
+            default:
+                ScrollToFocusedGame(focusCarousel: true);
+                break;
+        }
     }
 
     private void OnFocusRequested(object? sender, EventArgs e) =>
         ScrollToFocusedGame(focusCarousel: true);
 
-    private void OnSearchRequested(object? sender, EventArgs e) => FocusSearch();
+    private void OnSearchRequested(object? sender, EventArgs e)
+    {
+        if (_console?.KeyboardOpen == true)
+            SearchBox.Focus();
+        else
+            Dispatcher.UIThread.Post(FocusCarousel, DispatcherPriority.Input);
+    }
 
     private void OnWindowPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
