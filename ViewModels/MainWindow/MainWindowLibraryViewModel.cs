@@ -228,7 +228,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
         void Capture(GameItemViewModel? game)
         {
-            if (game is null || !game.TryStealCover(out var bitmap, out var decodeWidth))
+            if (game is null || !game.TryStealCover(out var bitmap, out var decodeWidth) || bitmap is null)
                 return;
 
             MergeCoverHandoff(handoff, game.Source.Id, bitmap, decodeWidth);
