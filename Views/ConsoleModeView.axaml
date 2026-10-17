@@ -27,7 +27,7 @@
             </Border.Background>
         </Border>
 
-        <Grid RowDefinitions="Auto,*,Auto,Auto,Auto"
+        <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto"
               Margin="48,32,48,28">
             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
                 <TextBlock Text="OpenGameHUB"
@@ -53,10 +53,11 @@
             </Grid>
 
             <StackPanel Grid.Row="1"
-                        VerticalAlignment="Center"
+                        VerticalAlignment="Top"
                         HorizontalAlignment="Left"
                         MaxWidth="820"
-                        Spacing="16">
+                        Spacing="16"
+                        Margin="0,0,0,8">
                 <TextBlock Text="{Binding FocusedPlatform}"
                            Classes="console-kicker"
                            IsVisible="{Binding HasFocusedGame}"/>
@@ -82,6 +83,79 @@
                 <TextBlock Text="{Binding EmptyMessage}"
                            Classes="console-empty"
                            IsVisible="{Binding IsEmpty}"/>
+            </StackPanel>
+
+            <Border x:Name="CategoryBar"
+                    Grid.Row="2"
+                    Classes="console-categories"
+                    Classes.menuFocus="{Binding IsCategoriesMenu}"
+                    Focusable="True"
+                    Margin="0,0,0,12">
+                <ItemsControl ItemsSource="{Binding Categories}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ConsoleCategoryItem">
+                            <Button Classes="console-chip"
+                                    Classes.selected="{Binding IsSelected}"
+                                    Content="{Binding Label}"
+                                    Command="{Binding SelectCommand}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <ListBox x:Name="Carousel"
+                     Grid.Row="3"
+                     Classes="console-carousel"
+                     VerticalAlignment="Bottom"
+                     ItemsSource="{Binding Games}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                     Focusable="True"
+                     Classes.menuFocus="{Binding IsGamesMenu}"
+                     SelectionChanged="OnCarouselSelectionChanged"
+                     DoubleTapped="OnCarouselDoubleTapped">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:GameItemViewModel">
+                        <Border Classes="console-tile">
+                            <Panel>
+                                <Image Source="{Binding CoverImage}"
+                                       Stretch="UniformToFill"
+                                       IsVisible="{Binding HasCover}"/>
+                                <Border Background="{Binding Platform, Converter={x:Static conv:PlatformBrushConverter.Instance}}"
+                                        Opacity="0.9"
+                                        IsVisible="{Binding !HasCover}"/>
+                                <Border Background="#660B0D12"
+                                        IsVisible="{Binding !IsInstalled}"/>
+                                <Border Classes="console-tile-scrim">
+                                    <TextBlock Text="{Binding Title}"
+                                               Classes="console-tile-title"
+                                               TextWrapping="Wrap"
+                                               MaxHeight="44"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Border>
+                                <Border Classes="console-tile-favorite"
+                                        IsVisible="{Binding IsFavorite}">
+                                    <TextBlock Text="&#x2605;" Classes="console-tile-star"/>
+                                </Border>
+                            </Panel>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="4"
+                        Spacing="0"
+                        Margin="0,8,0,0">
                 <WrapPanel Classes="console-hint-row" IsVisible="{Binding UsingGamepad}">
                     <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
                         <Border Classes="console-pad-face a">
@@ -183,76 +257,8 @@
                 </WrapPanel>
             </StackPanel>
 
-            <Border x:Name="CategoryBar"
-                    Grid.Row="2"
-                    Classes="console-categories"
-                    Classes.menuFocus="{Binding IsCategoriesMenu}"
-                    Focusable="True"
-                    Margin="0,0,0,12">
-                <ItemsControl ItemsSource="{Binding Categories}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ConsoleCategoryItem">
-                            <Button Classes="console-chip"
-                                    Classes.selected="{Binding IsSelected}"
-                                    Content="{Binding Label}"
-                                    Command="{Binding SelectCommand}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
-
-            <ListBox x:Name="Carousel"
-                     Grid.Row="3"
-                     Classes="console-carousel"
-                     Height="390"
-                     ItemsSource="{Binding Games}"
-                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                     Focusable="True"
-                     Classes.menuFocus="{Binding IsGamesMenu}"
-                     SelectionChanged="OnCarouselSelectionChanged"
-                     DoubleTapped="OnCarouselDoubleTapped">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="vm:GameItemViewModel">
-                        <Border Classes="console-tile">
-                            <Panel>
-                                <Image Source="{Binding CoverImage}"
-                                       Stretch="UniformToFill"
-                                       IsVisible="{Binding HasCover}"/>
-                                <Border Background="{Binding Platform, Converter={x:Static conv:PlatformBrushConverter.Instance}}"
-                                        Opacity="0.9"
-                                        IsVisible="{Binding !HasCover}"/>
-                                <Border Background="#660B0D12"
-                                        IsVisible="{Binding !IsInstalled}"/>
-                                <Border Classes="console-tile-scrim">
-                                    <TextBlock Text="{Binding Title}"
-                                               Classes="console-tile-title"
-                                               TextWrapping="Wrap"
-                                               MaxHeight="44"
-                                               TextTrimming="CharacterEllipsis"/>
-                                </Border>
-                                <Border Classes="console-tile-favorite"
-                                        IsVisible="{Binding IsFavorite}">
-                                    <TextBlock Text="&#x2605;" Classes="console-tile-star"/>
-                                </Border>
-                            </Panel>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
             <Border x:Name="MediaDock"
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Classes="console-media console-media-dock"
                     Classes.guide="{Binding MediaGuideOpen}"
                     Classes.gamepad="{Binding UsingGamepad}"

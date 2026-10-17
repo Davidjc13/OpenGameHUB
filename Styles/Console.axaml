@@ -245,8 +245,17 @@
     <Style Selector="ListBox.console-carousel">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
-        <Setter Property="Padding" Value="0"/>
+        <!-- Headroom so the selected tile (321px) can grow above the 252px row without clipping the top border -->
+        <Setter Property="Padding" Value="0,72,0,0"/>
+        <Setter Property="MinHeight" Value="390"/>
         <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        <Setter Property="ClipToBounds" Value="False"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell.console-compact ListBox.console-carousel">
+        <Setter Property="Padding" Value="0,63,0,0"/>
+        <Setter Property="MinHeight" Value="330"/>
     </Style>
 
     <Style Selector="ListBox.console-carousel ListBoxItem">
@@ -675,6 +684,29 @@
     <Style Selector="TextBlock.console-media-osd-hint">
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="Foreground" Value="#9AA6BF"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell.console-compact TextBlock.console-title">
+        <Setter Property="FontSize" Value="40"/>
+        <Setter Property="LineHeight" Value="46"/>
+        <Setter Property="MaxHeight" Value="96"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell.console-compact Button.console-play">
+        <Setter Property="MinWidth" Value="180"/>
+        <Setter Property="MinHeight" Value="52"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Padding" Value="28,12"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell.console-compact Border.console-tile">
+        <Setter Property="Width" Value="140"/>
+        <Setter Property="Height" Value="210"/>
+    </Style>
+
+    <Style Selector="UserControl.console-shell.console-compact ListBox.console-carousel ListBoxItem:selected Border.console-tile">
+        <Setter Property="Width" Value="178"/>
+        <Setter Property="Height" Value="267"/>
     </Style>
 
 </Styles>
