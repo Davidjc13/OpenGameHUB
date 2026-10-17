@@ -11,6 +11,8 @@ namespace OpenGameHUB.Views;
 
 public partial class ConsoleModeView : UserControl
 {
+    private const double ReferenceViewportHeight = 1080;
+
     private ConsoleModeViewModel? _console;
     private MainWindowViewModel? _window;
     private bool _syncingCarousel;
@@ -74,6 +76,22 @@ public partial class ConsoleModeView : UserControl
             _window.PropertyChanged += OnWindowPropertyChanged;
 
         UpdateStatus();
+        ApplyViewportLayout(Bounds.Size);
+    }
+
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        ApplyViewportLayout(e.NewSize);
+    }
+
+    private void ApplyViewportLayout(Size viewportSize)
+    {
+        if (viewportSize.Height <= 0)
+            return;
+
+        var scale = Math.Clamp(viewportSize.Height / ReferenceViewportHeight, 0.72, 1.0);
+        Classes.Set("console-compact", scale < 0.88);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)

@@ -323,10 +323,11 @@ public sealed class GameLibraryService : IDisposable
         CancellationToken cancellationToken = default) =>
         _metadataService.TryResetCustomCoverAsync(game, cancellationToken);
 
-    public void LaunchGame(UnifiedGame game)
+    public Process? LaunchGame(UnifiedGame game)
     {
-        _launchService.Launch(game);
+        var process = _launchService.Launch(game);
         RecordLauncherLaunch(game);
+        return process;
     }
 
     public void RecordLauncherLaunch(UnifiedGame game)

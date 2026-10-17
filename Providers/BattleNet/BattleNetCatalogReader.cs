@@ -131,7 +131,7 @@ internal static class BattleNetCatalogReader
                     && byApiId.TryGetValue(accountGame.TitleId, out var byId)
                     ? byId
                     : null)
-                ?? FindCatalogByTitle(accountGame.LocalizedName);
+                ?? FindByTitle(accountGame.LocalizedName);
 
             var productId = catalogGame?.ProductId
                 ?? NullIfEmpty(accountGame.TitleId)
@@ -166,7 +166,7 @@ internal static class BattleNetCatalogReader
                 continue;
 
             var catalogGame = FindByProductId(accountEntry.ProductId)
-                ?? FindCatalogByTitle(accountEntry.Title);
+                ?? FindByTitle(accountEntry.Title);
             merged[accountEntry.ProductId] = new BattleNetCatalogEntry(
                 catalogGame?.InternalId ?? accountEntry.ProductId,
                 catalogGame?.ProductId ?? accountEntry.ProductId,
@@ -291,7 +291,7 @@ internal static class BattleNetCatalogReader
         results[productId] = new BattleNetAccountLibraryEntry(productId, title);
     }
 
-    private static BattleNetCatalogGame? FindCatalogByTitle(string? title)
+    public static BattleNetCatalogGame? FindByTitle(string? title)
     {
         if (string.IsNullOrWhiteSpace(title))
             return null;

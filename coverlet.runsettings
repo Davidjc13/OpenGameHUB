@@ -28,7 +28,10 @@
             [OpenGameHUB]OpenGameHUB.Providers.Xbox.XboxCatalogReader,
             [OpenGameHUB]OpenGameHUB.Infrastructure.ProtocolUri,
             [OpenGameHUB]OpenGameHUB.Services.Games.GameLibraryActions,
-            [OpenGameHUB]OpenGameHUB.Services.Games.CustomGameService
+            [OpenGameHUB]OpenGameHUB.Services.Games.CustomGameService,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameProcessMatcher,
+            [OpenGameHUB]OpenGameHUB.Services.Games.GameProcessMonitor,
+            [OpenGameHUB]OpenGameHUB.Services.Games.SteamRunningAppReader
           </Include>
           <Threshold>70</Threshold>
           <ThresholdType>line</ThresholdType>

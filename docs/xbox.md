@@ -146,9 +146,9 @@ XboxInstallClient.ResolveStoreProductIdAsync(pfn)
 |-------|------------|-----|
 | Title | `Properties/DisplayName` | `UnifiedGame.Title` |
 | Executable / ApplicationId | `Applications/Application` | Launch |
-| Cover | `Square150x150Logo`, `Logo`, … | `CatalogCoverUrl` (local path) |
+| Cover | Store `Poster` (720×1080), then the manifest logo | `CatalogCoverUrl` |
 
-`XboxManifestReader.EnrichCatalogCoverUrls` backfills covers after DB load.
+The portrait comes from the public display catalog (`Poster`, else a taller image, else `BoxArt`). The manifest logo (`Square150x150Logo`, `Logo`, …) is only used when that poster cannot be downloaded. `XboxManifestReader.EnrichCatalogCoverUrls` backfills the local logo after DB load.
 
 ---
 

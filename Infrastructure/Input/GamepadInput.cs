@@ -18,7 +18,8 @@ public readonly record struct GamepadButtons(
     byte LeftTrigger = 0,
     byte RightTrigger = 0,
     bool Back = false,
-    bool Start = false);
+    bool Start = false,
+    bool LeftThumb = false);
 
 public sealed class GamepadRepeatState
 {
@@ -160,7 +161,8 @@ public static class GamepadInput
             || previous.LeftShoulder != current.LeftShoulder
             || previous.RightShoulder != current.RightShoulder
             || previous.Back != current.Back
-            || previous.Start != current.Start)
+            || previous.Start != current.Start
+            || previous.LeftThumb != current.LeftThumb)
         {
             return true;
         }

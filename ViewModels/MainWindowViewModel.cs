@@ -7,6 +7,7 @@ using OpenGameHUB.Infrastructure.Discord;
 using OpenGameHUB.Localization;
 using OpenGameHUB.Services.Configuration;
 using OpenGameHUB.Services.Games;
+using OpenGameHUB.Services.Notifications;
 using OpenGameHUB.ViewModels.MainWindow;
 using OpenGameHUB.Views;
 
@@ -64,9 +65,16 @@ public partial class MainWindowViewModel : ViewModelBase
         Console = new ConsoleModeViewModel(
             Library,
             ExitConsoleMode,
-            discord: new DiscordIpcPresence(),
-            discordApplicationId: () => _libraryService.Settings.Current.DiscordApplicationId,
-            animationsEnabled: () => _libraryService.Settings.Current.PageSlideEnabled);
+            discord: DevModeService.IsDiscordFeatureEnabled ? new DiscordIpcPresence() : null,
+            discordApplicationId: () => DevModeService.IsDiscordFeatureEnabled
+                ? _libraryService.Settings.Current.DiscordApplicationId
+                : null,
+            animationsEnabled: () => _libraryService.Settings.Current.PageSlideEnabled,
+            notifications: new DiscordNotificationService(
+                isEnabled: () => DevModeService.IsDiscordFeatureEnabled
+                    && _libraryService.Settings.Current.DiscordConsoleNotificationsEnabled,
+                suppressSystemToasts: () => _libraryService.Settings.Current.SuppressSystemDiscordToasts),
+            discordFeatureEnabled: () => DevModeService.IsDiscordFeatureEnabled);
 
         Updates = new MainWindowUpdatesViewModel(
             text => StatusText = text,
@@ -238,6 +246,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 _libraryService.Collections,
                 _libraryService)));
             ApplyLocalization();
+            Console.Notifications.RefreshEnabledState();
 
             if (_pendingDevRelaunch)
             {

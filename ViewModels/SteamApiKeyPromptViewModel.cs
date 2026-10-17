@@ -65,6 +65,8 @@ public partial class SteamApiKeyPromptViewModel : ViewModelBase
             PageSlideEnabled = current.PageSlideEnabled,
             XboxGamertag = current.XboxGamertag,
             DiscordApplicationId = current.DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = current.DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = current.SuppressSystemDiscordToasts,
             DismissSteamApiKeyPrompt = true,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,

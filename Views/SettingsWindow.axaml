@@ -185,14 +185,27 @@
                                    Classes="text-help"
                                    TextWrapping="Wrap"/>
 
-                        <TextBlock Text="{Binding Strings.DiscordSection}"
-                                   Classes="text-caption"
-                                   Margin="0,8,0,0"/>
-                        <TextBox PlaceholderText="{Binding Strings.DiscordApplicationIdPlaceholder}"
-                                 Text="{Binding DiscordApplicationId}"/>
-                        <TextBlock Text="{Binding Strings.DiscordApplicationIdHelp}"
-                                   Classes="text-help"
-                                   TextWrapping="Wrap"/>
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding IsDiscordFeatureEnabled}">
+                            <TextBlock Text="{Binding Strings.DiscordSection}"
+                                       Classes="text-caption"
+                                       Margin="0,8,0,0"/>
+                            <TextBox PlaceholderText="{Binding Strings.DiscordApplicationIdPlaceholder}"
+                                     Text="{Binding DiscordApplicationId}"/>
+                            <TextBlock Text="{Binding Strings.DiscordApplicationIdHelp}"
+                                       Classes="text-help"
+                                       TextWrapping="Wrap"/>
+
+                            <CheckBox Content="{Binding Strings.DiscordConsoleNotifications}"
+                                      IsChecked="{Binding DiscordConsoleNotificationsEnabled}"
+                                      Margin="0,6,0,0"/>
+                            <CheckBox Content="{Binding Strings.DiscordSuppressSystemToasts}"
+                                      IsChecked="{Binding SuppressSystemDiscordToasts}"
+                                      IsEnabled="{Binding DiscordConsoleNotificationsEnabled}"/>
+                            <TextBlock Text="{Binding Strings.DiscordConsoleNotificationsHelp}"
+                                       Classes="text-help"
+                                       TextWrapping="Wrap"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

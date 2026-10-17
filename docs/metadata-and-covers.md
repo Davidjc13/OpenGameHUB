@@ -122,8 +122,9 @@ Uses `System.Drawing.Common` (Windows-only build). Same validator as remote down
 | `WikipediaCoverClient` | Wikipedia REST | None |
 | `SteamStoreSearchClient` | Steam store search | None |
 | `RiotCoverClient` | Static IGDB image IDs | None |
+| `BattleNetCoverClient` | Blizzard CDN card, else static IGDB image id | None |
 
-Steam CDN, Ubisoft CDN, and Xbox manifest logos do not go through `MetadataService` the same way: they are used as `CatalogCoverUrl` during scanning (`SteamWebApiService.EnrichCatalogCoverUrls`, `UbisoftCatalogReader.EnrichCatalogCoverUrls`, `XboxManifestReader.EnrichCatalogCoverUrls`). Local Xbox logo paths are copied to the cover cache in `MetadataService.DownloadCoverAsync`.
+Steam CDN, Ubisoft CDN, and Xbox manifest logos do not go through `MetadataService` the same way: they are used as `CatalogCoverUrl` during scanning (`SteamWebApiService.EnrichCatalogCoverUrls`, `UbisoftCatalogReader.EnrichCatalogCoverUrls`, `XboxManifestReader.EnrichCatalogCoverUrls`). A local Steam library capsule (`appcache/librarycache/{appid}/library_600x900.jpg`) is preferred over the CDN. Xbox tries the Store poster before copying the local manifest logo.
 
 See [riot.md](riot.md) for how `RiotCoverClient` maps product slugs to cover URLs.
 

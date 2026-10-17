@@ -76,12 +76,37 @@ public sealed class SteamWebApiService
                 continue;
 
             if (int.TryParse(game.PlatformGameId, out var appId))
-                game.CatalogCoverUrl ??= GetCoverUrl(appId);
+            {
+                game.CatalogCoverUrl ??= FindLocalLibraryCover(appId) ?? GetCoverUrl(appId);
+            }
         }
     }
 
     public static string GetCoverUrl(int appId) =>
         $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg";
+
+    public static IReadOnlyList<string> GetCoverUrls(int appId) =>
+    [
+        GetCoverUrl(appId),
+        $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900_2x.jpg"
+    ];
+
+    public static string? FindLocalLibraryCover(int appId) =>
+        FindLocalLibraryCover(appId, SteamLocalAccountReader.FindSteamInstallPath());
+
+    internal static string? FindLocalLibraryCover(int appId, string? steamInstallPath)
+    {
+        if (appId <= 0 || string.IsNullOrWhiteSpace(steamInstallPath))
+            return null;
+
+        var path = Path.Combine(
+            steamInstallPath,
+            "appcache",
+            "librarycache",
+            appId.ToString(),
+            "library_600x900.jpg");
+        return File.Exists(path) ? path : null;
+    }
 
     public async Task<SteamConnectionTestResult> TestConnectionAsync(
         string apiKey,

@@ -4,6 +4,7 @@ using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
+using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.Services.Covers;
 
@@ -19,6 +20,8 @@ public sealed class MetadataService
     private readonly RockstarCoverClient _rockstarCoverClient = new();
     private readonly EpicCoverClient _epicCoverClient = new();
     private readonly EaCoverClient _eaCoverClient = new();
+    private readonly BattleNetCoverClient _battleNetCoverClient = new();
+    private readonly XboxCoverClient _xboxCoverClient = new();
     private readonly HttpClient _httpClient = new();
     private readonly SafeImageDownloader _safeImageDownloader;
 
@@ -202,7 +205,8 @@ public sealed class MetadataService
         if (localCover is not null && TryIngestCoverImage(localCover, cachePath))
             return cachePath;
 
-        if (TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
+        var deferLocalCatalogCover = ShouldDeferLocalCatalogCover(game);
+        if (!deferLocalCatalogCover && TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
             return cachePath;
 
         foreach (var url in await ResolveCoverUrlsAsync(game, settings, cancellationToken))
@@ -211,8 +215,16 @@ public sealed class MetadataService
                 return cachePath;
         }
 
+        if (deferLocalCatalogCover && TryCopyCatalogCoverFile(game.CatalogCoverUrl, cachePath))
+            return cachePath;
+
         return null;
     }
+
+    private static bool ShouldDeferLocalCatalogCover(UnifiedGame game) =>
+        game.Platform == Platform.GamePass
+        && !string.IsNullOrWhiteSpace(game.CatalogCoverUrl)
+        && !game.CatalogCoverUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase);
 
     private static bool TryCopyCatalogCoverFile(string? catalogCoverUrl, string cachePath)
     {
@@ -243,7 +255,11 @@ public sealed class MetadataService
 
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out var steamAppId))
         {
-            urls.Add(SteamWebApiService.GetCoverUrl(steamAppId));
+            foreach (var url in SteamWebApiService.GetCoverUrls(steamAppId))
+            {
+                if (!urls.Contains(url, StringComparer.OrdinalIgnoreCase))
+                    urls.Add(url);
+            }
         }
         else if (game.Platform == Platform.Epic)
         {
@@ -260,6 +276,16 @@ public sealed class MetadataService
         else if (game.Platform == Platform.Rockstar)
         {
             urls.AddRange(await _rockstarCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.BattleNet)
+        {
+            urls.AddRange(await _battleNetCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+            urls.AddRange(await _steamStoreSearchClient.FindCoverUrlsAsync(game, cancellationToken));
+        }
+        else if (game.Platform == Platform.GamePass)
+        {
+            urls.AddRange(await _xboxCoverClient.FindCoverUrlsAsync(game, cancellationToken));
+            urls.AddRange(await _steamStoreSearchClient.FindCoverUrlsAsync(game, cancellationToken));
         }
         else
         {
