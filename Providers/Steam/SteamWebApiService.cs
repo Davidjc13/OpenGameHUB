@@ -99,13 +99,34 @@ public sealed class SteamWebApiService
         if (appId <= 0 || string.IsNullOrWhiteSpace(steamInstallPath))
             return null;
 
-        var path = Path.Combine(
+        var appCacheDir = Path.Combine(
             steamInstallPath,
             "appcache",
             "librarycache",
-            appId.ToString(),
-            "library_600x900.jpg");
-        return File.Exists(path) ? path : null;
+            appId.ToString());
+        if (!Directory.Exists(appCacheDir))
+            return null;
+
+        var legacyPath = Path.Combine(appCacheDir, "library_600x900.jpg");
+        if (File.Exists(legacyPath))
+            return legacyPath;
+
+        return FindLocalLibraryAsset(appCacheDir, "library_capsule_2x.jpg")
+               ?? FindLocalLibraryAsset(appCacheDir, "library_capsule.jpg");
+    }
+
+    private static string? FindLocalLibraryAsset(string appCacheDir, string fileName)
+    {
+        try
+        {
+            return Directory
+                .EnumerateFiles(appCacheDir, fileName, SearchOption.AllDirectories)
+                .FirstOrDefault();
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<SteamConnectionTestResult> TestConnectionAsync(

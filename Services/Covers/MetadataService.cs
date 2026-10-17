@@ -4,6 +4,7 @@ using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Database;
 using OpenGameHUB.Providers.Ea;
 using OpenGameHUB.Providers.Epic;
+using OpenGameHUB.Providers.Steam;
 using OpenGameHUB.Providers.Xbox;
 
 namespace OpenGameHUB.Services.Covers;
@@ -14,6 +15,7 @@ public sealed class MetadataService
     private readonly SettingsService _settingsService;
     private readonly IgdbClient _igdbClient = new();
     private readonly SteamGridDbClient _steamGridDbClient = new();
+    private readonly SteamStoreClient _steamStoreClient = new();
     private readonly SteamStoreSearchClient _steamStoreSearchClient = new();
     private readonly WikipediaCoverClient _wikipediaCoverClient = new();
     private readonly RiotCoverClient _riotCoverClient = new();
@@ -79,6 +81,19 @@ public sealed class MetadataService
                 var coverPath = await DownloadCoverAsync(game, settings, timeoutCts.Token);
                 if (coverPath is null)
                     continue;
+
+                // #region agent log
+                if (game.Title.Contains("Requiem", StringComparison.OrdinalIgnoreCase)
+                    || game.Title.Contains("Amsterdam", StringComparison.OrdinalIgnoreCase)
+                    || game.Title.Contains("1666", StringComparison.OrdinalIgnoreCase))
+                {
+                    DebugAgentLog.Write(
+                        "H2",
+                        "MetadataService.EnrichCoversAsync",
+                        "cover-saved",
+                        new { game.Id, game.Title, coverPath });
+                }
+                // #endregion
 
                 game.CoverPath = coverPath;
                 _database.UpdateCoverPath(game.Id, coverPath);
@@ -256,6 +271,12 @@ public sealed class MetadataService
         if (game.Platform == Platform.Steam && int.TryParse(game.PlatformGameId, out var steamAppId))
         {
             foreach (var url in SteamWebApiService.GetCoverUrls(steamAppId))
+            {
+                if (!urls.Contains(url, StringComparer.OrdinalIgnoreCase))
+                    urls.Add(url);
+            }
+
+            foreach (var url in await _steamStoreClient.GetCoverUrlsAsync(steamAppId, cancellationToken))
             {
                 if (!urls.Contains(url, StringComparer.OrdinalIgnoreCase))
                     urls.Add(url);
