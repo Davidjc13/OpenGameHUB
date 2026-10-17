@@ -6,6 +6,8 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using OpenGameHUB.Infrastructure;
 using OpenGameHUB.Infrastructure.Browser;
+using OpenGameHUB.Infrastructure.Windows;
+using OpenGameHUB.Services.Configuration;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.Views;
 
@@ -21,6 +23,8 @@ public partial class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         AppCrashHandlers.RegisterUiThreadHandler();
+        if (DevModeService.IsDiscordFeatureEnabled)
+            SparsePackageRegistration.TryEnsureRegistered();
 
         // Remove any auth browser profiles orphaned by a previous crash before doing anything else.
         WebView2AuthProfile.CleanupOrphanedProfiles();

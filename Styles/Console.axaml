@@ -709,4 +709,127 @@
         <Setter Property="Height" Value="267"/>
     </Style>
 
+    <Style Selector="Button.console-discord-banner">
+        <Setter Property="Background" Value="#F5181D2C"/>
+        <Setter Property="BorderBrush" Value="#5865F2"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="CornerRadius" Value="18"/>
+        <Setter Property="Padding" Value="18,14"/>
+        <Setter Property="MinWidth" Value="460"/>
+        <Setter Property="MaxWidth" Value="760"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+
+    <Style Selector="Button.console-discord-banner:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#FA1F263A"/>
+        <Setter Property="BorderBrush" Value="#7983F5"/>
+    </Style>
+
+    <Style Selector="Border.console-discord-avatar">
+        <Setter Property="Width" Value="42"/>
+        <Setter Property="Height" Value="42"/>
+        <Setter Property="CornerRadius" Value="21"/>
+        <Setter Property="Background" Value="#5865F2"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-avatar-glyph">
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-sender">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#F4F7FF"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-body">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="Foreground" Value="#C5CEE0"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-time">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Foreground" Value="#8B97B0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-hint">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="#D8E0F2"/>
+    </Style>
+
+    <Style Selector="Border.console-discord-badge">
+        <Setter Property="Background" Value="#5865F2"/>
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="MinWidth" Value="20"/>
+        <Setter Property="Height" Value="20"/>
+        <Setter Property="Padding" Value="6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-badge-text">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="#FFFFFF"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style Selector="Border.console-discord-inbox">
+        <Setter Property="Background" Value="#F5161B29"/>
+        <Setter Property="BorderBrush" Value="#5865F2"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
+        <Setter Property="CornerRadius" Value="24"/>
+        <Setter Property="Padding" Value="32,28"/>
+        <Setter Property="Width" Value="680"/>
+    </Style>
+
+    <Style Selector="Button.console-discord-item">
+        <Setter Property="Background" Value="#221E2538"/>
+        <Setter Property="BorderBrush" Value="#2E374D"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="14"/>
+        <Setter Property="Padding" Value="16,12"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </Style>
+
+    <Style Selector="Button.console-discord-item.selected">
+        <Setter Property="Background" Value="#3D293452"/>
+        <Setter Property="BorderBrush" Value="#5865F2"/>
+        <Setter Property="BorderThickness" Value="2"/>
+    </Style>
+
+    <Style Selector="Button.console-discord-item:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#33293452"/>
+        <Setter Property="BorderBrush" Value="#5865F2"/>
+    </Style>
+
+    <Style Selector="Border.console-discord-notice">
+        <Setter Property="Background" Value="#2E232B42"/>
+        <Setter Property="BorderBrush" Value="#4A5678"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="12"/>
+        <Setter Property="Padding" Value="14,10"/>
+    </Style>
+
+    <Style Selector="Border.console-discord-draft">
+        <Setter Property="Background" Value="#265865F2"/>
+        <Setter Property="BorderBrush" Value="#5865F2"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="Margin" Value="0,4,0,0"/>
+    </Style>
+
+    <Style Selector="TextBlock.console-discord-draft-text">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="Foreground" Value="#DCE2FF"/>
+    </Style>
+
 </Styles>

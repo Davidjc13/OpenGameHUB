@@ -23,6 +23,8 @@ internal sealed class AppSettingsDocument
     public string XboxGamertag { get; set; } = string.Empty;
     public string BattleNetDisplayName { get; set; } = string.Empty;
     public string DiscordApplicationId { get; set; } = string.Empty;
+    public bool DiscordConsoleNotificationsEnabled { get; set; } = true;
+    public bool SuppressSystemDiscordToasts { get; set; } = true;
 
     public static AppSettingsDocument From(AppSettings settings) =>
         new()
@@ -44,7 +46,9 @@ internal sealed class AppSettingsDocument
             EpicDisplayName = settings.EpicDisplayName,
             XboxGamertag = settings.XboxGamertag,
             BattleNetDisplayName = settings.BattleNetDisplayName,
-            DiscordApplicationId = settings.DiscordApplicationId
+            DiscordApplicationId = settings.DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = settings.DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = settings.SuppressSystemDiscordToasts
         };
 
     public AppSettings ToSettings(SettingsSecrets secrets) =>
@@ -68,6 +72,8 @@ internal sealed class AppSettingsDocument
             XboxGamertag = XboxGamertag,
             BattleNetDisplayName = BattleNetDisplayName,
             DiscordApplicationId = DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = SuppressSystemDiscordToasts,
             SteamApiKey = secrets.SteamApiKey,
             IgdbClientSecret = secrets.IgdbClientSecret,
             SteamGridDbApiKey = secrets.SteamGridDbApiKey

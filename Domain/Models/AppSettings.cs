@@ -23,6 +23,8 @@ public sealed class AppSettings
     public string XboxGamertag { get; set; } = string.Empty;
     public string BattleNetDisplayName { get; set; } = string.Empty;
     public string DiscordApplicationId { get; set; } = string.Empty;
+    public bool DiscordConsoleNotificationsEnabled { get; set; } = true;
+    public bool SuppressSystemDiscordToasts { get; set; } = true;
 
     public bool HasEpicAuth => !string.IsNullOrWhiteSpace(EpicAccountId);
 
@@ -61,6 +63,8 @@ public sealed class AppSettings
             EpicDisplayName = EpicDisplayName,
             XboxGamertag = XboxGamertag,
             BattleNetDisplayName = BattleNetDisplayName,
-            DiscordApplicationId = DiscordApplicationId
+            DiscordApplicationId = DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = SuppressSystemDiscordToasts
         };
 }

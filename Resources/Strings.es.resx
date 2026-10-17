@@ -505,4 +505,17 @@ Puedes compartir este archivo de log al reportar el problema.</value></data>
   <data name="DiscordSection" xml:space="preserve"><value>Discord</value></data>
   <data name="DiscordApplicationIdPlaceholder" xml:space="preserve"><value>Application ID de Discord</value></data>
   <data name="DiscordApplicationIdHelp" xml:space="preserve"><value>Opcional. En pantalla completa, Discord muestra el juego seleccionado. Pega el Application ID del portal de desarrolladores de Discord. Al lanzar un juego, la pantalla completa se minimiza para que el overlay de Discord pueda quedar sobre el juego. El altavoz controla la app de música y no toca la voz de Discord.</value></data>
+  <data name="DiscordConsoleNotifications" xml:space="preserve"><value>Mostrar notificaciones de Discord estilo móvil en pantalla completa</value></data>
+  <data name="DiscordSuppressSystemToasts" xml:space="preserve"><value>Ocultar notificaciones de Windows de Discord en pantalla completa</value></data>
+  <data name="DiscordConsoleNotificationsHelp" xml:space="preserve"><value>Requiere permiso de acceso a notificaciones en Windows. Pulsa L3 en el mando para abrir las últimas notificaciones y redactar respuestas con el teclado en pantalla.</value></data>
+  <data name="ConsoleDiscordInboxTitle" xml:space="preserve"><value>Discord</value></data>
+  <data name="ConsoleDiscordInboxEmpty" xml:space="preserve"><value>No hay notificaciones recientes de Discord</value></data>
+  <data name="ConsoleDiscordPermissionDenied" xml:space="preserve"><value>El acceso a las notificaciones de Windows está desactivado. Concédelo en la configuración de privacidad de Windows para ver mensajes de Discord en pantalla completa.</value></data>
+  <data name="ConsoleDiscordOpenPrivacySettings" xml:space="preserve"><value>Abrir ajustes de notificaciones de Windows</value></data>
+  <data name="ConsoleDiscordHintReply" xml:space="preserve"><value>Responder</value></data>
+  <data name="ConsoleDiscordHintOpen" xml:space="preserve"><value>Abrir</value></data>
+  <data name="ConsoleDiscordReplyTo" xml:space="preserve"><value>Respondiendo a</value></data>
+  <data name="ConsoleDiscordDraftPrefix" xml:space="preserve"><value>Borrador</value></data>
+  <data name="ConsoleDiscordReplySavedNotice" xml:space="preserve"><value>Respuesta guardada en borrador (envío directo próximamente)</value></data>
+  <data name="ConsoleDiscordTimeNow" xml:space="preserve"><value>Ahora</value></data>
 </root>

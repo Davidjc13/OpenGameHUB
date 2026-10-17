@@ -5,9 +5,9 @@ namespace OpenGameHUB.Services.Games;
 
 internal sealed class GameProcessMonitor
 {
-    public static readonly TimeSpan AcquireTimeout = TimeSpan.FromSeconds(90);
-    public static readonly TimeSpan EmptyDebounce = TimeSpan.FromSeconds(4);
-    public static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
+    public static readonly TimeSpan AcquireTimeout = TimeSpan.FromSeconds(25);
+    public static readonly TimeSpan EmptyDebounce = TimeSpan.FromSeconds(1.5);
+    public static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
     private readonly UnifiedGame _game;
     private readonly GameProcessInfo? _launched;
@@ -77,8 +77,15 @@ internal sealed class GameProcessMonitor
 
     private bool IsLaunchedGameStillRunning()
     {
-        if (_launched is not { } launched || !GameProcessMatcher.IsGameProcess(launched, _game.InstallPath))
+        if (_launched is not { } launched || GameProcessMatcher.IsKnownLauncher(launched.ProcessName) || GameProcessMatcher.IsKnownLauncher(launched.ImagePath))
             return false;
+
+        if (!string.IsNullOrWhiteSpace(_game.InstallPath)
+            && !string.IsNullOrWhiteSpace(launched.ImagePath)
+            && !GameProcessMatcher.IsUnderInstallPath(launched.ImagePath, _game.InstallPath))
+        {
+            return false;
+        }
 
         foreach (var process in _catalog.Snapshot())
         {

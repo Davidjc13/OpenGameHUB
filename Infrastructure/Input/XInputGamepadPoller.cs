@@ -14,6 +14,7 @@ public sealed class XInputGamepadPoller : IDisposable
     private const ushort RightShoulder = 0x0200;
     private const ushort Back = 0x0020;
     private const ushort Menu = 0x0010;
+    private const ushort LeftThumb = 0x0040;
     private const ushort A = 0x1000;
     private const ushort B = 0x2000;
     private const ushort X = 0x4000;
@@ -155,7 +156,8 @@ public sealed class XInputGamepadPoller : IDisposable
                     LeftTrigger: pad.LeftTrigger,
                     RightTrigger: pad.RightTrigger,
                     Back: Has(pad.Buttons, Back),
-                    Start: Has(pad.Buttons, Menu));
+                    Start: Has(pad.Buttons, Menu),
+                    LeftThumb: Has(pad.Buttons, LeftThumb));
                 return true;
             }
 

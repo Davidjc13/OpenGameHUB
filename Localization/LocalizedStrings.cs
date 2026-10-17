@@ -181,6 +181,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     public string DiscordSection => Loc.T("DiscordSection");
     public string DiscordApplicationIdPlaceholder => Loc.T("DiscordApplicationIdPlaceholder");
     public string DiscordApplicationIdHelp => Loc.T("DiscordApplicationIdHelp");
+    public string DiscordConsoleNotifications => Loc.T("DiscordConsoleNotifications");
+    public string DiscordSuppressSystemToasts => Loc.T("DiscordSuppressSystemToasts");
+    public string DiscordConsoleNotificationsHelp => Loc.T("DiscordConsoleNotificationsHelp");
 
     public void Refresh() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

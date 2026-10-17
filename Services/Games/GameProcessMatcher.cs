@@ -28,13 +28,44 @@ internal static class GameProcessMatcher
         "opengamehub"
     };
 
+    private static readonly string[] BackgroundHelperTokens =
+    [
+        "crashhandler",
+        "crashreporter",
+        "crashpad",
+        "errorreporter",
+        "easyanticheat",
+        "battleye",
+        "beservice",
+        "vanguard",
+        "cefprocess",
+        "cefsubproc",
+        "webhelper",
+        " clean",
+        "redist",
+        "unins",
+        "setup"
+    ];
+
     public static bool IsKnownLauncher(string? processNameOrPath)
     {
         if (string.IsNullOrWhiteSpace(processNameOrPath))
             return false;
 
         var name = Path.GetFileNameWithoutExtension(processNameOrPath.Trim());
-        return !string.IsNullOrEmpty(name) && LauncherNames.Contains(name);
+        if (string.IsNullOrEmpty(name))
+            return false;
+
+        if (LauncherNames.Contains(name))
+            return true;
+
+        foreach (var token in BackgroundHelperTokens)
+        {
+            if (name.Contains(token, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     public static bool IsUnderInstallPath(string? imagePath, string? installPath)

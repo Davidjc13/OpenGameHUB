@@ -256,16 +256,42 @@ public partial class MainWindow : Window
     private void RestoreAfterPlay()
     {
         _applyingChrome = true;
+        Show();
         if (_consoleChromeActive)
+        {
+            // Avalonia on Windows needs a step through Normal when restoring from Minimized to borderless FullScreen.
+            if (WindowState == WindowState.Minimized)
+                WindowState = WindowState.Normal;
+            WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+            CanResize = false;
             WindowState = WindowState.FullScreen;
+        }
         else if (_prePlayWindowState == WindowState.Minimized)
+        {
             WindowState = WindowState.Normal;
+        }
         else
+        {
             WindowState = _prePlayWindowState;
+        }
 
-        Activate();
+        var wasTopmost = Topmost;
+        Topmost = true;
         WindowForeground.TryActivate(this);
+        Activate();
+        Topmost = wasTopmost;
         _applyingChrome = false;
+
+        if (_consoleChromeActive)
+        {
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    WindowForeground.TryActivate(this);
+                    ConsoleView.FocusCarousel();
+                },
+                DispatcherPriority.Input);
+        }
     }
 
     private void OnPointerUsed(object? sender, PointerPressedEventArgs e) =>

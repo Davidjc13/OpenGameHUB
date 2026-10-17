@@ -29,7 +29,7 @@
 
         <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto"
               Margin="48,32,48,28">
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="24">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="16">
                 <TextBlock Text="OpenGameHUB"
                            Classes="console-wordmark"
                            VerticalAlignment="Center"/>
@@ -43,8 +43,23 @@
                          HorizontalContentAlignment="Center"
                          PlaceholderText="{Binding SearchPlaceholder}"
                          Text="{Binding SearchText, Mode=TwoWay}"/>
+                <Button Grid.Column="2"
+                        Classes="console-exit console-discord-trigger"
+                        IsVisible="{Binding IsDiscordFeatureEnabled}"
+                        Command="{Binding ToggleNotificationInboxCommand}"
+                        VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <TextBlock Text="&#xE8BD;" Classes="console-media-glyph"/>
+                        <TextBlock Text="{Binding DiscordInboxTitle}" VerticalAlignment="Center"/>
+                        <Border Classes="console-discord-badge"
+                                IsVisible="{Binding HasDiscordUnread}">
+                            <TextBlock Text="{Binding DiscordUnreadCount}"
+                                       Classes="console-discord-badge-text"/>
+                        </Border>
+                    </StackPanel>
+                </Button>
                 <Button x:Name="ExitButton"
-                        Grid.Column="2"
+                        Grid.Column="3"
                         Classes="console-exit"
                         Classes.menuFocus="{Binding IsExitMenu}"
                         Content="{Binding ExitLabel}"
@@ -203,6 +218,15 @@
                             </Panel>
                         </Border>
                         <TextBlock Text="{Binding HintSearch}" Classes="console-hint" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Classes="console-hint-item"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                IsVisible="{Binding IsDiscordFeatureEnabled}">
+                        <Border Classes="console-pad-trigger">
+                            <TextBlock Text="L3" Classes="console-pad-caption"/>
+                        </Border>
+                        <TextBlock Text="{Binding DiscordInboxTitle}" Classes="console-hint" VerticalAlignment="Center"/>
                     </StackPanel>
                     <StackPanel Classes="console-hint-item" Orientation="Horizontal" Spacing="8">
                         <Border Classes="console-pad-face b">
@@ -376,6 +400,158 @@
                 </Border>
         </Grid>
 
+        <Button Classes="console-discord-banner"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,20,0,0"
+                IsVisible="{Binding HasDiscordBanner}"
+                Command="{Binding OpenNotificationFromBannerCommand}">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+                <Border Grid.Column="0" Classes="console-discord-avatar">
+                    <TextBlock Text="&#xE8BD;" Classes="console-discord-avatar-glyph"/>
+                </Border>
+                <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DiscordBannerSender}"
+                               Classes="console-discord-sender"
+                               TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding DiscordBannerBody}"
+                               Classes="console-discord-body"
+                               MaxLines="2"
+                               TextWrapping="Wrap"
+                               TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                    <Border Classes="console-pad-face a">
+                        <TextBlock Text="A" Classes="console-pad-letter"/>
+                    </Border>
+                    <TextBlock Text="{Binding DiscordHintOpen}"
+                               Classes="console-discord-hint"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Button>
+
+        <Grid Classes="console-media-guide-overlay"
+              IsVisible="{Binding NotificationInboxOpen}">
+            <Border Classes="console-media-guide-scrim"/>
+            <Border Classes="console-discord-inbox"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="18">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                        <Border Grid.Column="0" Classes="console-discord-avatar">
+                            <TextBlock Text="&#xE8BD;" Classes="console-discord-avatar-glyph"/>
+                        </Border>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding DiscordInboxTitle}"
+                                   Classes="console-media-guide-title"
+                                   TextAlignment="Left"
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="2"
+                                Classes="console-exit"
+                                Content="{Binding DiscordHintClose}"
+                                Command="{Binding CloseNotificationInboxCommand}"
+                                VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <Border Classes="console-discord-notice"
+                            IsVisible="{Binding DiscordPermissionDenied}">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{Binding DiscordPermissionDeniedText}"
+                                       Classes="console-discord-body"
+                                       TextWrapping="Wrap"/>
+                            <Button Classes="console-exit"
+                                    HorizontalAlignment="Left"
+                                    Content="{Binding DiscordOpenPrivacySettingsLabel}"
+                                    Command="{Binding OpenDiscordPrivacySettingsCommand}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="console-discord-notice"
+                            IsVisible="{Binding HasDiscordStatusFeedback}">
+                        <TextBlock Text="{Binding DiscordStatusFeedback}"
+                                   Classes="console-discord-draft-text"
+                                   TextWrapping="Wrap"/>
+                    </Border>
+
+                    <TextBlock Text="{Binding DiscordInboxEmpty}"
+                               Classes="console-media-guide-line"
+                               Margin="0,24"
+                               IsVisible="{Binding IsNotificationsEmpty}"/>
+
+                    <ScrollViewer MaxHeight="360"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  IsVisible="{Binding HasNotificationItems}">
+                        <ItemsControl ItemsSource="{Binding NotificationItems}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="10"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ConsoleNotificationItemViewModel">
+                                    <Button Classes="console-discord-item"
+                                            Classes.selected="{Binding IsSelected}"
+                                            HorizontalAlignment="Stretch"
+                                            Command="{Binding SelectCommand}">
+                                        <StackPanel Spacing="6">
+                                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Sender}"
+                                                           Classes="console-discord-sender"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding TimeLabel}"
+                                                           Classes="console-discord-time"/>
+                                            </Grid>
+                                            <TextBlock Text="{Binding Body}"
+                                                       Classes="console-discord-body"
+                                                       MaxLines="2"
+                                                       TextWrapping="Wrap"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <Border Classes="console-discord-draft"
+                                                    IsVisible="{Binding HasReplyDraft}">
+                                                <TextBlock Text="{Binding ReplyDraft}"
+                                                           Classes="console-discord-draft-text"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </Border>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="20"
+                                HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal"
+                                    Spacing="8"
+                                    IsVisible="{Binding HasNotificationItems}">
+                            <Border Classes="console-pad-face a">
+                                <TextBlock Text="A" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding DiscordHintReply}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Classes="console-pad-face b">
+                                <TextBlock Text="B" Classes="console-pad-letter"/>
+                            </Border>
+                            <TextBlock Text="{Binding DiscordHintClose}"
+                                       Classes="console-media-guide-line"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <Grid Classes="console-keyboard-overlay"
               IsVisible="{Binding KeyboardOpen}">
             <Border Classes="console-media-guide-scrim" IsHitTestVisible="False"/>
@@ -384,7 +560,13 @@
                     VerticalAlignment="Bottom"
                     Margin="0,0,0,36">
                 <StackPanel Spacing="16">
-                    <TextBlock Text="{Binding SearchText}"
+                    <TextBlock Text="{Binding KeyboardReplyHeader}"
+                               Classes="console-media-guide-kicker"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="640"
+                               IsVisible="{Binding ReplyingToNotification}"/>
+                    <TextBlock Text="{Binding KeyboardQueryText}"
                                Classes="console-keyboard-query"
                                TextAlignment="Center"
                                TextTrimming="CharacterEllipsis"/>
