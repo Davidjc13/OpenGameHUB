@@ -69,7 +69,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public event EventHandler? LibraryContentsChanged;
 
-    public event EventHandler? GameLaunched;
+    public event EventHandler<GameLaunchNotification>? GameLaunched;
 
     private bool _consoleCoverMode;
 
@@ -588,7 +588,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
                         _setStatusText(Loc.T(installResult.PreInstallStatusKey));
                     _setStatusText(Loc.T(installResult.StatusKey!, installResult.StatusArgs ?? [SelectedGame.Title]));
                     _scheduleStatusClear(TimeSpan.FromSeconds(8));
-                    NotifyGameLaunched();
+                    NotifyGameLaunched(launchTarget, isInstall: true, process: null);
                     return;
                 case GameInstallOutcome.ManualInstallNotice:
                     await ShowEaManualInstallNoticeAsync(SelectedGame.Title);
@@ -598,7 +598,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             if (SelectedGame is null)
                 return;
 
-            _library.LaunchGame(launchTarget);
+            var process = _library.LaunchGame(launchTarget);
             var launchedTitle = SelectedGame.Title;
             SelectedGame.RefreshLaunchState();
             if (!_sidebar.HasUserSelectedSort)
@@ -607,7 +607,7 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
             _setStatusText(launchTarget.IsInstalled
                 ? Loc.T("LaunchingGame", launchedTitle)
                 : Loc.T("StartingInstallLaunch", launchedTitle));
-            NotifyGameLaunched();
+            NotifyGameLaunched(launchTarget, isInstall: false, process);
         }
         catch (Exception ex)
         {
@@ -970,7 +970,13 @@ public partial class MainWindowLibraryViewModel : ViewModelBase
 
     public void ClearSelection() => SelectedGame = null;
 
-    private void NotifyGameLaunched() => GameLaunched?.Invoke(this, EventArgs.Empty);
+    private void NotifyGameLaunched(UnifiedGame game, bool isInstall, System.Diagnostics.Process? process) =>
+        GameLaunched?.Invoke(this, new GameLaunchNotification
+        {
+            Game = game,
+            IsInstall = isInstall,
+            Process = process
+        });
 
     public void SetConsoleCoverMode(bool active)
     {
