@@ -6,8 +6,8 @@ namespace OpenGameHUB.Services.Games;
 internal sealed class GameProcessMonitor
 {
     public static readonly TimeSpan AcquireTimeout = TimeSpan.FromSeconds(25);
-    public static readonly TimeSpan EmptyDebounce = TimeSpan.FromSeconds(1.5);
-    public static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
+    public static readonly TimeSpan EmptyDebounce = TimeSpan.FromSeconds(0.01);
+    public static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(10);
 
     private readonly UnifiedGame _game;
     private readonly GameProcessInfo? _launched;
