@@ -253,13 +253,18 @@ public static class AppUpdateService
         var appExe = EscapeVbsString(appExeFull);
         var appDir = EscapeVbsString(Path.GetDirectoryName(appExeFull) ?? string.Empty);
 
+        // Chr(34) is the quote character. shell.Run takes one string, and the
+        // executable path inside that string must be quoted. Writing the quotes
+        // as ""path"" is a VBScript syntax error; //B then hides it and the app
+        // has already exited, so the installer never starts.
         return $"""
             Set shell = CreateObject("WScript.Shell")
-            shell.Run ""{installer}"" /SILENT /CLOSEAPPLICATIONS", 0, True
+            q = Chr(34)
+            shell.Run q & "{installer}" & q & " /SILENT /CLOSEAPPLICATIONS", 0, True
             Set fso = CreateObject("Scripting.FileSystemObject")
             If fso.FileExists("{appExe}") Then
               shell.CurrentDirectory = "{appDir}"
-              shell.Run ""{appExe}"", 1, False
+              shell.Run q & "{appExe}" & q, 1, False
             End If
             """;
     }
