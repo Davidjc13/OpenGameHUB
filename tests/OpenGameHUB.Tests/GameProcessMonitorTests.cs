@@ -82,10 +82,10 @@ public sealed class GameProcessMonitorTests
         Assert.Equal(GameMonitorPhase.Playing, monitor.Evaluate());
 
         catalog.Processes.Clear();
-        now += TimeSpan.FromSeconds(1);
+        now += GameProcessMonitor.EmptyDebounce - TimeSpan.FromMilliseconds(1);
         Assert.Equal(GameMonitorPhase.Playing, monitor.Evaluate());
 
-        now += GameProcessMonitor.EmptyDebounce;
+        now += TimeSpan.FromMilliseconds(1);
         Assert.Equal(GameMonitorPhase.Ended, monitor.Evaluate());
     }
 
