@@ -51,6 +51,8 @@ public partial class SettingsViewModel : ViewModelBase
         PageSlideEnabled = current.PageSlideEnabled;
         RefreshLibraryOnStartup = current.RefreshLibraryOnStartup;
         DiscordApplicationId = current.DiscordApplicationId;
+        DiscordConsoleNotificationsEnabled = current.DiscordConsoleNotificationsEnabled;
+        SuppressSystemDiscordToasts = current.SuppressSystemDiscordToasts;
         _libraryViewMode = current.LibraryViewMode;
         _gridCardSize = current.GridCardSize;
         SelectedLanguage = LocalizationService.ResolveLanguage(current.Language);
@@ -89,6 +91,8 @@ public partial class SettingsViewModel : ViewModelBase
         LegendaryClient.IsAvailable() && !IsEpicConnected && EmbeddedBrowserService.IsAvailable;
 
     public bool IsDevModeEnabled => DevModeService.IsEnabled;
+
+    public bool IsDiscordFeatureEnabled => DevModeService.IsDiscordFeatureEnabled;
 
     public string DiagnosticsHelp => Loc.T("DiagnosticsHelp", AppLog.LogDirectory);
 
@@ -169,6 +173,12 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _discordApplicationId = string.Empty;
+
+    [ObservableProperty]
+    private bool _discordConsoleNotificationsEnabled = true;
+
+    [ObservableProperty]
+    private bool _suppressSystemDiscordToasts = true;
 
     partial void OnSelectedThemeModeChanged(ThemeMode value) =>
         OnPropertyChanged(nameof(SelectedThemeModeOption));
@@ -265,7 +275,9 @@ public partial class SettingsViewModel : ViewModelBase
             EpicDisplayName = current.EpicDisplayName,
             XboxGamertag = current.XboxGamertag,
             BattleNetDisplayName = current.BattleNetDisplayName,
-            DiscordApplicationId = current.DiscordApplicationId
+            DiscordApplicationId = current.DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = current.DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = current.SuppressSystemDiscordToasts
         });
 
         RefreshSteamStatus();
@@ -697,6 +709,8 @@ public partial class SettingsViewModel : ViewModelBase
             PageSlideEnabled = PageSlideEnabled,
             RefreshLibraryOnStartup = RefreshLibraryOnStartup,
             DiscordApplicationId = DiscordApplicationId.Trim(),
+            DiscordConsoleNotificationsEnabled = DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = SuppressSystemDiscordToasts,
             DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
             DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
             DismissLegendaryPrompt = current.DismissLegendaryPrompt,

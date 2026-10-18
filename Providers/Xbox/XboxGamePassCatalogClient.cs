@@ -202,7 +202,8 @@ internal sealed class XboxGamePassCatalogClient
         {
             Pfn = pfn ?? string.Empty,
             Title = NormalizeTitle(title),
-            StoreProductId = storeProductId
+            StoreProductId = storeProductId,
+            CoverUrl = XboxCoverUrls.SelectPosterUrl(product)
         };
     }
 

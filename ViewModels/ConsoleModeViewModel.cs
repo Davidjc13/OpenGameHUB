@@ -8,7 +8,9 @@ using OpenGameHUB.Domain.Enums;
 using OpenGameHUB.Domain.Models;
 using OpenGameHUB.Infrastructure.Input;
 using OpenGameHUB.Infrastructure.Media;
+using OpenGameHUB.Services.Configuration;
 using OpenGameHUB.Services.Media;
+using OpenGameHUB.Services.Notifications;
 using OpenGameHUB.Services.Presence;
 using OpenGameHUB.ViewModels.MainWindow;
 
@@ -21,6 +23,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
     private readonly IDiscordPresence? _discord;
     private readonly Func<string?>? _discordApplicationId;
     private readonly Func<bool> _animationsEnabled;
+    private readonly Func<bool> _discordFeatureEnabled;
     private readonly List<ConsoleCategoryItem> _categories = [];
     private GameItemViewModel? _watchedGame;
     private int _categoryIndex;
@@ -28,6 +31,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
     private bool _syncingFocus;
     private bool _presenceSuspended;
     private readonly ConsoleMediaGuideInput _mediaGuide = new();
+    private readonly ConsoleNotificationInput _notificationInput = new();
     private readonly GamepadRepeatState _gamepadRepeat = new();
     private readonly ConsoleOnScreenKeyboard _keyboard = new();
     private int _backdropGeneration;
@@ -41,22 +45,32 @@ public partial class ConsoleModeViewModel : ViewModelBase
         IMediaVolumeController? volume = null,
         IDiscordPresence? discord = null,
         Func<string?>? discordApplicationId = null,
-        Func<bool>? animationsEnabled = null)
+        Func<bool>? animationsEnabled = null,
+        DiscordNotificationService? notifications = null,
+        Func<bool>? discordFeatureEnabled = null)
     {
         _library = library;
         _exit = exit;
         _discord = discord;
         _discordApplicationId = discordApplicationId;
         _animationsEnabled = animationsEnabled ?? (() => false);
+        _discordFeatureEnabled = discordFeatureEnabled ?? (() => DevModeService.IsDiscordFeatureEnabled);
         Media = new SystemMediaViewModel(
             media ?? new WindowsSystemMediaController(),
             volume: volume ?? new WindowsMediaVolume());
+        Notifications = notifications ?? new DiscordNotificationService(
+            isEnabled: () => _discordFeatureEnabled());
+        Notifications.Changed += OnNotificationsChanged;
         Categories = new ObservableCollection<ConsoleCategoryItem>();
         Games = new ObservableCollection<GameItemViewModel>();
         _library.LibraryContentsChanged += OnLibraryContentsChanged;
     }
 
     public SystemMediaViewModel Media { get; }
+
+    public DiscordNotificationService Notifications { get; }
+
+    public ObservableCollection<ConsoleNotificationItemViewModel> NotificationItems { get; } = [];
 
     public ObservableCollection<ConsoleCategoryItem> Categories { get; }
 
@@ -107,6 +121,61 @@ public partial class ConsoleModeViewModel : ViewModelBase
     public string KeyboardBackspace => Loc.T("ConsoleKeyboardBackspace");
 
     public string KeyboardDone => Loc.T("ConsoleKeyboardDone");
+
+    public string DiscordInboxTitle => Loc.T("ConsoleDiscordInboxTitle");
+
+    public string DiscordInboxEmpty => Loc.T("ConsoleDiscordInboxEmpty");
+
+    public string DiscordPermissionDeniedText => Loc.T("ConsoleDiscordPermissionDenied");
+
+    public string DiscordOpenPrivacySettingsLabel => Loc.T("ConsoleDiscordOpenPrivacySettings");
+
+    public string DiscordHintReply => Loc.T("ConsoleDiscordHintReply");
+
+    public string DiscordHintClose => Loc.T("ConsoleMediaGuideClose");
+
+    public string DiscordHintOpen => Loc.T("ConsoleDiscordHintOpen");
+
+    public string DiscordReplyToPrefix => Loc.T("ConsoleDiscordReplyTo");
+
+    public string DiscordDraftPrefix => Loc.T("ConsoleDiscordDraftPrefix");
+
+    public bool IsDiscordFeatureEnabled => _discordFeatureEnabled();
+
+    public DiscordNotificationMessage? DiscordBanner => IsDiscordFeatureEnabled ? Notifications.ActiveBanner : null;
+
+    public bool HasDiscordBanner => DiscordBanner is not null && !NotificationInboxOpen;
+
+    public string DiscordBannerSender => DiscordBanner?.Sender ?? string.Empty;
+
+    public string DiscordBannerBody => DiscordBanner?.Body ?? string.Empty;
+
+    public int DiscordUnreadCount => Notifications.UnreadCount;
+
+    public bool HasDiscordUnread => DiscordUnreadCount > 0 && !NotificationInboxOpen && !HasDiscordBanner;
+
+    public bool NotificationInboxOpen => Notifications.InboxOpen;
+
+    public bool HasNotificationItems => NotificationItems.Count > 0;
+
+    public bool IsNotificationsEmpty => NotificationItems.Count == 0 && !DiscordPermissionDenied;
+
+    public bool DiscordPermissionDenied => Notifications.IsPermissionDenied;
+
+    public string DiscordStatusFeedback => Notifications.StatusFeedback ?? string.Empty;
+
+    public bool HasDiscordStatusFeedback => !string.IsNullOrWhiteSpace(Notifications.StatusFeedback);
+
+    public bool ReplyingToNotification => Notifications.Replying;
+
+    public string ReplyDraftText => Notifications.ReplyDraft;
+
+    public string KeyboardQueryText => ReplyingToNotification ? ReplyDraftText : SearchText;
+
+    public string KeyboardReplyHeader =>
+        ReplyingToNotification && Notifications.SelectedMessage is { } selected
+            ? $"{DiscordReplyToPrefix}: {selected.Sender} — {selected.Body}"
+            : string.Empty;
 
     public string FocusedTitle => FocusedGame?.Title ?? string.Empty;
 
@@ -182,6 +251,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
         IsActive = true;
         Media.Start();
+        Notifications.Activate();
         _library.SetConsoleCoverMode(true);
         Rebuild(preserveGameId: null);
     }
@@ -193,11 +263,13 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
         IsActive = false;
         _mediaGuide.Reset();
+        _notificationInput.Reset();
         _gamepadRepeat.Reset();
         MediaGuideOpen = false;
         MediaGuideCharging = false;
         MediaGuideHoldSweep = 0;
         Media.Stop();
+        Notifications.Deactivate();
         CloseSearchKeyboard();
         SearchFocused = false;
         MenuRegion = ConsoleMenuRegion.Games;
@@ -231,8 +303,19 @@ public partial class ConsoleModeViewModel : ViewModelBase
         OnPropertyChanged(nameof(KeyboardSpace));
         OnPropertyChanged(nameof(KeyboardBackspace));
         OnPropertyChanged(nameof(KeyboardDone));
+        OnPropertyChanged(nameof(DiscordInboxTitle));
+        OnPropertyChanged(nameof(DiscordInboxEmpty));
+        OnPropertyChanged(nameof(DiscordPermissionDeniedText));
+        OnPropertyChanged(nameof(DiscordOpenPrivacySettingsLabel));
+        OnPropertyChanged(nameof(DiscordHintReply));
+        OnPropertyChanged(nameof(DiscordHintClose));
+        OnPropertyChanged(nameof(DiscordHintOpen));
+        OnPropertyChanged(nameof(DiscordReplyToPrefix));
+        OnPropertyChanged(nameof(DiscordDraftPrefix));
+        OnPropertyChanged(nameof(KeyboardReplyHeader));
         if (KeyboardOpen)
             PublishKeyboard();
+        SyncNotificationItems();
         Media.ApplyLocalization();
         NotifyHero();
         if (!IsActive)
@@ -244,6 +327,16 @@ public partial class ConsoleModeViewModel : ViewModelBase
     public void NoteGamepad() => UsingGamepad = true;
 
     public void NoteKeyboardOrMouse() => UsingGamepad = false;
+
+    public void ResetGamepadLatches()
+    {
+        _gamepadRepeat.Reset();
+        _mediaGuide.Reset();
+        _notificationInput.Reset();
+        MediaGuideCharging = false;
+        MediaGuideHoldSweep = 0;
+        MediaGuideOpen = false;
+    }
 
     public void ProcessGamepad(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
     {
@@ -264,6 +357,25 @@ public partial class ConsoleModeViewModel : ViewModelBase
             return;
         }
 
+        if (IsDiscordFeatureEnabled)
+        {
+            var (notifActions, blockNotifNavigation) = _notificationInput.Process(
+                previous,
+                current,
+                elapsed,
+                NotificationInboxOpen,
+                HasDiscordBanner,
+                ReplyingToNotification);
+            foreach (var notifAction in notifActions)
+                ApplyNotificationAction(notifAction);
+
+            if (blockNotifNavigation)
+            {
+                _gamepadRepeat.Reset();
+                return;
+            }
+        }
+
         var inputs = GamepadInput.Collect(previous, current, _gamepadRepeat, elapsed);
         if (KeyboardOpen)
         {
@@ -280,6 +392,35 @@ public partial class ConsoleModeViewModel : ViewModelBase
     {
         if (!IsActive)
             return;
+
+        if (KeyboardOpen)
+        {
+            ApplyKeyboardInput(input);
+            return;
+        }
+
+        if (NotificationInboxOpen)
+        {
+            switch (input)
+            {
+                case ConsoleInput.Back:
+                    ApplyNotificationAction(ConsoleNotificationAction.CloseInbox);
+                    return;
+                case ConsoleInput.Activate:
+                    ApplyNotificationAction(ConsoleNotificationAction.BeginReply);
+                    return;
+                case ConsoleInput.MoveUp:
+                case ConsoleInput.PreviousCategory:
+                    ApplyNotificationAction(ConsoleNotificationAction.MoveUp);
+                    return;
+                case ConsoleInput.MoveDown:
+                case ConsoleInput.NextCategory:
+                    ApplyNotificationAction(ConsoleNotificationAction.MoveDown);
+                    return;
+                default:
+                    return;
+            }
+        }
 
         var state = new ConsoleNavigationState(
             _categoryIndex,
@@ -414,23 +555,182 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     public void OpenSearchKeyboard()
     {
+        if (ReplyingToNotification)
+            Notifications.CancelReply();
+
         KeyboardOpen = true;
         SearchFocused = true;
         MenuRegion = ConsoleMenuRegion.Search;
         PublishKeyboard();
         _keyboard.ResetFocus();
+        OnPropertyChanged(nameof(KeyboardQueryText));
+        OnPropertyChanged(nameof(KeyboardReplyHeader));
     }
 
     public void CloseSearchKeyboard()
     {
+        if (ReplyingToNotification)
+            Notifications.CancelReply();
+
         KeyboardOpen = false;
         SearchFocused = false;
         if (MenuRegion == ConsoleMenuRegion.Search)
             MenuRegion = ConsoleMenuRegion.Games;
+        OnPropertyChanged(nameof(KeyboardQueryText));
+        OnPropertyChanged(nameof(KeyboardReplyHeader));
+    }
+
+    private void ApplyNotificationAction(ConsoleNotificationAction action)
+    {
+        if (!IsDiscordFeatureEnabled)
+            return;
+
+        switch (action)
+        {
+            case ConsoleNotificationAction.ToggleInbox:
+                if (ReplyingToNotification)
+                {
+                    Notifications.CancelReply();
+                    KeyboardOpen = false;
+                }
+
+                Notifications.ToggleInbox();
+                if (!NotificationInboxOpen)
+                    FocusRequested?.Invoke(this, EventArgs.Empty);
+                break;
+            case ConsoleNotificationAction.OpenLatestFromBanner:
+                Notifications.OpenInbox(focusLatest: true);
+                break;
+            case ConsoleNotificationAction.CloseInbox:
+                Notifications.CloseInbox();
+                FocusRequested?.Invoke(this, EventArgs.Empty);
+                break;
+            case ConsoleNotificationAction.MoveUp:
+                Notifications.MoveSelection(-1);
+                break;
+            case ConsoleNotificationAction.MoveDown:
+                Notifications.MoveSelection(1);
+                break;
+            case ConsoleNotificationAction.BeginReply:
+                if (Notifications.BeginReply())
+                    OpenReplyKeyboard();
+                break;
+        }
+    }
+
+    private void OpenReplyKeyboard()
+    {
+        KeyboardOpen = true;
+        PublishKeyboard();
+        _keyboard.ResetFocus();
+        OnPropertyChanged(nameof(KeyboardQueryText));
+        OnPropertyChanged(nameof(KeyboardReplyHeader));
+    }
+
+    [RelayCommand]
+    private void ToggleNotificationInbox() =>
+        ApplyNotificationAction(ConsoleNotificationAction.ToggleInbox);
+
+    [RelayCommand]
+    private void CloseNotificationInbox() =>
+        ApplyNotificationAction(ConsoleNotificationAction.CloseInbox);
+
+    [RelayCommand]
+    private void OpenNotificationFromBanner() =>
+        ApplyNotificationAction(ConsoleNotificationAction.OpenLatestFromBanner);
+
+    [RelayCommand]
+    private void OpenDiscordPrivacySettings() =>
+        Notifications.OpenPrivacySettings();
+
+    private void SelectNotificationForReply(uint id)
+    {
+        Notifications.SelectAndReply(id);
+        if (ReplyingToNotification)
+            OpenReplyKeyboard();
+    }
+
+    private void OnNotificationsChanged(object? sender, EventArgs e)
+    {
+        SyncNotificationItems();
+        OnPropertyChanged(nameof(DiscordBanner));
+        OnPropertyChanged(nameof(HasDiscordBanner));
+        OnPropertyChanged(nameof(DiscordBannerSender));
+        OnPropertyChanged(nameof(DiscordBannerBody));
+        OnPropertyChanged(nameof(DiscordUnreadCount));
+        OnPropertyChanged(nameof(HasDiscordUnread));
+        OnPropertyChanged(nameof(NotificationInboxOpen));
+        OnPropertyChanged(nameof(HasNotificationItems));
+        OnPropertyChanged(nameof(IsNotificationsEmpty));
+        OnPropertyChanged(nameof(DiscordPermissionDenied));
+        OnPropertyChanged(nameof(DiscordStatusFeedback));
+        OnPropertyChanged(nameof(HasDiscordStatusFeedback));
+        OnPropertyChanged(nameof(ReplyingToNotification));
+        OnPropertyChanged(nameof(ReplyDraftText));
+        OnPropertyChanged(nameof(KeyboardQueryText));
+        OnPropertyChanged(nameof(KeyboardReplyHeader));
+    }
+
+    private void SyncNotificationItems()
+    {
+        NotificationItems.Clear();
+        var messages = Notifications.Messages;
+        for (var i = 0; i < messages.Count; i++)
+        {
+            var msg = messages[i];
+            NotificationItems.Add(new ConsoleNotificationItemViewModel(
+                msg,
+                FormatNotificationTime(msg.ReceivedAt),
+                i == Notifications.SelectedIndex,
+                SelectNotificationForReply));
+        }
+    }
+
+    private static string FormatNotificationTime(DateTimeOffset timestamp)
+    {
+        var elapsed = DateTimeOffset.UtcNow - timestamp;
+        if (elapsed.TotalSeconds < 60)
+            return Loc.T("ConsoleDiscordTimeNow");
+        if (elapsed.TotalMinutes < 60)
+            return $"{Math.Max(1, (int)elapsed.TotalMinutes)}m";
+        if (elapsed.TotalHours < 24)
+            return $"{Math.Max(1, (int)elapsed.TotalHours)}h";
+
+        return timestamp.ToLocalTime().ToString("HH:mm");
     }
 
     private void ApplyKeyboardInput(ConsoleInput input)
     {
+        if (ReplyingToNotification)
+        {
+            if (input == ConsoleInput.Back)
+            {
+                Notifications.CancelReply();
+                KeyboardOpen = false;
+                OnPropertyChanged(nameof(KeyboardQueryText));
+                OnPropertyChanged(nameof(KeyboardReplyHeader));
+                return;
+            }
+
+            if (input == ConsoleInput.Activate)
+            {
+                var replyResult = _keyboard.Activate(ReplyDraftText);
+                Notifications.UpdateReplyDraft(replyResult.Text);
+                if (replyResult.Close)
+                {
+                    Notifications.CommitReplyDraft(replyResult.Text, Loc.T("ConsoleDiscordReplySavedNotice"));
+                    KeyboardOpen = false;
+                    OnPropertyChanged(nameof(KeyboardQueryText));
+                    OnPropertyChanged(nameof(KeyboardReplyHeader));
+                }
+
+                return;
+            }
+
+            _keyboard.Move(input);
+            return;
+        }
+
         if (input == ConsoleInput.Back)
         {
             CloseSearchKeyboard();
@@ -481,7 +781,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     partial void OnMenuRegionChanged(ConsoleMenuRegion value)
     {
-        SearchFocused = value == ConsoleMenuRegion.Search || KeyboardOpen;
+        SearchFocused = value == ConsoleMenuRegion.Search || (KeyboardOpen && !ReplyingToNotification);
         OnPropertyChanged(nameof(HintPlay));
         OnPropertyChanged(nameof(IsSearchMenu));
         OnPropertyChanged(nameof(IsPlayMenu));
@@ -505,6 +805,7 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value)
     {
+        OnPropertyChanged(nameof(KeyboardQueryText));
         if (!IsActive || _suppressSearchRefresh)
             return;
 

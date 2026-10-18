@@ -117,6 +117,7 @@ internal sealed record XboxCatalogEntry
     public required string Pfn { get; init; }
     public required string Title { get; init; }
     public string? StoreProductId { get; init; }
+    public string? CoverUrl { get; init; }
     public string TitleId { get; init; } = string.Empty;
     public int? PlaytimeMinutes { get; init; }
     public DateTime? LastPlayed { get; init; }

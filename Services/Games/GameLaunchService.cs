@@ -17,7 +17,7 @@ internal sealed class GameLaunchService
         _cloudProviders = cloudProviders;
     }
 
-    public void Launch(UnifiedGame game)
+    public Process? Launch(UnifiedGame game)
     {
         var attempts = BuildLaunchAttempts(game);
         var errors = new List<string>();
@@ -26,8 +26,7 @@ internal sealed class GameLaunchService
         {
             try
             {
-                attempts[i]();
-                return;
+                return attempts[i]();
             }
             catch (Exception ex)
             {
@@ -65,20 +64,21 @@ internal sealed class GameLaunchService
         }
     }
 
-    private List<Action> BuildLaunchAttempts(UnifiedGame game)
+    private List<Func<Process?>> BuildLaunchAttempts(UnifiedGame game)
     {
-        var attempts = new List<Action>();
+        var attempts = new List<Func<Process?>>();
 
         if (!game.IsInstalled)
         {
             foreach (var provider in _cloudProviders.Where(p => p.Platform == game.Platform))
             {
-                attempts.AddRange(provider.GetInstallLaunchAttempts(game));
+                foreach (var attempt in provider.GetInstallLaunchAttempts(game))
+                    attempts.Add(Wrap(attempt));
             }
         }
 
         if (game.Platform == Platform.BattleNet && !string.IsNullOrWhiteSpace(game.PlatformGameId))
-            attempts.Add(() => BattleNetLauncherClient.StartLaunch(game.PlatformGameId));
+            attempts.Add(Wrap(() => BattleNetLauncherClient.StartLaunch(game.PlatformGameId)));
 
         if (!string.IsNullOrWhiteSpace(game.LaunchSpec.Kind) &&
             !string.IsNullOrWhiteSpace(game.LaunchSpec.Value))
@@ -123,6 +123,13 @@ internal sealed class GameLaunchService
         return attempts;
     }
 
+    private static Func<Process?> Wrap(Action attempt) =>
+        () =>
+        {
+            attempt();
+            return null;
+        };
+
     private static string? FindBestGameExecutable(string installPath)
     {
         if (!Directory.Exists(installPath))
@@ -135,7 +142,7 @@ internal sealed class GameLaunchService
             .FirstOrDefault();
     }
 
-    private static void StartExecutable(string value, string? workingDirectory)
+    private static Process? StartExecutable(string value, string? workingDirectory)
     {
         var parts = value.Split('|', 2);
         var fileName = Path.GetFullPath(parts[0]);
@@ -143,10 +150,10 @@ internal sealed class GameLaunchService
             throw new FileNotFoundException(Loc.T("ExecutableNotFound", fileName));
 
         var arguments = parts.Length > 1 ? parts[1] : null;
-        StartProcess(fileName, arguments, workingDirectory ?? Path.GetDirectoryName(fileName), useShellExecute: false);
+        return StartProcess(fileName, arguments, workingDirectory ?? Path.GetDirectoryName(fileName), useShellExecute: false);
     }
 
-    private static void StartLauncherArgs(string value, string? workingDirectory)
+    private static Process? StartLauncherArgs(string value, string? workingDirectory)
     {
         var separator = value.IndexOf('|');
         if (separator <= 0)
@@ -158,7 +165,7 @@ internal sealed class GameLaunchService
 
         var arguments = value[(separator + 1)..];
         var hideWindow = LegendaryClient.IsLegendaryExecutable(launcher);
-        StartProcess(
+        return StartProcess(
             launcher,
             arguments,
             workingDirectory ?? Path.GetDirectoryName(launcher),
@@ -166,9 +173,9 @@ internal sealed class GameLaunchService
             hideWindow: hideWindow);
     }
 
-    private static void StartProtocol(string url) => ProtocolLauncher.Start(url);
+    private static Process? StartProtocol(string url) => ProtocolLauncher.Start(url);
 
-    private static void StartProcess(
+    private static Process? StartProcess(
         string fileName,
         string? arguments,
         string? workingDirectory,
@@ -195,8 +202,10 @@ internal sealed class GameLaunchService
         if (string.IsNullOrWhiteSpace(workingDirectory))
             psi.WorkingDirectory = string.Empty;
 
-        if (Process.Start(psi) is null)
+        var process = Process.Start(psi);
+        if (process is null)
             throw new InvalidOperationException(Loc.T("ProcessStartFailed", fileName));
+        return process;
     }
 
     private static bool IsUtilityExecutable(string path)

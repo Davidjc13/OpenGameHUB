@@ -62,6 +62,72 @@ public sealed class SteamStoreClient
         return names;
     }
 
+    public async Task<IReadOnlyList<string>> GetCoverUrlsAsync(
+        int appId,
+        CancellationToken cancellationToken = default)
+    {
+        if (appId <= 0)
+            return [];
+
+        var url =
+            $"https://store.steampowered.com/api/appdetails?appids={appId}&l=english&filters=basic";
+
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<Dictionary<string, SteamStoreAppResponse>>(
+                url,
+                cancellationToken);
+
+            if (response is null
+                || !response.TryGetValue(appId.ToString(), out var entry)
+                || !entry.Success
+                || entry.Data is null)
+            {
+                return [];
+            }
+
+            return CollectStoreImageUrls(entry.Data);
+        }
+        catch (Exception ex)
+        {
+            AppDiagnostics.ReportError(
+                area: nameof(SteamStoreClient),
+                operation: "GetCoverUrlsAsync",
+                exception: ex,
+                platform: Platform.Steam,
+                details: $"appId={appId}");
+            return [];
+        }
+    }
+
+    private static IReadOnlyList<string> CollectStoreImageUrls(SteamStoreAppData data)
+    {
+        var urls = new List<string>();
+        AddUrl(urls, data.HeaderImage);
+        AddUrl(urls, data.BackgroundRaw);
+        AddUrl(urls, data.CapsuleImage);
+        return urls;
+    }
+
+    private static void AddUrl(List<string> urls, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return;
+
+        var normalized = NormalizeStoreAssetUrl(value);
+        if (!urls.Contains(normalized, StringComparer.OrdinalIgnoreCase))
+            urls.Add(normalized);
+    }
+
+    internal static string NormalizeStoreAssetUrl(string url)
+    {
+        if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
+            url = "https://" + url["http://".Length..];
+
+        var queryIndex = url.IndexOf('?', StringComparison.Ordinal);
+        return queryIndex >= 0 ? url[..queryIndex] : url;
+    }
+
     private sealed class SteamStoreAppResponse
     {
         [JsonPropertyName("success")]
@@ -75,5 +141,14 @@ public sealed class SteamStoreClient
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
+
+        [JsonPropertyName("header_image")]
+        public string? HeaderImage { get; set; }
+
+        [JsonPropertyName("background_raw")]
+        public string? BackgroundRaw { get; set; }
+
+        [JsonPropertyName("capsule_image")]
+        public string? CapsuleImage { get; set; }
     }
 }

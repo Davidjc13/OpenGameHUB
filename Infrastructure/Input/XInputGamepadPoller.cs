@@ -14,6 +14,7 @@ public sealed class XInputGamepadPoller : IDisposable
     private const ushort RightShoulder = 0x0200;
     private const ushort Back = 0x0020;
     private const ushort Menu = 0x0010;
+    private const ushort LeftThumb = 0x0040;
     private const ushort A = 0x1000;
     private const ushort B = 0x2000;
     private const ushort X = 0x4000;
@@ -36,6 +37,8 @@ public sealed class XInputGamepadPoller : IDisposable
     }
 
     public event Action<GamepadButtons, GamepadButtons, TimeSpan>? Frame;
+
+    public Func<bool>? ShouldRead { get; set; }
 
     public TimeSpan Interval => _timer?.Interval ?? IdleInterval;
 
@@ -80,6 +83,13 @@ public sealed class XInputGamepadPoller : IDisposable
 
     private void OnTick(object? sender, EventArgs e)
     {
+        if (!IsForeground())
+        {
+            _hasSample = false;
+            ApplyInterval();
+            return;
+        }
+
         if (_unavailable || !TryRead(out var current))
         {
             _hasSample = false;
@@ -120,10 +130,14 @@ public sealed class XInputGamepadPoller : IDisposable
         if (_timer is null)
             return;
 
-        var interval = _interactive || padConnected ? InteractiveInterval : IdleInterval;
+        var interval = IsForeground() && (_interactive || padConnected)
+            ? InteractiveInterval
+            : IdleInterval;
         if (_timer.Interval != interval)
             _timer.Interval = interval;
     }
+
+    private bool IsForeground() => ShouldRead?.Invoke() != false;
 
     private bool TryRead(out GamepadButtons buttons)
     {
@@ -155,7 +169,8 @@ public sealed class XInputGamepadPoller : IDisposable
                     LeftTrigger: pad.LeftTrigger,
                     RightTrigger: pad.RightTrigger,
                     Back: Has(pad.Buttons, Back),
-                    Start: Has(pad.Buttons, Menu));
+                    Start: Has(pad.Buttons, Menu),
+                    LeftThumb: Has(pad.Buttons, LeftThumb));
                 return true;
             }
 

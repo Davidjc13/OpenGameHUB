@@ -4,13 +4,13 @@ namespace OpenGameHUB.Infrastructure;
 
 internal static class ProtocolLauncher
 {
-    public static void Start(string url)
+    public static Process? Start(string url)
     {
         ProtocolUri.EnsureLaunchable(url);
 
         try
         {
-            StartProcess(url, useShellExecute: true);
+            return StartProcess(url, useShellExecute: true);
         }
         catch (Exception ex)
         {
@@ -19,11 +19,11 @@ internal static class ProtocolLauncher
                 operation: "Start",
                 exception: ex,
                 details: url);
-            StartProtocolFallback(url);
+            return StartProtocolFallback(url);
         }
     }
 
-    private static void StartProtocolFallback(string url)
+    private static Process StartProtocolFallback(string url)
     {
         var psi = new ProcessStartInfo
         {
@@ -35,11 +35,11 @@ internal static class ProtocolLauncher
         psi.ArgumentList.Add(string.Empty);
         psi.ArgumentList.Add(url);
 
-        if (Process.Start(psi) is null)
-            throw new InvalidOperationException(Loc.T("ProcessStartFailed", "cmd.exe"));
+        return Process.Start(psi)
+            ?? throw new InvalidOperationException(Loc.T("ProcessStartFailed", "cmd.exe"));
     }
 
-    private static void StartProcess(string fileName, bool useShellExecute)
+    private static Process? StartProcess(string fileName, bool useShellExecute)
     {
         var psi = new ProcessStartInfo
         {
@@ -50,5 +50,6 @@ internal static class ProtocolLauncher
         var process = Process.Start(psi);
         if (process is null && !useShellExecute)
             throw new InvalidOperationException(Loc.T("ProcessStartFailed", fileName));
+        return process;
     }
 }

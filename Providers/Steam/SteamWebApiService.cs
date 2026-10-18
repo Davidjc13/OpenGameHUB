@@ -76,12 +76,58 @@ public sealed class SteamWebApiService
                 continue;
 
             if (int.TryParse(game.PlatformGameId, out var appId))
-                game.CatalogCoverUrl ??= GetCoverUrl(appId);
+            {
+                game.CatalogCoverUrl ??= FindLocalLibraryCover(appId) ?? GetCoverUrl(appId);
+            }
         }
     }
 
     public static string GetCoverUrl(int appId) =>
         $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg";
+
+    public static IReadOnlyList<string> GetCoverUrls(int appId) =>
+    [
+        GetCoverUrl(appId),
+        $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900_2x.jpg"
+    ];
+
+    public static string? FindLocalLibraryCover(int appId) =>
+        FindLocalLibraryCover(appId, SteamLocalAccountReader.FindSteamInstallPath());
+
+    internal static string? FindLocalLibraryCover(int appId, string? steamInstallPath)
+    {
+        if (appId <= 0 || string.IsNullOrWhiteSpace(steamInstallPath))
+            return null;
+
+        var appCacheDir = Path.Combine(
+            steamInstallPath,
+            "appcache",
+            "librarycache",
+            appId.ToString());
+        if (!Directory.Exists(appCacheDir))
+            return null;
+
+        var legacyPath = Path.Combine(appCacheDir, "library_600x900.jpg");
+        if (File.Exists(legacyPath))
+            return legacyPath;
+
+        return FindLocalLibraryAsset(appCacheDir, "library_capsule_2x.jpg")
+               ?? FindLocalLibraryAsset(appCacheDir, "library_capsule.jpg");
+    }
+
+    private static string? FindLocalLibraryAsset(string appCacheDir, string fileName)
+    {
+        try
+        {
+            return Directory
+                .EnumerateFiles(appCacheDir, fileName, SearchOption.AllDirectories)
+                .FirstOrDefault();
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public async Task<SteamConnectionTestResult> TestConnectionAsync(
         string apiKey,

@@ -165,6 +165,8 @@ public partial class SteamSetupViewModel : ViewModelBase
                 PageSlideEnabled = current.PageSlideEnabled,
                 XboxGamertag = current.XboxGamertag,
                 DiscordApplicationId = current.DiscordApplicationId,
+                DiscordConsoleNotificationsEnabled = current.DiscordConsoleNotificationsEnabled,
+                SuppressSystemDiscordToasts = current.SuppressSystemDiscordToasts,
                 DismissSteamApiKeyPrompt = current.DismissSteamApiKeyPrompt,
                 DismissEaLibraryPrompt = current.DismissEaLibraryPrompt,
                 DismissLegendaryPrompt = current.DismissLegendaryPrompt,

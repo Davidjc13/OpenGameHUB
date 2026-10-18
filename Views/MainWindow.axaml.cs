@@ -11,6 +11,8 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using OpenGameHUB.Controls;
 using OpenGameHUB.Infrastructure.Input;
+using OpenGameHUB.Infrastructure.Windows;
+using OpenGameHUB.Services.Games;
 using OpenGameHUB.ViewModels;
 using OpenGameHUB.ViewModels.MainWindow;
 
@@ -43,8 +45,12 @@ public partial class MainWindow : Window
     private double _restoreHeight;
     private readonly XInputGamepadPoller _gamepad = new();
     private readonly GamepadRepeatState _windowGamepadRepeat = new();
+    private readonly GamePlaySession _playSession = new();
     private readonly HashSet<Key> _heldKeys = [];
     private int _modalHotkeyDepth;
+    private bool _playSessionActive;
+    private bool _closed;
+    private WindowState _prePlayWindowState;
 
     public MainWindow()
     {
@@ -61,6 +67,7 @@ public partial class MainWindow : Window
             _library = vm.Library;
             _library.PropertyChanged += OnLibraryPropertyChanged;
             _library.GameLaunched += OnGameLaunched;
+            _playSession.Ended += OnPlaySessionEnded;
             vm.PropertyChanged += OnViewModelPropertyChanged;
         }
 
@@ -68,20 +75,32 @@ public partial class MainWindow : Window
         AddHandler(KeyUpEvent, OnLibraryKeyUp, RoutingStrategies.Tunnel);
         AddHandler(TextInputEvent, OnLibraryTextInput, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, OnPointerUsed, RoutingStrategies.Tunnel);
+        Activated += OnWindowActivated;
+        Deactivated += OnWindowDeactivated;
+        _gamepad.ShouldRead = IsGamepadForeground;
         _gamepad.Frame += OnGamepadFrame;
-        _gamepad.Start();
-        _gamepad.SetInteractive(false);
+        if (IsActive)
+            ResumeGamepadPolling();
         QueueViewportUpdate();
     }
 
+    private void OnWindowActivated(object? sender, EventArgs e) => ResumeGamepadPolling();
+
+    private void OnWindowDeactivated(object? sender, EventArgs e) => PauseGamepadPolling();
+
     protected override void OnClosed(EventArgs e)
     {
+        _closed = true;
         RemoveHandler(KeyDownEvent, OnConsoleKeyDown);
         RemoveHandler(KeyUpEvent, OnLibraryKeyUp);
         RemoveHandler(TextInputEvent, OnLibraryTextInput);
         RemoveHandler(PointerPressedEvent, OnPointerUsed);
+        Activated -= OnWindowActivated;
+        Deactivated -= OnWindowDeactivated;
         _gamepad.Frame -= OnGamepadFrame;
         _gamepad.Dispose();
+        _playSession.Ended -= OnPlaySessionEnded;
+        _playSession.Dispose();
 
         if (_library is not null)
         {
@@ -107,10 +126,11 @@ public partial class MainWindow : Window
     private void ApplyConsoleChrome(bool enabled)
     {
         _windowGamepadRepeat.Reset();
-        _gamepad.SetInteractive(enabled);
+        _gamepad.SetInteractive(enabled && !_playSessionActive && IsActive);
         if (enabled)
         {
-            _gamepad.Start();
+            if (!_playSessionActive && IsActive)
+                _gamepad.Start();
             ConsoleView.IsVisible = true;
             EnterConsoleChrome();
             Dispatcher.UIThread.Post(() => ConsoleView.FocusCarousel(), DispatcherPriority.Input);
@@ -181,26 +201,132 @@ public partial class MainWindow : Window
         _applyingChrome = true;
         WindowState = WindowState.FullScreen;
         _applyingChrome = false;
-        _windowVm?.Console.ResumePresence();
+        if (!_playSessionActive)
+            _windowVm?.Console.ResumePresence();
     }
 
-    private void OnGameLaunched(object? sender, EventArgs e)
+    private void OnGameLaunched(object? sender, GameLaunchNotification e)
     {
-        if (!_consoleChromeActive || _windowVm is null)
-            return;
+        if (e.IsInstall)
+        {
+            if (_consoleChromeActive && _windowVm is not null)
+            {
+                _windowVm.Console.SuspendPresence();
+                MinimizeLauncher();
+            }
 
-        _windowVm.Console.SuspendPresence();
+            return;
+        }
+
+        if (_consoleChromeActive)
+            _windowVm?.Console.SuspendPresence();
+
+        MinimizeLauncher();
+        BeginPlaySession(e);
+    }
+
+    private void MinimizeLauncher()
+    {
         _applyingChrome = true;
+        if (!_playSessionActive)
+            _prePlayWindowState = WindowState;
         WindowState = WindowState.Minimized;
         _applyingChrome = false;
+    }
+
+    private void BeginPlaySession(GameLaunchNotification e)
+    {
+        _playSessionActive = true;
+        PauseGamepadPolling();
+        _playSession.Start(e.Game, e.Process);
+    }
+
+    private void OnPlaySessionEnded(object? sender, EventArgs e) =>
+        Dispatcher.UIThread.Post(EndPlaySession, DispatcherPriority.Normal);
+
+    private void EndPlaySession()
+    {
+        if (!_playSessionActive)
+            return;
+
+        _playSessionActive = false;
+        if (_closed)
+            return;
+
+        RestoreAfterPlay();
+        ResumeGamepadPolling();
+        if (_consoleChromeActive)
+            _windowVm?.Console.ResumePresence();
+    }
+
+    private void RestoreAfterPlay()
+    {
+        _applyingChrome = true;
+        Show();
+        if (_consoleChromeActive)
+        {
+            // Avalonia on Windows needs a step through Normal when restoring from Minimized to borderless FullScreen.
+            if (WindowState == WindowState.Minimized)
+                WindowState = WindowState.Normal;
+            WindowDecorations = Avalonia.Controls.WindowDecorations.None;
+            CanResize = false;
+            WindowState = WindowState.FullScreen;
+        }
+        else if (_prePlayWindowState == WindowState.Minimized)
+        {
+            WindowState = WindowState.Normal;
+        }
+        else
+        {
+            WindowState = _prePlayWindowState;
+        }
+
+        var wasTopmost = Topmost;
+        Topmost = true;
+        WindowForeground.TryActivate(this);
+        Activate();
+        Topmost = wasTopmost;
+        _applyingChrome = false;
+
+        if (_consoleChromeActive)
+        {
+            Dispatcher.UIThread.Post(
+                () =>
+                {
+                    WindowForeground.TryActivate(this);
+                    ConsoleView.FocusCarousel();
+                },
+                DispatcherPriority.Input);
+        }
     }
 
     private void OnPointerUsed(object? sender, PointerPressedEventArgs e) =>
         _windowVm?.Console.NoteKeyboardOrMouse();
 
+    private bool IsGamepadForeground() =>
+        IsActive && !_playSessionActive && WindowForeground.IsThisProcessForeground();
+
+    private void PauseGamepadPolling()
+    {
+        _windowGamepadRepeat.Reset();
+        _windowVm?.Console.ResetGamepadLatches();
+        _gamepad.Stop();
+    }
+
+    private void ResumeGamepadPolling()
+    {
+        if (_closed || _playSessionActive || !IsActive)
+            return;
+
+        _windowGamepadRepeat.Reset();
+        _windowVm?.Console.ResetGamepadLatches();
+        _gamepad.Start();
+        _gamepad.SetInteractive(_windowVm?.IsConsoleMode == true);
+    }
+
     private void OnGamepadFrame(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
     {
-        if (_windowVm is null)
+        if (_playSessionActive || _windowVm is null || !IsGamepadForeground())
             return;
 
         if (GamepadInput.HasActivity(previous, current))

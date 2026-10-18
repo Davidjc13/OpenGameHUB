@@ -7,6 +7,7 @@ namespace OpenGameHUB.Providers.Steam;
 
 public sealed class SteamStoreSearchClient
 {
+    private readonly SteamStoreClient _steamStoreClient = new();
     private readonly HttpClient _httpClient = new()
     {
         Timeout = TimeSpan.FromSeconds(8)
@@ -30,10 +31,17 @@ public sealed class SteamStoreSearchClient
         if (appId is null)
             return [];
 
-        return
-        [
-            $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_600x900.jpg"
-        ];
+        var urls = new List<string>();
+        foreach (var url in SteamWebApiService.GetCoverUrls(appId.Value))
+            urls.Add(url);
+
+        foreach (var url in await _steamStoreClient.GetCoverUrlsAsync(appId.Value, cancellationToken))
+        {
+            if (!urls.Contains(url, StringComparer.OrdinalIgnoreCase))
+                urls.Add(url);
+        }
+
+        return urls;
     }
 
     private async Task<int?> FindBestAppIdAsync(string title, CancellationToken cancellationToken)

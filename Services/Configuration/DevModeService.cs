@@ -19,6 +19,8 @@ internal static class DevModeService
             StringComparison.Ordinal);
 #endif
 
+    public static bool IsDiscordFeatureEnabled => IsEnabled;
+
     public static string DataDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "OpenGameHUB");
@@ -42,7 +44,9 @@ internal static class DevModeService
             EpicDisplayName = string.Empty,
             XboxGamertag = string.Empty,
             BattleNetDisplayName = string.Empty,
-            DiscordApplicationId = current.DiscordApplicationId
+            DiscordApplicationId = current.DiscordApplicationId,
+            DiscordConsoleNotificationsEnabled = current.DiscordConsoleNotificationsEnabled,
+            SuppressSystemDiscordToasts = current.SuppressSystemDiscordToasts
         };
 
     public static void ResetPlatformConnections()

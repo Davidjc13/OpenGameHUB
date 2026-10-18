@@ -15,6 +15,7 @@ internal static class ProtocolUri
     public const int MaxUrlLength = 2048;
 
     public const string StoreGamingPage = "ms-windows-store://navigatetopage/?Id=Gaming";
+    public const string WindowsNotificationPrivacySettings = "ms-settings:privacy-notifications";
 
     private static readonly HashSet<string> AllowedSchemes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -27,7 +28,8 @@ internal static class ProtocolUri
         "goggalaxy",
         "battlenet",
         "msxbox",
-        "ms-windows-store"
+        "ms-windows-store",
+        "ms-settings"
     };
 
     public static bool IsCatalogToken([NotNullWhen(true)] string? value)

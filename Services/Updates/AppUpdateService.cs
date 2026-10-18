@@ -215,8 +215,8 @@ public static class AppUpdateService
 
         var psi = new ProcessStartInfo
         {
-            FileName = "cmd.exe",
-            Arguments = BuildDetachedLaunchArguments(helperPath),
+            FileName = "wscript.exe",
+            Arguments = BuildHiddenScriptLaunchArguments(helperPath),
             UseShellExecute = false,
             CreateNoWindow = true,
             WindowStyle = ProcessWindowStyle.Hidden
@@ -228,8 +228,8 @@ public static class AppUpdateService
         Environment.Exit(0);
     }
 
-    internal static string BuildDetachedLaunchArguments(string helperPath) =>
-        $"/c start \"\" /MIN \"{helperPath}\"";
+    internal static string BuildHiddenScriptLaunchArguments(string helperPath) =>
+        $"//B //Nologo \"{helperPath}\"";
 
     internal static string ResolveInstalledExecutablePath()
     {
@@ -246,26 +246,34 @@ public static class AppUpdateService
             "OpenGameHUB.exe");
     }
 
-    internal static string BuildUpdateHelperBatch(string installerPath, string appExePath)
+    internal static string BuildUpdateHelperScript(string installerPath, string appExePath)
     {
-        var installer = Path.GetFullPath(installerPath);
-        var appExe = Path.GetFullPath(appExePath);
-        var appDir = Path.GetDirectoryName(appExe) ?? string.Empty;
+        var installer = EscapeVbsString(Path.GetFullPath(installerPath));
+        var appExeFull = Path.GetFullPath(appExePath);
+        var appExe = EscapeVbsString(appExeFull);
+        var appDir = EscapeVbsString(Path.GetDirectoryName(appExeFull) ?? string.Empty);
 
         return $"""
-            @echo off
-            "{installer}" /SILENT /CLOSEAPPLICATIONS
-            if exist "{appExe}" start "" /D "{appDir}" "{appExe}"
+            Set shell = CreateObject("WScript.Shell")
+            shell.Run ""{installer}"" /SILENT /CLOSEAPPLICATIONS", 0, True
+            Set fso = CreateObject("Scripting.FileSystemObject")
+            If fso.FileExists("{appExe}") Then
+              shell.CurrentDirectory = "{appDir}"
+              shell.Run ""{appExe}"", 1, False
+            End If
             """;
     }
+
+    private static string EscapeVbsString(string value) =>
+        value.Replace("\"", "\"\"", StringComparison.Ordinal);
 
     private static string WriteUpdateHelperBatch(string installerPath, string appExePath)
     {
         var directory = Path.Combine(Path.GetTempPath(), "OpenGameHUB", "updates");
         Directory.CreateDirectory(directory);
 
-        var helperPath = Path.Combine(directory, $"apply-update-{Guid.NewGuid():N}.cmd");
-        File.WriteAllText(helperPath, BuildUpdateHelperBatch(installerPath, appExePath));
+        var helperPath = Path.Combine(directory, $"apply-update-{Guid.NewGuid():N}.vbs");
+        File.WriteAllText(helperPath, BuildUpdateHelperScript(installerPath, appExePath));
         return helperPath;
     }
 
