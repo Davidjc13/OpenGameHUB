@@ -38,6 +38,8 @@ public sealed class XInputGamepadPoller : IDisposable
 
     public event Action<GamepadButtons, GamepadButtons, TimeSpan>? Frame;
 
+    public Func<bool>? ShouldRead { get; set; }
+
     public TimeSpan Interval => _timer?.Interval ?? IdleInterval;
 
     public bool IsRunning => _timer?.IsEnabled == true;
@@ -81,6 +83,13 @@ public sealed class XInputGamepadPoller : IDisposable
 
     private void OnTick(object? sender, EventArgs e)
     {
+        if (!IsForeground())
+        {
+            _hasSample = false;
+            ApplyInterval();
+            return;
+        }
+
         if (_unavailable || !TryRead(out var current))
         {
             _hasSample = false;
@@ -121,10 +130,14 @@ public sealed class XInputGamepadPoller : IDisposable
         if (_timer is null)
             return;
 
-        var interval = _interactive || padConnected ? InteractiveInterval : IdleInterval;
+        var interval = IsForeground() && (_interactive || padConnected)
+            ? InteractiveInterval
+            : IdleInterval;
         if (_timer.Interval != interval)
             _timer.Interval = interval;
     }
+
+    private bool IsForeground() => ShouldRead?.Invoke() != false;
 
     private bool TryRead(out GamepadButtons buttons)
     {

@@ -75,11 +75,18 @@ public partial class MainWindow : Window
         AddHandler(KeyUpEvent, OnLibraryKeyUp, RoutingStrategies.Tunnel);
         AddHandler(TextInputEvent, OnLibraryTextInput, RoutingStrategies.Tunnel);
         AddHandler(PointerPressedEvent, OnPointerUsed, RoutingStrategies.Tunnel);
+        Activated += OnWindowActivated;
+        Deactivated += OnWindowDeactivated;
+        _gamepad.ShouldRead = IsGamepadForeground;
         _gamepad.Frame += OnGamepadFrame;
-        _gamepad.Start();
-        _gamepad.SetInteractive(false);
+        if (IsActive)
+            ResumeGamepadPolling();
         QueueViewportUpdate();
     }
+
+    private void OnWindowActivated(object? sender, EventArgs e) => ResumeGamepadPolling();
+
+    private void OnWindowDeactivated(object? sender, EventArgs e) => PauseGamepadPolling();
 
     protected override void OnClosed(EventArgs e)
     {
@@ -88,6 +95,8 @@ public partial class MainWindow : Window
         RemoveHandler(KeyUpEvent, OnLibraryKeyUp);
         RemoveHandler(TextInputEvent, OnLibraryTextInput);
         RemoveHandler(PointerPressedEvent, OnPointerUsed);
+        Activated -= OnWindowActivated;
+        Deactivated -= OnWindowDeactivated;
         _gamepad.Frame -= OnGamepadFrame;
         _gamepad.Dispose();
         _playSession.Ended -= OnPlaySessionEnded;
@@ -117,10 +126,10 @@ public partial class MainWindow : Window
     private void ApplyConsoleChrome(bool enabled)
     {
         _windowGamepadRepeat.Reset();
-        _gamepad.SetInteractive(enabled && !_playSessionActive);
+        _gamepad.SetInteractive(enabled && !_playSessionActive && IsActive);
         if (enabled)
         {
-            if (!_playSessionActive)
+            if (!_playSessionActive && IsActive)
                 _gamepad.Start();
             ConsoleView.IsVisible = true;
             EnterConsoleChrome();
@@ -228,8 +237,7 @@ public partial class MainWindow : Window
     private void BeginPlaySession(GameLaunchNotification e)
     {
         _playSessionActive = true;
-        _windowGamepadRepeat.Reset();
-        _gamepad.Stop();
+        PauseGamepadPolling();
         _playSession.Start(e.Game, e.Process);
     }
 
@@ -246,9 +254,7 @@ public partial class MainWindow : Window
             return;
 
         RestoreAfterPlay();
-        _windowGamepadRepeat.Reset();
-        _gamepad.Start();
-        _gamepad.SetInteractive(_windowVm?.IsConsoleMode == true);
+        ResumeGamepadPolling();
         if (_consoleChromeActive)
             _windowVm?.Console.ResumePresence();
     }
@@ -297,9 +303,30 @@ public partial class MainWindow : Window
     private void OnPointerUsed(object? sender, PointerPressedEventArgs e) =>
         _windowVm?.Console.NoteKeyboardOrMouse();
 
+    private bool IsGamepadForeground() =>
+        IsActive && !_playSessionActive && WindowForeground.IsThisProcessForeground();
+
+    private void PauseGamepadPolling()
+    {
+        _windowGamepadRepeat.Reset();
+        _windowVm?.Console.ResetGamepadLatches();
+        _gamepad.Stop();
+    }
+
+    private void ResumeGamepadPolling()
+    {
+        if (_closed || _playSessionActive || !IsActive)
+            return;
+
+        _windowGamepadRepeat.Reset();
+        _windowVm?.Console.ResetGamepadLatches();
+        _gamepad.Start();
+        _gamepad.SetInteractive(_windowVm?.IsConsoleMode == true);
+    }
+
     private void OnGamepadFrame(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
     {
-        if (_playSessionActive || _windowVm is null)
+        if (_playSessionActive || _windowVm is null || !IsGamepadForeground())
             return;
 
         if (GamepadInput.HasActivity(previous, current))

@@ -328,6 +328,16 @@ public partial class ConsoleModeViewModel : ViewModelBase
 
     public void NoteKeyboardOrMouse() => UsingGamepad = false;
 
+    public void ResetGamepadLatches()
+    {
+        _gamepadRepeat.Reset();
+        _mediaGuide.Reset();
+        _notificationInput.Reset();
+        MediaGuideCharging = false;
+        MediaGuideHoldSweep = 0;
+        MediaGuideOpen = false;
+    }
+
     public void ProcessGamepad(GamepadButtons previous, GamepadButtons current, TimeSpan elapsed)
     {
         if (!IsActive)

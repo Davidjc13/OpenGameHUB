@@ -13,6 +13,16 @@ internal static class WindowForeground
     private const uint KeyeventfExtendedKey = 0x0001;
     private const uint KeyeventfKeyUp = 0x0002;
 
+    public static bool IsThisProcessForeground()
+    {
+        var foreground = GetForegroundWindow();
+        if (foreground == IntPtr.Zero)
+            return false;
+
+        GetWindowThreadProcessId(foreground, out var processId);
+        return processId == (uint)Environment.ProcessId;
+    }
+
     public static void TryActivate(Window window)
     {
         var handle = window.TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
