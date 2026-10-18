@@ -29,9 +29,10 @@ public sealed class AppUpdateServiceTests
 
         var script = AppUpdateService.BuildUpdateHelperScript(installer, appExe);
 
-        Assert.Contains($"shell.Run \"\"{installer}\"\" /SILENT /CLOSEAPPLICATIONS\", 0, True", script);
+        Assert.Contains("q = Chr(34)", script);
+        Assert.Contains($"shell.Run q & \"{installer}\" & q & \" /SILENT /CLOSEAPPLICATIONS\", 0, True", script);
         Assert.Contains($"shell.CurrentDirectory = \"C:\\Users\\test\\AppData\\Local\\Programs\\OpenGameHUB\"", script);
-        Assert.Contains($"shell.Run \"\"{appExe}\"\", 1, False", script);
+        Assert.Contains($"shell.Run q & \"{appExe}\" & q, 1, False", script);
     }
 
     [Fact]

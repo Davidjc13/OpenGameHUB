@@ -100,14 +100,15 @@ Progress bar: indeterminate when querying API; percentage during download.
 
 ## Installation
 
-The app exits and a detached `.cmd` helper runs the installer, then relaunches OpenGameHUB:
+The app exits and a hidden `.vbs` helper runs the installer, then relaunches OpenGameHUB:
 
-```batch
-installer.exe /SILENT /CLOSEAPPLICATIONS
-if exist "OpenGameHUB.exe" start "" /D "{app dir}" "OpenGameHUB.exe"
+```vbscript
+q = Chr(34)
+shell.Run q & "installer.exe" & q & " /SILENT /CLOSEAPPLICATIONS", 0, True
+' if the installed exe exists, relaunch it from the app directory
 ```
 
-Launched via `cmd /c start /MIN` so the helper survives `Environment.Exit(0)`.
+Launched via `wscript.exe //B //Nologo` so no console window appears. The command passed to `WScript.Shell.Run` is one string; the installer path inside it is quoted with `Chr(34)`. Two quote characters around the path (`""path""`) is a VBScript syntax error, and `//B` hides that error after the app has already exited.
 
 Inno Setup (`installer/OpenGameHUB.iss`):
 
